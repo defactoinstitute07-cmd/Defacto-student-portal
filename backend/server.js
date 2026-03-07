@@ -48,6 +48,18 @@ app.use('/api', authRoutes);
 app.use('/api/student/fees', feeRoutes);
 app.use('/api/student/results', resultRoutes);
 
+// Health Check
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'ok',
+        mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+        env: {
+            MONGODB_URI: process.env.MONGODB_URI ? 'set' : 'missing',
+            JWT_SECRET: process.env.JWT_SECRET ? 'set' : 'missing'
+        }
+    });
+});
+
 // Database Connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/erp_system';
 mongoose.connect(MONGODB_URI)

@@ -37,7 +37,7 @@ exports.addStudent = async (req, res) => {
         });
     } catch (error) {
         console.error('Error in addStudent:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Server error: ' + error.message });
     }
 };
 
@@ -87,7 +87,7 @@ exports.studentLogin = async (req, res) => {
         });
     } catch (error) {
         console.error('Error in studentLogin:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Server error: ' + error.message });
     }
 };
 
@@ -199,6 +199,6 @@ exports.resetPassword = async (req, res) => {
         res.json({ success: true, message: 'Password updated successfully.' });
     } catch (error) {
         console.error('Error in resetPassword:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Server error: ' + error.message });
     }
 };
