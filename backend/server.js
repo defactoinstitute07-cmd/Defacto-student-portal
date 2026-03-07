@@ -44,7 +44,7 @@ const globalLimiter = rateLimit({
 app.use(globalLimiter);
 
 // Routes
-app.use('/', authRoutes);
+app.use('/api', authRoutes);
 app.use('/api/student/fees', feeRoutes);
 app.use('/api/student/results', resultRoutes);
 

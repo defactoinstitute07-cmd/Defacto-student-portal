@@ -1,15 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import axios from 'axios';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import StudentLayout from '../components/StudentLayout';
 import { IndianRupee, Clock, CheckCircle2, AlertCircle, FileText, Download, Loader2, Calendar } from 'lucide-react';
 import ReceiptPreviewModal from '../components/ReceiptPreviewModal';
-
-const API = () => axios.create({
-    baseURL: 'http://localhost:5005/api',
-    headers: { Authorization: `Bearer ${localStorage.getItem('studentToken')}` }
-});
+import api from '../services/api';
 
 const StudentFees = () => {
     const [fees, setFees] = useState([]);
@@ -24,7 +19,7 @@ const StudentFees = () => {
 
     const loadFees = useCallback(async () => {
         try {
-            const { data } = await API().get('/student/fees');
+            const { data } = await api.get('/student/fees');
             if (data.success) {
                 setFees(data.fees);
 

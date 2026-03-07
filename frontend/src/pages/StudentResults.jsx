@@ -152,7 +152,7 @@ const StudentResults = () => {
             const params = { type };
             if (type === 'subject' && subject) params.subject = subject;
 
-            const response = await api.get('/api/student/results/leaderboard', { params });
+            const response = await api.get('/student/results/leaderboard', { params });
             if (response.data.success) {
                 setLeaderboard(response.data.leaderboard);
             }
@@ -173,7 +173,7 @@ const StudentResults = () => {
         const fetchInitialData = async () => {
             setLoading(true);
             try {
-                const resResponse = await api.get('/api/student/results');
+                const resResponse = await api.get('/student/results');
                 if (resResponse.data.success) {
                     setResults(resResponse.data.results);
                     setStats(resResponse.data.stats);

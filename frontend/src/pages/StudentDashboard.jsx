@@ -1,16 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../services/api';
 import StudentLayout from '../components/StudentLayout';
 import { User, Hash, BookOpen, Calendar, Wallet } from 'lucide-react';
-
-const api = axios.create({ baseURL: 'http://localhost:5005' });
-
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('studentToken');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
@@ -25,7 +17,7 @@ const StudentDashboard = () => {
       return;
     }
 
-    api.get('/api/student/me')
+    api.get('/student/me')
       .then(res => {
         if (res.data.success) {
           setStudent(res.data.student);
@@ -96,10 +88,10 @@ const StudentDashboard = () => {
       {error && <div className="alert alert-error" style={{ marginBottom: 20 }}>⚠ {error}</div>}
 
       {/* Stats Grid - Made fully responsive for small screens */}
-      <div className="stats-grid" 
-        style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', 
+      <div className="stats-grid"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))',
           gap: '16px',
           marginBottom: '24px'
         }}
@@ -126,7 +118,7 @@ const StudentDashboard = () => {
         style={{
           display: 'grid',
           // Changed 300px to min(100%, 280px) so it doesn't overflow on screens smaller than 300px
-          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
           gap: '20px'
         }}
       >
