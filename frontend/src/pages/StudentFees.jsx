@@ -75,7 +75,8 @@ const StudentFees = () => {
         const coachingName = settings.coachingName || 'ERP ACADEMY';
         const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
 
-        const logoUrl = settings.instituteLogo ? (settings.instituteLogo.startsWith('http') ? settings.instituteLogo : `http://localhost:5000${settings.instituteLogo}`) : null;
+        const logoUrl = settings.instituteLogo ?
+            (settings.instituteLogo.startsWith('http') ? settings.instituteLogo : settings.instituteLogo) : null;
 
         if (logoUrl) {
             try {
