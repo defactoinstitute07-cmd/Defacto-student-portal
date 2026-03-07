@@ -80,7 +80,7 @@ const StudentProfile = () => {
             return;
         }
 
-        api.get('/api/student/me')
+        api.get('/student/me')
             .then(res => {
                 if (res.data.success) {
                     setStudent(res.data.student);
@@ -109,7 +109,7 @@ const StudentProfile = () => {
 
         setPwdLoading(true);
         try {
-            const res = await api.post('/api/student/reset-password', {
+            const res = await api.post('/student/reset-password', {
                 currentPassword: pwdData.currentPassword,
                 newPassword: pwdData.newPassword
             });
@@ -147,8 +147,12 @@ const StudentProfile = () => {
                     <div className="lg:col-span-3 space-y-6 lg:sticky lg:top-24">
                         <div className="bg-white rounded-md border border-gray-100 p-8 shadow-sm space-y-8">
                             <div className="flex flex-col items-center text-center space-y-4">
-                                <div className="h-24 w-24 rounded-md bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center text-4xl font-black shadow-xl shadow-blue-200">
-                                    {student.name[0].toUpperCase()}
+                                <div className="h-24 w-24 rounded-md bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center text-4xl font-black shadow-xl shadow-blue-200 overflow-hidden">
+                                    {student.profileImage ? (
+                                        <img src={student.profileImage} alt={student.name} className="h-full w-full object-cover" />
+                                    ) : (
+                                        student.name[0].toUpperCase()
+                                    )}
                                 </div>
                                 <div>
                                     <h2 className="text-xl font-black text-gray-900 tracking-tight">{student.name}</h2>
@@ -214,40 +218,7 @@ const StudentProfile = () => {
                         {/* Subject Allocations & Rooms */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
-                            {/* Academic Allocations */}
-                            <div className="bg-white rounded-md border border-gray-100 shadow-sm overflow-hidden flex flex-col">
-                                <div className="px-8 py-6 border-b border-gray-50 flex items-center justify-between bg-gray-50/20">
-                                    <div className="flex items-center gap-3">
-                                        <Home size={20} className="text-indigo-500" />
-                                        <h3 className="text-xs font-black text-gray-800 uppercase tracking-[0.2em]">Academic Workspace</h3>
-                                    </div>
-                                    <span className="px-3 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black rounded-lg border border-indigo-100">ROOM: {student.roomAllocation || 'N/A'}</span>
-                                </div>
-                                <div className="p-8 flex-1">
-                                    <div className="space-y-4">
-                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                                            <GraduationCap size={14} /> Subject Specialists
-                                        </p>
-                                        <div className="space-y-3">
-                                            {student.subjectTeachers && student.subjectTeachers.length > 0 ? (
-                                                student.subjectTeachers.map((st, i) => (
-                                                    <div key={i} className="flex items-center justify-between p-4 rounded-xl border border-gray-50 bg-gray-50/30 hover:bg-white hover:shadow-sm transition-all group">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="h-8 w-8 rounded-lg bg-white border border-gray-100 flex items-center justify-center text-xs font-black text-indigo-500 group-hover:bg-indigo-500 group-hover:text-white transition-all">
-                                                                {st.subject[0].toUpperCase()}
-                                                            </div>
-                                                            <span className="text-sm font-bold text-gray-700">{st.subject}</span>
-                                                        </div>
-                                                        <span className="text-xs font-bold text-gray-400">{st.teacher}</span>
-                                                    </div>
-                                                ))
-                                            ) : (
-                                                <div className="text-center py-6 text-gray-400 italic text-xs">No allocations recorded.</div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            
 
                             {/* Security / Password Reset */}
                             <div className="bg-white rounded-md border border-gray-100 shadow-sm overflow-hidden">

@@ -24,7 +24,7 @@ const TestDetailModal = ({ test, onClose }) => {
                     </div>
                     <button
                         onClick={onClose}
-                        className="h-10 w-10 rounded-2xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                        className="h-10 w-10 rounded-md bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
                     >
                         <ChevronDown size={24} className="rotate-90 sm:rotate-0" />
                     </button>
@@ -33,14 +33,14 @@ const TestDetailModal = ({ test, onClose }) => {
                 {/* Content */}
                 <div className="p-6 sm:p-8 space-y-8 max-h-[70vh] overflow-y-auto">
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100 space-y-1">
+                        <div className="p-4 rounded-md bg-gray-50 border border-gray-100 space-y-1">
                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Score Obtained</p>
                             <div className="flex items-baseline gap-1">
                                 <span className="text-2xl font-black text-gray-900">{test.marksObtained}</span>
                                 <span className="text-sm font-bold text-gray-400">/ {test.totalMarks}</span>
                             </div>
                         </div>
-                        <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100 space-y-1">
+                        <div className="p-4 rounded-md bg-gray-50 border border-gray-100 space-y-1">
                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Percentage</p>
                             <div className="flex items-center gap-2">
                                 <span className={`text-2xl font-black ${test.hasPassed ? 'text-emerald-600' : 'text-rose-600'}`}>{test.percentage}%</span>
@@ -83,7 +83,7 @@ const TestDetailModal = ({ test, onClose }) => {
                 <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-end">
                     <button
                         onClick={onClose}
-                        className="px-8 py-3 bg-gray-900 text-white text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-gray-800 transition-all active:scale-95 shadow-xl shadow-gray-200"
+                        className="px-8 py-3 bg-gray-900 text-white text-xs font-black uppercase tracking-widest rounded-md hover:bg-gray-800 transition-all active:scale-95 shadow-xl shadow-gray-200"
                     >
                         Close Details
                     </button>
@@ -107,8 +107,8 @@ const SubjectDetail = () => {
             try {
                 // Fetch results and profile in parallel
                 const [resResponse, profileResponse] = await Promise.all([
-                    api.get('/api/student/results'),
-                    api.get('/api/student/me')
+                    api.get('/student/results'),
+                    api.get('/student/me')
                 ]);
 
                 if (resResponse.data.success) {
@@ -167,7 +167,7 @@ const SubjectDetail = () => {
                         </button>
 
                         <div className="flex items-center gap-4">
-                            <div className="h-16 w-16 rounded-2xl bg-gray-900 flex items-center justify-center text-white shadow-xl shadow-gray-200">
+                            <div className="h-16 w-16 rounded-md bg-gray-900 flex items-center justify-center text-white shadow-xl shadow-gray-200">
                                 <BookOpen size={32} />
                             </div>
                             <div>
@@ -182,7 +182,7 @@ const SubjectDetail = () => {
                     </div>
 
                     {activeTeacher && (
-                        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4 animate-in slide-in-from-right-4 duration-500">
+                        <div className="bg-white p-4 rounded-md border border-gray-100 shadow-sm flex items-center gap-4 animate-in slide-in-from-right-4 duration-500">
                             <div className="h-12 w-12 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center shadow-inner">
                                 <Award size={24} />
                             </div>
@@ -218,7 +218,7 @@ const SubjectDetail = () => {
                                     weakChapters.map((wc, idx) => (
                                         <div
                                             key={wc._id || idx}
-                                            className="p-4 rounded-2xl bg-gray-50 border border-gray-100 space-y-3 hover:border-orange-200 hover:bg-orange-50/30 transition-all cursor-pointer group"
+                                            className="p-4 rounded-md bg-gray-50 border border-gray-100 space-y-3 hover:border-orange-200 hover:bg-orange-50/30 transition-all cursor-pointer group"
                                             onClick={() => setSelectedTest(wc)}
                                         >
                                             <div className="flex items-center justify-between">
@@ -258,45 +258,65 @@ const SubjectDetail = () => {
                                 results.map((r, idx) => (
                                     <div
                                         key={r._id || idx}
-                                        className="relative bg-white rounded-md p-5 sm:p-6 border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all cursor-pointer group flex flex-col sm:flex-row gap-6 sm:items-center"
+                                        className="relative bg-white rounded-md p-4 sm:p-6 border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all cursor-pointer group flex flex-col sm:flex-row gap-4 sm:gap-6 sm:items-center"
                                         onClick={() => setSelectedTest(r)}
                                     >
-                                        <div className={`h-16 w-16 sm:h-20 sm:w-20 rounded-md flex-shrink-0 flex flex-col items-center justify-center border-2 transition-colors ${r.hasPassed ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-rose-50 border-rose-100 text-rose-600'}`}>
-                                            <span className="text-xl sm:text-2xl font-black">{r.marksObtained}</span>
-                                            <span className="text-[10px] font-bold opacity-60">/ {r.totalMarks}</span>
+                                        {/* Header / Score Area (Mobile Layout Changes) */}
+                                        <div className="flex justify-between items-start sm:items-center sm:w-auto w-full gap-4">
+
+                                            {/* Exam Info (Mobile Only - This moves to the right on desktop) */}
+                                            <div className="sm:hidden flex-1 min-w-0">
+                                                <h4 className="text-base font-black text-gray-800 line-clamp-2 group-hover:text-blue-600 transition-colors uppercase tracking-tight leading-tight mb-1">{r.examName}</h4>
+                                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest truncate">{r.chapter}</p>
+                                            </div>
+
+                                            {/* Score Block */}
+                                            <div className={`h-10 sm:h-14 px-3 sm:px-4 min-w-[4rem] sm:min-w-[5rem] rounded-md flex-shrink-0 flex items-baseline justify-center gap-1 border-2 transition-colors ${r.hasPassed ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-rose-50 border-rose-100 text-rose-600'}`}>
+    <span className="text-lg sm:text-2xl font-black leading-none">{r.marksObtained}</span>
+    <span className="text-[10px] sm:text-xs font-bold opacity-70 leading-none">/ {r.totalMarks}</span>
+</div>
                                         </div>
 
-                                        <div className="flex-1 min-w-0 space-y-3">
-                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                                                <div>
-                                                    <h4 className="text-base sm:text-lg font-black text-gray-800 line-clamp-1 group-hover:text-blue-600 transition-colors uppercase tracking-tight">{r.examName}</h4>
+                                        {/* Content Body */}
+                                        <div className="flex-1 min-w-0 space-y-3 sm:space-y-3">
+
+                                            {/* Desktop Exam Info & Status Badge */}
+                                            <div className="flex flex-row items-center justify-between gap-2">
+
+                                                {/* Desktop Exam Info (Hidden on mobile as it's at the top) */}
+                                                <div className="hidden sm:block">
+                                                    <h4 className="text-lg font-black text-gray-800 line-clamp-1 group-hover:text-blue-600 transition-colors uppercase tracking-tight">{r.examName}</h4>
                                                     <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{r.chapter}</p>
                                                 </div>
-                                                <span className={`w-fit px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${r.hasPassed ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-rose-50 text-rose-700 border-rose-100'}`}>
+
+                                                {/* Status Badge */}
+                                                <span className={`w-fit px-2.5 py-1 sm:px-3 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-widest border ${r.hasPassed ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-rose-50 text-rose-700 border-rose-100'}`}>
                                                     {r.hasPassed ? 'Qualified' : 'Needs Revision'}
                                                 </span>
                                             </div>
 
+                                            {/* Remarks / Feedback Block */}
                                             {r.remarks && (
-                                                <div className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100/50 group-hover:bg-blue-50/30 transition-colors">
-                                                    <div className="flex items-center gap-2 mb-1.5 opacity-60">
-                                                        <Award size={14} className="text-blue-500" />
-                                                        <span className="text-[10px] font-black uppercase tracking-widest">Feedback</span>
+                                                <div className="bg-gray-50/50 p-3 sm:p-4 rounded-md border border-gray-100/50 group-hover:bg-blue-50/30 transition-colors">
+                                                    <div className="flex items-center gap-2 mb-1 opacity-60">
+                                                        <Award size={12} className="text-blue-500 sm:w-[14px] sm:h-[14px]" />
+                                                        <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest">Feedback</span>
                                                     </div>
-                                                    <p className="text-sm text-gray-600 italic font-medium leading-relaxed">
+                                                    <p className="text-xs sm:text-sm text-gray-600 italic font-medium leading-relaxed">
                                                         {r.remarks}
                                                     </p>
                                                 </div>
                                             )}
 
-                                            <div className="flex items-center gap-4 pt-2">
+                                            {/* Metadata (Date & Performance) */}
+                                            <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-1 sm:pt-2 border-t border-gray-50 sm:border-transparent mt-2 sm:mt-0">
                                                 <div className="flex items-center gap-1.5 text-gray-400">
-                                                    <Clock size={12} />
-                                                    <span className="text-[10px] font-bold uppercase">{new Date(r.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                                                    <Clock size={12} className="shrink-0" />
+                                                    <span className="text-[9px] sm:text-[10px] font-bold uppercase">{new Date(r.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                                                 </div>
                                                 <div className="flex items-center gap-1.5 text-gray-400">
-                                                    <TrendingDown size={12} className={r.percentage >= 60 ? 'rotate-180 text-emerald-500' : 'text-rose-500'} />
-                                                    <span className="text-[10px] font-bold uppercase">{r.percentage}% Performance</span>
+                                                    <TrendingDown size={12} className={`shrink-0 ${r.percentage >= 60 ? 'rotate-180 text-emerald-500' : 'text-rose-500'}`} />
+                                                    <span className="text-[9px] sm:text-[10px] font-bold uppercase">{r.percentage}% Performance</span>
                                                 </div>
                                             </div>
                                         </div>

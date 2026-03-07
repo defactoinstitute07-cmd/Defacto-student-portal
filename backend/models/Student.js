@@ -33,6 +33,7 @@ const studentSchema = new mongoose.Schema({
     // ── Auth-portal additions ────────────────────────────────────
     password: { type: String },        // hashed; set by admin on creation
     phoneLockedByAdmin: { type: Boolean, default: false },  // true → student cannot change contact
+    isFirstLogin: { type: Boolean, default: true },
 });
 
 // Hash password before save (Mongoose 9 async pre-hook)

@@ -2,7 +2,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import StudentLayout from '../components/StudentLayout';
-import { User, Hash, BookOpen, Calendar, Wallet } from 'lucide-react';
+import { User, Hash, BookOpen, Star, Wallet } from 'lucide-react';
+import Skeleton from '../components/Skeleton';
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
@@ -40,9 +41,36 @@ const StudentDashboard = () => {
   if (loading) {
     return (
       <StudentLayout title="Dashboard">
-        <div className="loader-wrap">
-          <div className="spinner" />
-          <p>Loading dashboard…</p>
+        <div className="page-hdr" style={{ marginBottom: 20 }}>
+          <Skeleton className="h-8 w-48 mb-2" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+
+        <div className="stats-grid" style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))',
+          gap: '16px',
+          marginBottom: '24px'
+        }}>
+          {[1, 2, 3, 4, 5].map(i => (
+            <div className="stat-card" key={i} style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <Skeleton className="h-12 w-12 rounded-full" />
+              <div className="flex-1">
+                <Skeleton className="h-3 w-20 mb-2" />
+                <Skeleton className="h-6 w-32 mb-1" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="panel-container" style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
+          gap: '20px'
+        }}>
+          <Skeleton className="h-64 w-full rounded-md" />
+          <Skeleton className="h-64 w-full rounded-md" />
         </div>
       </StudentLayout>
     );
@@ -52,16 +80,15 @@ const StudentDashboard = () => {
 
   // Pending fees = Base Fees + Registration Fee - Fees Paid
   const pendingFees = (student.fees || 0) + (student.registrationFee || 0) - (student.feesPaid || 0);
-  const totalFees = (student.fees || 0) + (student.registrationFee || 0);
-  const attendancePct = student.attendance?.percentage || 0;
+  const overallScore = student.overallAverage || 0;
 
-  // Dynamic Attendance Theme
-  const getAttendanceTheme = (pct) => {
-    if (pct >= 75) return { cls: 'ic-green', text: '#16a34a' }; // text-green-600
-    if (pct >= 60) return { cls: 'ic-orange', text: '#ca8a04' }; // text-yellow-600
+  // Dynamic Score Theme
+  const getScoreTheme = (score) => {
+    if (score >= 75) return { cls: 'ic-green', text: '#16a34a' }; // text-green-600
+    if (score >= 60) return { cls: 'ic-orange', text: '#ca8a04' }; // text-yellow-600
     return { cls: 'ic-red', text: '#dc2626' }; // text-red-600
   };
-  const attTheme = getAttendanceTheme(attendancePct);
+  const scoreTheme = getScoreTheme(overallScore);
 
   // Dynamic Fees Theme
   const feeTheme = pendingFees === 0
@@ -72,7 +99,7 @@ const StudentDashboard = () => {
     { label: 'Student Name', value: student.name, sub: 'Enrolled Account', icon: User, cls: 'ic-blue', valueColor: '' },
     { label: 'Roll Number', value: student.rollNo, sub: 'Unique ID', icon: Hash, cls: 'ic-indigo', valueColor: '' },
     { label: 'Class / Batch', value: student.className || student.batchName || 'N/A', sub: 'Assigned Cohort', icon: BookOpen, cls: 'ic-orange', valueColor: '' },
-    { label: 'Attendance', value: `${attendancePct}%`, sub: 'Overall Attendance', icon: Calendar, cls: attTheme.cls, valueColor: attTheme.text },
+    { label: 'Average Score', value: `${overallScore}%`, sub: 'Overall Performance', icon: Star, cls: scoreTheme.cls, valueColor: scoreTheme.text },
     { label: 'Pending Fees', value: `₹${pendingFees.toLocaleString()}`, sub: `₹${(student.feesPaid || 0).toLocaleString()} Paid`, icon: Wallet, cls: feeTheme.cls, valueColor: feeTheme.text }
   ];
 
@@ -122,36 +149,9 @@ const StudentDashboard = () => {
           gap: '20px'
         }}
       >
-        {/* Notice Board */}
-        <div className="card" style={{ padding: 20 }}>
-          <div style={{ fontWeight: 700, color: 'var(--erp-primary)', marginBottom: 16 }}>
-            📢 Recent Announcements
-          </div>
-          <div className="empty" style={{ minHeight: 150, display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center' }}>
-            <div className="empty-icon" style={{ fontSize: '2rem' }}>🔔</div>
-            <p>No new announcements.</p>
-          </div>
-        </div>
 
-        {/* Assignments */}
-        <div className="card" style={{ padding: 20 }}>
-          <div style={{ fontWeight: 700, color: 'var(--erp-primary)', marginBottom: 16 }}>
-            📝 Pending Assignments
-          </div>
-          {student.assignments?.pending > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div style={{ padding: 16, border: '1px solid var(--erp-border)', borderRadius: 8, background: 'var(--erp-bg2)' }}>
-                <div style={{ fontWeight: 600 }}>Complete Math Worksheet</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--erp-error)', marginTop: 4 }}>Due Tomorrow</div>
-              </div>
-            </div>
-          ) : (
-            <div className="empty" style={{ minHeight: 150, display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center' }}>
-              <div className="empty-icon" style={{ fontSize: '2rem' }}>✅</div>
-              <p>You're all caught up!</p>
-            </div>
-          )}
-        </div>
+
+
       </div>
     </StudentLayout>
   );

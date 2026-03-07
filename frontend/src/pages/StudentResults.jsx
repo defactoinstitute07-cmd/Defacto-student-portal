@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Skeleton from '../components/Skeleton';
 import api from '../services/api';
 import StudentLayout from '../components/StudentLayout';
 import {
@@ -48,7 +49,7 @@ const TestDetailModal = ({ test, onClose }) => {
                     </div>
                     <button
                         onClick={onClose}
-                        className="h-10 w-10 rounded-2xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                        className="h-10 w-10 rounded-md bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
                     >
                         <ChevronDown size={24} className="rotate-90 sm:rotate-0" />
                     </button>
@@ -59,14 +60,14 @@ const TestDetailModal = ({ test, onClose }) => {
 
                     {/* Summary Metrics */}
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100 space-y-1">
+                        <div className="p-4 rounded-md bg-gray-50 border border-gray-100 space-y-1">
                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Score Obtained</p>
                             <div className="flex items-baseline gap-1">
                                 <span className="text-2xl font-black text-gray-900">{test.marksObtained}</span>
                                 <span className="text-sm font-bold text-gray-400">/ {test.totalMarks}</span>
                             </div>
                         </div>
-                        <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100 space-y-1">
+                        <div className="p-4 rounded-md bg-gray-50 border border-gray-100 space-y-1">
                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Percentage</p>
                             <div className="flex items-center gap-2">
                                 <span className={`text-2xl font-black ${test.hasPassed ? 'text-emerald-600' : 'text-rose-600'}`}>{test.percentage}%</span>
@@ -112,7 +113,7 @@ const TestDetailModal = ({ test, onClose }) => {
                 <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-end">
                     <button
                         onClick={onClose}
-                        className="px-8 py-3 bg-gray-900 text-white text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-gray-800 transition-all active:scale-95 shadow-xl shadow-gray-200"
+                        className="px-8 py-3 bg-gray-900 text-white text-xs font-black uppercase tracking-widest rounded-md hover:bg-gray-800 transition-all active:scale-95 shadow-xl shadow-gray-200"
                     >
                         Close Details
                     </button>
@@ -132,8 +133,6 @@ const StudentResults = () => {
     const [stats, setStats] = useState(null);
     const [studentInfo, setStudentInfo] = useState(null);
     const [weakSubjects, setWeakSubjects] = useState([]);
-    const [leaderboard, setLeaderboard] = useState([]);
-    const [leaderboardLoading, setLeaderboardLoading] = useState(false);
 
     // Filter states
     const [searchTerm, setSearchTerm] = useState('');
@@ -142,26 +141,7 @@ const StudentResults = () => {
     const [sortOrder, setSortOrder] = useState('desc'); // 'desc' or 'asc'
     const [selectedTest, setSelectedTest] = useState(null);
 
-    // Leaderboard Filter States
-    const [lbType, setLbType] = useState('batch'); // 'batch' or 'subject'
-    const [lbSubject, setLbSubject] = useState('');
 
-    const fetchLeaderboard = async (type, subject) => {
-        setLeaderboardLoading(true);
-        try {
-            const params = { type };
-            if (type === 'subject' && subject) params.subject = subject;
-
-            const response = await api.get('/student/results/leaderboard', { params });
-            if (response.data.success) {
-                setLeaderboard(response.data.leaderboard);
-            }
-        } catch (err) {
-            console.error('Error fetching leaderboard:', err);
-        } finally {
-            setLeaderboardLoading(false);
-        }
-    };
 
     useEffect(() => {
         const token = localStorage.getItem('studentToken');
@@ -181,8 +161,6 @@ const StudentResults = () => {
                     setStudentInfo(resResponse.data.studentInfo);
                 }
 
-                // Fetch initial batch leaderboard
-                await fetchLeaderboard('batch');
             } catch (err) {
                 console.error('Error fetching results:', err);
                 if (err.response?.status === 401) {
@@ -199,12 +177,6 @@ const StudentResults = () => {
         fetchInitialData();
     }, [navigate]);
 
-    // Re-fetch leaderboard when filters change
-    useEffect(() => {
-        if (!loading) {
-            fetchLeaderboard(lbType, lbSubject);
-        }
-    }, [lbType, lbSubject]);
 
     // Derived Data: Distinct subjects for filter
     const subjects = useMemo(() => {
@@ -295,10 +267,34 @@ const StudentResults = () => {
     if (loading) {
         return (
             <StudentLayout title="My Results">
-                <div className="loader-wrap flex items-center justify-center p-8 sm:p-12">
-                    <div className="flex flex-col items-center gap-4">
-                        <RefreshCcw className="animate-spin text-blue-500" size={32} />
-                        <p className="text-gray-500 text-sm sm:text-base text-center">Compiling your performance reports...</p>
+                <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 px-0 sm:px-0 pb-8 sm:pb-12">
+                    <div>
+                        <Skeleton className="h-8 w-64 mb-2" />
+                        <Skeleton className="h-4 w-96" />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
+                        {[1, 2, 3].map(i => (
+                            <div key={i} className="bg-white rounded-md p-4 sm:p-6 flex items-center gap-3 sm:gap-4 border border-gray-100">
+                                <Skeleton className="h-10 w-10 sm:h-12 sm:w-12 rounded-full" />
+                                <div className="flex-1">
+                                    <Skeleton className="h-3 w-20 mb-2" />
+                                    <Skeleton className="h-6 w-24" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+                            <Skeleton className="h-64 w-full rounded-md" />
+                            <div className="bg-white rounded-md border border-gray-100 p-4 sm:p-6 space-y-4">
+                                <Skeleton className="h-6 w-48" />
+                                <div className="space-y-2">
+                                    {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-12 w-full" />)}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </StudentLayout>
@@ -373,11 +369,9 @@ const StudentResults = () => {
                     </div>
                 </div>
 
-                {/* Main Content Layout: Performance & Leaderboard */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-
-                    {/* Left Column: Progress & Weak Subjects (Takes 2 columns on big screens) */}
-                    <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+                {/* Performance Analytics & Progress */}
+                <div className="space-y-4 sm:space-y-6">
+                    <div className="space-y-4 sm:space-y-6">
 
                         {/* Progressive Chart Box */}
                         <div className="bg-white rounded-md shadow-sm border border-gray-100 p-4 sm:p-6">
@@ -415,7 +409,7 @@ const StudentResults = () => {
                                             <button
                                                 key={ws.subject}
                                                 onClick={() => navigate(`/student/results/subject/${ws.subject}`)}
-                                                className={`flex-shrink-0 px-5 py-3 rounded-2xl border-2 transition-all duration-300 flex flex-col items-start gap-1 min-w-[140px] bg-white border-gray-100 text-gray-500 hover:border-blue-200 hover:bg-blue-50/30 hover:shadow-lg hover:shadow-blue-50 group`}
+                                                className={`flex-shrink-0 px-5 py-3 rounded-md border-2 transition-all duration-300 flex flex-col items-start gap-1 min-w-[140px] bg-white border-gray-100 text-gray-500 hover:border-blue-200 hover:bg-blue-50/30 hover:shadow-lg hover:shadow-blue-50 group`}
                                             >
                                                 <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-blue-500 transition-colors">{ws.subject}</span>
                                                 <div className="flex items-center gap-2">
@@ -605,112 +599,7 @@ const StudentResults = () => {
                         </div>
                     </div>
 
-                    {/* Right Column: Leaderboard (Sticky on Desktop) */}
-                    <div className="space-y-4 sm:space-y-6">
-                        <div className="bg-gray-900 rounded-md shadow-xl border border-gray-800 p-6 sm:p-8 text-white sticky top-24">
-                            <div className="flex items-center justify-between mb-8">
-                                <div className="space-y-1">
-                                    <div className="flex items-center gap-2 text-yellow-400">
-                                        <Trophy size={20} />
-                                        <h3 className="text-lg font-black uppercase tracking-[0.1em]">Hall of Fame</h3>
-                                    </div>
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-7">Top Academic Performers</p>
-                                </div>
-                                <div className="h-10 w-10 rounded-2xl bg-white/10 flex items-center justify-center text-white/40">
-                                    <Award size={20} />
-                                </div>
-                            </div>
 
-                            {/* Leaderboard Filters */}
-                            <div className="flex gap-2 mb-8 p-1 bg-white/5 rounded-2xl border border-white/10">
-                                <button
-                                    onClick={() => setLbType('batch')}
-                                    className={`flex-1 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${lbType === 'batch' ? 'bg-white text-gray-900 shadow-lg' : 'text-gray-400 hover:text-white'}`}
-                                >
-                                    My Batch
-                                </button>
-                                <button
-                                    onClick={() => setLbType('subject')}
-                                    className={`flex-1 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${lbType === 'subject' ? 'bg-white text-gray-900 shadow-lg' : 'text-gray-400 hover:text-white'}`}
-                                >
-                                    Global
-                                </button>
-                            </div>
-
-                            {lbType === 'subject' && (
-                                <div className="mb-6 animate-in fade-in slide-in-from-top-2 duration-300">
-                                    <select
-                                        value={lbSubject}
-                                        onChange={(e) => setLbSubject(e.target.value)}
-                                        className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-xs font-bold text-white focus:ring-2 focus:ring-blue-500 outline-none"
-                                    >
-                                        <option value="">Select Subject</option>
-                                        {subjects.filter(s => s !== 'All').map(sub => (
-                                            <option key={sub} value={sub}>{sub}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            )}
-
-                            {/* Ranking List */}
-                            <div className="space-y-2">
-                                {leaderboardLoading ? (
-                                    <div className="flex flex-col items-center justify-center py-12 gap-3 text-gray-500">
-                                        <RefreshCcw className="animate-spin" size={24} />
-                                        <p className="text-[10px] font-black uppercase tracking-widest">Updating Ranks...</p>
-                                    </div>
-                                ) : leaderboard.length === 0 ? (
-                                    <div className="text-center py-12 text-gray-500 text-xs italic">
-                                        No ranking data available for this selection.
-                                    </div>
-                                ) : (
-                                    <div className="space-y-1">
-                                        {leaderboard.map((student, idx) => (
-                                            <div
-                                                key={student.studentId || student.rollNo || idx}
-                                                className={`flex items-center justify-between p-3 rounded-2xl transition-all border border-transparent hover:border-white/10 hover:bg-white/5 group`}
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <div className={`h-8 w-8 rounded-lg flex items-center justify-center text-xs font-black shadow-lg ${idx === 0 ? 'bg-yellow-400 text-yellow-900 scale-110' :
-                                                        idx === 1 ? 'bg-gray-300 text-gray-900' :
-                                                            idx === 2 ? 'bg-orange-400 text-orange-900' :
-                                                                'bg-white/10 text-gray-400 group-hover:bg-white/20 group-hover:text-white'
-                                                        }`}>
-                                                        {idx + 1}
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-sm font-bold text-gray-100">{student.studentName}</p>
-                                                        <p className="text-[9px] font-black text-gray-500 uppercase tracking-tight">{student.batchName}</p>
-                                                    </div>
-                                                </div>
-                                                <div className="text-right">
-                                                    <p className={`text-sm font-black ${idx === 0 ? 'text-yellow-400' : 'text-gray-100'}`}>{student.percentage}%</p>
-                                                    <p className="text-[9px] font-bold text-gray-500 leading-none">{student.testCount} Tests</p>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Self Context (Optional) */}
-                            <div className="mt-8 pt-8 border-t border-white/5 space-y-4">
-                                <p className="text-[9px] font-black text-gray-500 uppercase tracking-[0.2em] text-center">Your Academic Standing</p>
-                                <div className="bg-blue-600/20 border border-blue-500/30 rounded-2xl p-4 flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className="h-10 w-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-900/40">
-                                            <Award size={20} />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-black text-white">Elite Performer</p>
-                                            <p className="text-[10px] font-bold text-blue-300">Keep pushin' forward!</p>
-                                        </div>
-                                    </div>
-                                    <ChevronDown className="-rotate-90 text-blue-400" size={16} />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
 

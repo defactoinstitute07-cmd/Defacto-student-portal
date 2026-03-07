@@ -340,7 +340,7 @@ const StudentFees = () => {
     return (
         <StudentLayout title="My Fees">
             <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="rounded-2xl bg-white p-5 shadow-sm border border-slate-100 flex items-center gap-4">
+                <div className="rounded-md bg-white p-5 shadow-sm border border-slate-100 flex items-center gap-4">
                     <div className="flex h-12 w-12 items-center justify-center rounded-md bg-red-50 text-red-600">
                         <AlertCircle size={24} />
                     </div>
@@ -350,7 +350,7 @@ const StudentFees = () => {
                     </div>
                 </div>
 
-                <div className="rounded-2xl bg-white p-5 shadow-sm border border-slate-100 flex items-center gap-4">
+                <div className="rounded-md bg-white p-5 shadow-sm border border-slate-100 flex items-center gap-4">
                     <div className="flex h-12 w-12 items-center justify-center rounded-md bg-emerald-50 text-emerald-600">
                         <CheckCircle2 size={24} />
                     </div>
@@ -365,8 +365,8 @@ const StudentFees = () => {
                 <h3 className="text-lg font-bold text-slate-800">Fee History</h3>
 
                 {fees.length === 0 ? (
-                    <div className="rounded-2xl bg-white p-8 text-center border border-slate-100 shadow-sm">
-                        <div className="mx-auto flex h-16 w-16 items-center justify-center w-full rounded-2xl bg-slate-50 text-slate-300 mb-4">
+                    <div className="rounded-md bg-white p-8 text-center border border-slate-100 shadow-sm">
+                        <div className="mx-auto flex h-16 w-16 items-center justify-center w-full rounded-md bg-slate-50 text-slate-300 mb-4">
                             <FileText size={32} />
                         </div>
                         <h3 className="text-base font-bold text-slate-700">No Fee Records Found</h3>
@@ -376,7 +376,7 @@ const StudentFees = () => {
                     </div>
                 ) : (
                     fees.map((fee) => (
-                        <div key={fee._id} className="rounded-2xl bg-white shadow-sm border border-slate-100 overflow-hidden">
+                        <div key={fee._id} className="rounded-md bg-white shadow-sm border border-slate-100 overflow-hidden">
                             <div className={`px-5 py-4 flex items-center justify-between border-b border-slate-100
                                 ${fee.status === 'paid' ? 'bg-emerald-50/50' : fee.status === 'overdue' ? 'bg-red-50/50' : 'bg-slate-50/50'}`}
                             >

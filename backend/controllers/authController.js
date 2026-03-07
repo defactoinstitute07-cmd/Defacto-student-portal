@@ -1,4 +1,8 @@
 const Student = require('../models/Student');
+const Batch = require('../models/Batch');
+const Teacher = require('../models/Teacher');
+const Exam = require('../models/Exam');
+const ExamResult = require('../models/ExamResult');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -82,7 +86,8 @@ exports.studentLogin = async (req, res) => {
                 name: student.name,
                 rollNo: student.rollNo,
                 class: student.className, // Frontend expects 'class' in its dashboard
-                batch: student.batchId ? student.batchId.name : 'N/A' // Return batch name instead of ID
+                batch: student.batchId ? student.batchId.name : 'N/A', // Return batch name instead of ID
+                isFirstLogin: student.isFirstLogin
             }
         });
     } catch (error) {
@@ -90,8 +95,6 @@ exports.studentLogin = async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error: ' + error.message });
     }
 };
-
-const Batch = require('../models/Batch');
 
 // Get Student Profile
 exports.getStudentProfile = async (req, res) => {
@@ -104,37 +107,111 @@ exports.getStudentProfile = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Student not found' });
         }
 
-        // Extract teachers and room from batch if available
-        let subjectTeachers = student.subjectTeachers || [];
+        // ── Extract teachers and room ───────────────────────────────────────
         let roomAllocation = student.roomAllocation || 'N/A';
+        const teachersMap = new Map();
 
+        // 1. First, populate from Student's own subjectTeachers (individual override)
+        if (student.subjectTeachers && student.subjectTeachers.length > 0) {
+            student.subjectTeachers.forEach(st => {
+                if (st.subject && st.teacher) {
+                    teachersMap.set(st.subject, st.teacher);
+                }
+            });
+        }
+
+        // 2. Query Teacher assignments for this batch (Source of truth for Admin)
         if (student.batchId) {
+            const batchIdStr = student.batchId._id.toString();
+            const teachers = await Teacher.find({ 'assignments.batchId': student.batchId._id })
+                .select('name assignments')
+                .lean();
+
+            teachers.forEach(t => {
+                const batchAssignment = t.assignments.find(a => a.batchId?.toString() === batchIdStr);
+                if (batchAssignment && batchAssignment.subjects) {
+                    batchAssignment.subjects.forEach(sub => {
+                        // Only set if not already set by student-specific override
+                        if (!teachersMap.has(sub) || teachersMap.get(sub) === 'Unassigned') {
+                            teachersMap.set(sub, t.name);
+                        }
+                    });
+                }
+            });
+
+            // Overlay basic info from batch
             const batch = student.batchId;
             roomAllocation = batch.classroom || roomAllocation;
 
-            // Extract unique subject-teacher pairs from batch schedule
+            // Add any subjects listed in batch that still don't have a teacher
+            if (batch.subjects && batch.subjects.length > 0) {
+                batch.subjects.forEach(s => {
+                    if (!teachersMap.has(s)) teachersMap.set(s, 'Unassigned');
+                });
+            }
+
+            // Fallback: Merge from batch schedule (if any teacher info lives there)
             if (batch.schedule && batch.schedule.length > 0) {
-                const teachersMap = new Map();
                 batch.schedule.forEach(slot => {
                     if (slot.subject) {
-                        // We prefer slots with an assigned teacher
-                        const existing = teachersMap.get(slot.subject);
                         const currentTeacher = slot.teacher || 'Unassigned';
+                        const existing = teachersMap.get(slot.subject);
 
-                        if (!existing || (existing === 'Unassigned' && currentTeacher !== 'Unassigned')) {
-                            teachersMap.set(slot.subject, currentTeacher);
+                        if (!existing || existing === 'Unassigned') {
+                            if (currentTeacher !== 'Unassigned') {
+                                teachersMap.set(slot.subject, currentTeacher);
+                            } else if (!existing) {
+                                teachersMap.set(slot.subject, 'Unassigned');
+                            }
                         }
                     }
                 });
-
-                if (teachersMap.size > 0) {
-                    subjectTeachers = Array.from(teachersMap.entries()).map(([subject, teacher]) => ({
-                        subject,
-                        teacher
-                    }));
-                }
             }
         }
+
+        // 3. Calculate Subject Averages ──────────────────────────────────
+        let subjectStatsMap = new Map();
+        if (student.batchId) {
+            const results = await ExamResult.find({ studentId: student._id })
+                .populate('examId')
+                .lean();
+
+            results.forEach(r => {
+                if (r.examId && r.examId.subject) {
+                    const sub = r.examId.subject;
+                    if (!subjectStatsMap.has(sub)) {
+                        subjectStatsMap.set(sub, { totalObtained: 0, totalPossible: 0 });
+                    }
+                    const stats = subjectStatsMap.get(sub);
+                    stats.totalObtained += r.marksObtained || 0;
+                    stats.totalPossible += r.examId.totalMarks || 100;
+                }
+            });
+        }
+
+        const subjectTeachers = Array.from(teachersMap.entries()).map(([subject, teacher]) => {
+            let averageMarks = 0;
+            if (subjectStatsMap.has(subject)) {
+                const stats = subjectStatsMap.get(subject);
+                averageMarks = Math.round((stats.totalObtained / stats.totalPossible) * 100);
+            }
+            return {
+                subject,
+                teacher,
+                averageMarks
+            };
+        });
+
+        // Calculate Global Average
+        let overallTotalObtained = 0;
+        let overallTotalPossible = 0;
+        subjectStatsMap.forEach(stats => {
+            overallTotalObtained += stats.totalObtained;
+            overallTotalPossible += stats.totalPossible;
+        });
+        const overallAverage = overallTotalPossible > 0
+            ? Math.round((overallTotalObtained / overallTotalPossible) * 100)
+            : 0;
 
         // Map real data from DB if available
         const profileData = {
@@ -142,7 +219,7 @@ exports.getStudentProfile = async (req, res) => {
             name: student.name,
             rollNo: student.rollNo,
             email: student.email || 'N/A',
-            contact: student.contact || 'N/A', // Added contact field
+            contact: student.contact || 'N/A',
             className: student.className,
             batchName: student.batchId ? student.batchId.name : 'N/A',
             activeBatchId: student.batchId ? student.batchId._id : null,
@@ -161,9 +238,7 @@ exports.getStudentProfile = async (req, res) => {
             status: student.status,
             subjectTeachers,
             roomAllocation,
-            // Keep stats mock if not in DB
-            attendance: { present: 45, total: 50, percentage: 90 },
-            assignments: { total: 12, pending: 2 }
+            overallAverage
         };
 
         res.json({ success: true, student: profileData });
@@ -199,6 +274,48 @@ exports.resetPassword = async (req, res) => {
         res.json({ success: true, message: 'Password updated successfully.' });
     } catch (error) {
         console.error('Error in resetPassword:', error);
+        res.status(500).json({ success: false, message: 'Server error: ' + error.message });
+    }
+};
+// Complete Setup (First Login)
+exports.completeSetup = async (req, res) => {
+    try {
+        const { newPassword } = req.body;
+        const student = await Student.findById(req.user.id);
+
+        if (!student) {
+            return res.status(404).json({ success: false, message: 'Student not found' });
+        }
+
+        if (!student.isFirstLogin) {
+            return res.status(400).json({ success: false, message: 'Setup already completed' });
+        }
+
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: 'Please upload a professional profile picture' });
+        }
+
+        // Update password
+        if (newPassword) {
+            student.password = newPassword;
+        }
+
+        // Save image path and mark setup as complete
+        student.profileImage = req.file.path; // Cloudinary URL
+        student.isFirstLogin = false;
+
+        await student.save();
+
+        res.json({
+            success: true,
+            message: 'Setup completed successfully',
+            student: {
+                profileImage: student.profileImage,
+                isFirstLogin: student.isFirstLogin
+            }
+        });
+    } catch (error) {
+        console.error('Error in completeSetup:', error);
         res.status(500).json({ success: false, message: 'Server error: ' + error.message });
     }
 };

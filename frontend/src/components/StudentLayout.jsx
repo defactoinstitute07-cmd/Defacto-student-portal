@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-    LayoutDashboard, User, CheckSquare, BookOpen,
+    LayoutDashboard, User, Trophy, BookOpen,
     FileText, Wallet, Award, Bell, BadgeCheck,
-    LogOut, Menu, X, GraduationCap
+    LogOut, Menu, X, GraduationCap, ShieldAlert
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -17,18 +17,16 @@ const NAV_ITEMS = [
     {
         section: 'ACADEMICS',
         items: [
-            // { to: '/student/attendance', icon: CheckSquare, label: 'Attendance' },
             { to: '/student/subjects', icon: BookOpen, label: 'Subjects' },
-            // { to: '/student/assignments', icon: FileText, label: 'Assignments' },
             { to: '/student/results', icon: Award, label: 'Results' },
+            { to: '/student/leaderboard', icon: Trophy, label: 'Leaderboard' },
         ]
     },
     {
         section: 'INFO',
         items: [
             { to: '/student/fees', icon: Wallet, label: 'Fees' },
-            // { to: '/student/announcements', icon: Bell, label: 'Announcements' },
-            // { to: '/student/id-card', icon: BadgeCheck, label: 'ID Card' },
+            { to: '/student/support', icon: ShieldAlert, label: 'Contact & Support' },
         ]
     }
 ];
@@ -100,9 +98,16 @@ const StudentLayout = ({ children, title }) => {
                 </div>
 
                 <div className="sb-footer">
-                    <div className="sb-item logout-btn" onClick={logout}>
-                        <span className="sb-item-icon"><LogOut size={18} /></span>
-                        {(!mini || mobileOpen) && <span className="sb-item-label">Logout</span>}
+                    <div
+                        className="sb-item logout-btn text-rose-500 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                        onClick={logout}
+                    >
+                        <span className="sb-item-icon text-rose-500">
+                            <LogOut size={18} />
+                        </span>
+                        {(!mini || mobileOpen) && (
+                            <span className="sb-item-label text-rose-500 font-bold">Logout</span>
+                        )}
                     </div>
                 </div>
             </nav>
@@ -129,15 +134,15 @@ const StudentLayout = ({ children, title }) => {
                         <div className="tb-avatar">
                             {(student.name?.[0] || 'S').toUpperCase()}
                         </div>
-                        <button className="btn-tb-logout" onClick={logout}>
+                        {/* <button className="btn-tb-logout" onClick={logout}>
                             <span className="logout-text">Sign out</span>
                             <LogOut size={16} className="logout-icon-mob" />
-                        </button>
+                        </button> */}
                     </div>
                 </header>
 
                 <main className="erp-main">
-                    <div className="page-content">
+                    <div className="page-content px-4 md:px-0">
                         {children}
                     </div>
                 </main>

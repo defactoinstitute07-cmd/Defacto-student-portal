@@ -20,7 +20,12 @@ const StudentLogin = () => {
             if (response.data.success) {
                 localStorage.setItem('studentToken', response.data.token);
                 localStorage.setItem('studentInfo', JSON.stringify(response.data.student));
-                navigate('/student/dashboard');
+
+                if (response.data.student.isFirstLogin) {
+                    navigate('/student/setup');
+                } else {
+                    navigate('/student/dashboard');
+                }
             }
         } catch (err) {
             setError(err.response?.data?.message || 'Login failed. Please try again.');
