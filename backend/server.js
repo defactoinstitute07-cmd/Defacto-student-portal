@@ -55,6 +55,11 @@ mongoose.connect(MONGODB_URI)
     .catch(err => console.error('MongoDB connection error:', err));
 
 const PORT = process.env.PORT || 5005;
-app.listen(PORT, () => {
-    console.log(`Student Auth Server running on port ${PORT}`);
-});
+
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Student Auth Server running on port ${PORT}`);
+    });
+}
+
+module.exports = app;
