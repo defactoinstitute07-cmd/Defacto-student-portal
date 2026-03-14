@@ -7,6 +7,7 @@ import {
     Settings
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import LanguageToggleButton from './LanguageToggleButton';
 
 const NAV_ITEMS = [
     {
@@ -144,6 +145,7 @@ const StudentLayout = ({ children, title }) => {
                     </div>
 
                     <div className="tb-right">
+                        <LanguageToggleButton variant="topbar" />
                         {/* Mobile par name hide karke sirf avatar dikhayenge space bachane ke liye */}
                         <span className="tb-name-desktop">{student.name}</span>
                         <div className="tb-avatar">

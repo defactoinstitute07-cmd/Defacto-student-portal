@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { Camera, Lock, CheckCircle2, AlertTriangle, RefreshCcw, ShieldCheck } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import LanguageToggleButton from '../components/LanguageToggleButton';
 
 const StudentSetup = () => {
     const navigate = useNavigate();
@@ -94,7 +95,10 @@ const StudentSetup = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 font-sans">
+        <div className="relative min-h-screen bg-gray-50 flex items-center justify-center p-4 font-sans">
+            <div className="absolute right-4 top-4 z-[120]">
+                <LanguageToggleButton variant="topbar" />
+            </div>
             <div className="max-w-md w-full bg-white rounded-md shadow-2xl border border-gray-100 overflow-hidden">
                 {/* Header */}
                 <div className="p-10 bg-gray-900 text-white text-center">

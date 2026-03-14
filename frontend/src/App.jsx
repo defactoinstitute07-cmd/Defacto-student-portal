@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 import { useAppPresence } from './hooks/useAppPresence';
-import LanguageToggleButton from './components/LanguageToggleButton';
 
 const StudentLogin = lazy(() => import('./pages/StudentLogin'));
 const StudentDashboard = lazy(() => import('./pages/StudentDashboard'));
@@ -40,7 +39,6 @@ function App() {
     return (
         <Router>
             <Suspense fallback={null}>
-                <LanguageToggleButton />
                 <Routes>
                     <Route path="/" element={<Navigate to={getStoredStudentRoute()} replace />} />
                     <Route path="/student/login" element={<StudentLogin />} />

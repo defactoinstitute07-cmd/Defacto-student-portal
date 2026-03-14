@@ -4,6 +4,7 @@ import { ShieldCheck, Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle } from 'l
 import api from '../services/api';
 import instituteLogo from '../assets/icon.png';
 import { useLanguage } from '../context/LanguageContext';
+import LanguageToggleButton from '../components/LanguageToggleButton';
 
 const StudentLogin = () => {
     const { t } = useLanguage();
@@ -97,6 +98,9 @@ const StudentLogin = () => {
 
     return (
         <div className="relative min-h-screen w-full flex items-center justify-center p-4 font-sans overflow-hidden bg-[#0a1128]">
+            <div className="absolute right-4 top-4 z-[120]">
+                <LanguageToggleButton variant="topbar" />
+            </div>
             
             {/* --- INLINE CSS FOR ADVANCED ANIMATIONS --- */}
             <style>
