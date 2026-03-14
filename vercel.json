@@ -10,8 +10,16 @@
             "destination": "/frontend/dist/assets/$1"
         },
         {
-            "source": "/((?!api/).*)",
+            "source": "/student/(.*)",
             "destination": "/frontend/dist/index.html"
+        },
+        {
+            "source": "/",
+            "destination": "/frontend/dist/index.html"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/frontend/dist/$1"
         }
     ],
     "functions": {
