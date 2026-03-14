@@ -970,6 +970,7 @@ textarea:focus-visible {
     border-bottom: 1px solid var(--erp-border);
     display: flex;
     align-items: center;
+    justify-content: space-between;
     padding: 0 24px;
     z-index: 100;
     gap: 14px;
