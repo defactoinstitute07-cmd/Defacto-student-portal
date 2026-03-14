@@ -13,6 +13,7 @@ const StudentSetup = lazy(() => import('./pages/StudentSetup'));
 const StudentSubjects = lazy(() => import('./pages/StudentSubjects'));
 const ContactSupport = lazy(() => import('./pages/ContactSupport'));
 const Leaderboard = lazy(() => import('./pages/Leaderboard'));
+const StudentSettings = lazy(() => import('./pages/StudentSettings'));
 
 const StudentAttendance = lazy(() => import('./pages/StudentAttendance'));
 const SubjectAttendanceDetail = lazy(() => import('./pages/SubjectAttendanceDetail'));
@@ -54,6 +55,7 @@ function App() {
                     <Route path="/student/results/subject/:subjectName" element={<SubjectDetail />} />
                     <Route path="/student/support" element={<ContactSupport />} />
                     <Route path="/student/leaderboard" element={<Leaderboard />} />
+                    <Route path="/student/settings" element={<StudentSettings />} />
                 </Routes>
             </Suspense>
         </Router>

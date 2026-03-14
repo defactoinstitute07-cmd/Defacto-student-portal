@@ -6,6 +6,7 @@ exports.getStudentFees = async (req, res) => {
         const studentId = req.user.id; // from auth middleware
 
         const fees = await Fee.find({ studentId })
+            .populate('studentId', 'name rollNo className fatherName motherName address session dob gender contact email')
             .select('-__v')
             .sort({ year: -1, createdAt: -1 })
             .lean();
@@ -35,5 +36,20 @@ exports.getFeeReceipt = async (req, res) => {
     } catch (error) {
         console.error('Error fetching fee receipt:', error);
         res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+
+// POST /api/student/fees (Experimental/Testing)
+exports.createFee = async (req, res) => {
+    try {
+        const fee = new Fee({
+            ...req.body,
+            studentId: req.user.id
+        });
+        await fee.save();
+        res.json({ success: true, fee });
+    } catch (error) {
+        console.error('Error creating fee:', error);
+        res.status(500).json({ success: false, message: error.message || 'Server error' });
     }
 };

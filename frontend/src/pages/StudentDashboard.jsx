@@ -64,7 +64,7 @@ const StudentDashboard = () => {
         }}>
           {[1, 2, 3, 4, 5, 6].map(i => (
             <div className="stat-card" key={i} style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <Skeleton className="h-12 w-12 rounded-full" />
+              <Skeleton className="h-12 w-12 rounded-md" />
               <div className="flex-1">
                 <Skeleton className="h-3 w-20 mb-2" />
                 <Skeleton className="h-6 w-32 mb-1" />
@@ -90,7 +90,7 @@ const StudentDashboard = () => {
     return (
       <StudentLayout title="Dashboard">
         <div className="px-4 py-10">
-          <div className="bg-white rounded-2xl border border-rose-100 shadow-sm p-5 space-y-3">
+          <div className="bg-white rounded-md border border-rose-100 shadow-sm p-5 space-y-3">
             <div className="flex items-center gap-3 text-rose-600">
               <CheckCircle2 size={18} />
               <p className="text-sm font-bold">{t('Dashboard data could not be loaded.')}</p>
@@ -269,7 +269,7 @@ const StudentDashboard = () => {
                         {formatAttendanceDate(item.attendanceDate)}
                       </p>
                     </div>
-                    <span className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-widest rounded-full border ${getStatusClass(item.status)}`}>
+                    <span className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-widest rounded-md border ${getStatusClass(item.status)}`}>
                       {translateAttendanceStatus(item.status)}
                     </span>
                   </div>

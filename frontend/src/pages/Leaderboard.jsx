@@ -168,13 +168,13 @@ const Leaderboard = () => {
                                 onClick={() => { setLbType('batch'); setLbSubject('All'); }}
                                 className={`flex-1 py-3 rounded-md text-xs font-black uppercase tracking-widest transition-all duration-300 ${lbType === 'batch' ? 'bg-white text-gray-900 shadow-xl' : 'text-gray-400 hover:text-white'}`}
                             >
-                                {t('My Batch')}
+                                {t('Gloabl')}
                             </button>
                             <button
                                 onClick={() => setLbType('subject')}
                                 className={`flex-1 py-3 rounded-md text-xs font-black uppercase tracking-widest transition-all duration-300 ${lbType === 'subject' ? 'bg-white text-gray-900 shadow-xl' : 'text-gray-400 hover:text-white'}`}
                             >
-                                {t('Global')}
+                                {t('My Batch')}
                             </button>
                         </div>
 

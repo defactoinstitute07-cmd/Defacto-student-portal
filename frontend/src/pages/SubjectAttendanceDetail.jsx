@@ -4,7 +4,7 @@ import api from '../services/api';
 import StudentLayout from '../components/StudentLayout';
 import {
     ArrowLeft, Calendar, Clock, CheckCircle2,
-    XCircle, AlertCircle, Loader2, BookOpen
+    XCircle, AlertCircle, Loader2, BookOpen, ChevronRight
 } from 'lucide-react';
 import Skeleton from '../components/Skeleton';
 import { useQuery } from '@tanstack/react-query';
@@ -16,6 +16,13 @@ const SubjectAttendanceDetail = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [subjectInfo, setSubjectInfo] = useState(null);
+
+    const [selectedWeek, setSelectedWeek] = useState(() => {
+        const d = new Date();
+        d.setDate(d.getDate() - d.getDay()); // Start of current week (Sunday)
+        return d.toISOString().split('T')[0];
+    });
+    const [filterMode, setFilterMode] = useState('last5'); // 'last5' or 'week'
 
     const token = localStorage.getItem('studentToken');
 
@@ -51,6 +58,38 @@ const SubjectAttendanceDetail = () => {
 
         fetchDetails();
     }, [subjectId, token, navigate]);
+
+    // --- Filtering Logic ---
+    const getFilteredRecords = () => {
+        if (filterMode === 'last5') {
+            return [...records].sort((a, b) => new Date(b.attendanceDate) - new Date(a.attendanceDate)).slice(0, 5);
+        }
+        
+        const start = new Date(selectedWeek);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(start);
+        end.setDate(start.getDate() + 7);
+
+        return records.filter(r => {
+            const d = new Date(r.attendanceDate);
+            return d >= start && d < end;
+        });
+    };
+
+    const filteredRecords = getFilteredRecords();
+
+    const handleWeekChange = (offset) => {
+        const d = new Date(selectedWeek);
+        d.setDate(d.getDate() + (offset * 7));
+        setSelectedWeek(d.toISOString().split('T')[0]);
+    };
+
+    const formatWeekRange = () => {
+        const start = new Date(selectedWeek);
+        const end = new Date(start);
+        end.setDate(start.getDate() + 6);
+        return `${start.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} - ${end.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}`;
+    };
 
     return (
         <StudentLayout title="Attendance Detail">
@@ -108,6 +147,44 @@ const SubjectAttendanceDetail = () => {
                             </div>
                         )}
 
+                        {/* Filters */}
+                        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-white p-4 rounded-md border border-gray-100 shadow-sm">
+                            <div className="flex bg-gray-100 p-1 rounded-lg w-full sm:w-auto">
+                                <button
+                                    onClick={() => setFilterMode('last5')}
+                                    className={`flex-1 sm:flex-none px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-md transition-all ${filterMode === 'last5' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                >
+                                    Last 5 Days
+                                </button>
+                                <button
+                                    onClick={() => setFilterMode('week')}
+                                    className={`flex-1 sm:flex-none px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-md transition-all ${filterMode === 'week' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                >
+                                    Week-wise
+                                </button>
+                            </div>
+
+                            {filterMode === 'week' && (
+                                <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                                    <button
+                                        onClick={() => handleWeekChange(-1)}
+                                        className="p-1.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded text-gray-600 transition-colors"
+                                    >
+                                        <ArrowLeft size={16} />
+                                    </button>
+                                    <span className="text-[10px] font-black text-gray-900 uppercase tracking-widest bg-indigo-50 px-3 py-1.5 rounded-md border border-indigo-100 min-w-[140px] text-center">
+                                        {formatWeekRange()}
+                                    </span>
+                                    <button
+                                        onClick={() => handleWeekChange(1)}
+                                        className="p-1.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded text-gray-600 transition-colors"
+                                    >
+                                        <ChevronRight size={16} />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
                         {/* Records Table */}
                         <div className="bg-white rounded-md border border-gray-100 shadow-sm overflow-hidden">
 
@@ -119,11 +196,11 @@ const SubjectAttendanceDetail = () => {
 
                                 <div className="flex items-center gap-2 text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-widest">
                                     <Calendar size={12} />
-                                    <span>{records.length} Records</span>
+                                    <span>{filteredRecords.length} Records Shown</span>
                                 </div>
                             </div>
 
-                            {records.length > 0 ? (
+                            {filteredRecords.length > 0 ? (
                                 <div className="overflow-x-auto">
 
                                     <table className="w-full text-xs sm:text-sm text-left min-w-[520px]">
@@ -140,7 +217,7 @@ const SubjectAttendanceDetail = () => {
 
                                         {/* Table Body */}
                                         <tbody className="divide-y divide-gray-100 font-medium">
-                                            {records.map((item, idx) => (
+                                            {filteredRecords.map((item, idx) => (
                                                 <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
 
                                                     <td className="px-3 sm:px-6 py-3 sm:py-4 font-bold text-gray-900">
@@ -159,7 +236,7 @@ const SubjectAttendanceDetail = () => {
 
                                                     <td className="px-3 sm:px-6 py-3 sm:py-4">
                                                         <span
-                                                            className={`inline-flex items-center gap-1 px-2 sm:px-3 py-1 text-[9px] sm:text-[10px] font-black uppercase tracking-widest rounded-full border ${item.status === 'Present'
+                                                            className={`inline-flex items-center gap-1 px-2 sm:px-3 py-1 text-[9px] sm:text-[10px] font-black uppercase tracking-widest rounded-md border ${item.status === 'Present'
                                                                     ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
                                                                     : item.status === 'Late'
                                                                         ? 'bg-amber-50 text-amber-600 border-amber-100'
@@ -196,14 +273,16 @@ const SubjectAttendanceDetail = () => {
                             ) : (
 
                                 <div className="py-14 sm:py-20 text-center px-4">
-                                    <div className="h-14 w-14 sm:h-16 sm:w-16 bg-gray-50 text-gray-200 rounded-full flex items-center justify-center mx-auto mb-4 border border-dashed border-gray-200">
+                                    <div className="h-14 w-14 sm:h-16 sm:w-16 bg-gray-50 text-gray-200 rounded-md flex items-center justify-center mx-auto mb-4 border border-dashed border-gray-200">
                                         <BookOpen size={28} />
                                     </div>
 
                                     <h4 className="text-gray-900 font-bold mb-1 text-sm">No Data Found</h4>
 
-                                    <p className="text-gray-400 text-xs">
-                                        There are no attendance records for this subject yet.
+                                    <p className="text-gray-400 text-xs text-balance max-w-[280px] mx-auto">
+                                        {filterMode === 'last5' 
+                                            ? 'There are no recent attendance records for this subject.' 
+                                            : `No attendance records found for the week ${formatWeekRange()}.`}
                                     </p>
                                 </div>
 
@@ -226,5 +305,6 @@ const SubjectAttendanceDetail = () => {
         </StudentLayout>
     );
 };
+
 
 export default SubjectAttendanceDetail;

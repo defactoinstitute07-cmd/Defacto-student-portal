@@ -16,7 +16,7 @@ import { useLanguage } from '../context/LanguageContext';
 
 const AttendanceCard = ({ label, value, sub, icon: Icon, color, bg }) => (
     <div className="bg-white p-5 rounded-md border border-gray-100 shadow-sm transition-all hover:shadow-md">
-        <div className={`h-10 w-10 ${bg} ${color} rounded-full flex items-center justify-center mb-3`}>
+        <div className={`h-10 w-10 ${bg} ${color} rounded-md flex items-center justify-center mb-3`}>
             <Icon size={20} />
         </div>
         <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">{label}</p>
@@ -86,7 +86,7 @@ const StudentAttendance = () => {
         return (
             <StudentLayout title="Attendance">
                 <div className="px-4 py-10">
-                    <div className="bg-white rounded-2xl border border-rose-100 shadow-sm p-5 space-y-3">
+                    <div className="bg-white rounded-md border border-rose-100 shadow-sm p-5 space-y-3">
                         <div className="flex items-center gap-3 text-rose-600">
                             <AlertCircle size={18} />
                             <p className="text-sm font-bold">{t('Attendance data could not be loaded.')}</p>
@@ -199,7 +199,7 @@ const StudentAttendance = () => {
                     </div>
                 ) : (
                     <div className="p-16 bg-white rounded-md border border-dashed border-gray-200 text-center">
-                        <div className="h-12 w-12 bg-gray-50 text-gray-300 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <div className="h-12 w-12 bg-gray-50 text-gray-300 rounded-md flex items-center justify-center mx-auto mb-4">
                             <BookOpen size={24} />
                         </div>
                         <p className="text-sm font-bold text-gray-400">{t('No subject attendance data available yet.')}</p>
@@ -214,7 +214,7 @@ const StudentAttendance = () => {
                 <div>
                     <h4 className="text-sm font-bold text-blue-900 mb-1">{t('Academic Requirement')}</h4>
                     <p className="text-xs text-blue-700 leading-relaxed font-medium">
-                        {t('Students must maintain at least 75% attendance in each subject to be eligible for final examinations. For any disputes regarding your status, please visit the HOD office.')}
+                        {t('Students must maintain at least 75% attendance in each subject to be eligible for final examinations. For any disputes regarding your status, please visit the Amdmin office.')}
                     </p>
                 </div>
             </div>

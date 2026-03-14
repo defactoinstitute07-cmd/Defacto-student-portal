@@ -107,7 +107,7 @@ const StudentSubjects = () => {
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div>
                         <h1 className="text-3xl font-black text-gray-900 tracking-tight">{t('Academic Curriculum')}</h1>
-                        <p className="text-gray-500 font-medium mt-1">{t('Manage your enrolled subjects and subject specialists.')}</p>
+                        <p className="text-gray-500 font-medium mt-1">{t('Manage your enrolled subjects and Faculty.')}</p>
                     </div>
 
                     {/* Search Bar */}
@@ -207,7 +207,7 @@ const StudentSubjects = () => {
                                             </div>
 
                                             {/* Progress Bar */}
-                                            <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                                            <div className="h-1.5 w-full bg-gray-100 rounded-md overflow-hidden">
 
                                                 <div
                                                     className={`h-full transition-all duration-500 ${s.averageMarks >= 75
@@ -231,7 +231,7 @@ const StudentSubjects = () => {
                                                 {t('Subject Hub')}
                                             </span>
 
-                                            <div className="p-1.5 sm:p-2 rounded-full group-hover:bg-blue-50 text-gray-300 group-hover:text-blue-500 transition-all shrink-0">
+                                            <div className="p-1.5 sm:p-2 rounded-md group-hover:bg-blue-50 text-gray-300 group-hover:text-blue-500 transition-all shrink-0">
                                                 <ArrowRight size={16} className="sm:w-[18px] sm:h-[18px]" />
                                             </div>
 
@@ -246,7 +246,7 @@ const StudentSubjects = () => {
                 ) : (
                     <div className="bg-white rounded-md border-2 border-dashed border-gray-200 p-12 text-center">
                         <div className="max-w-sm mx-auto space-y-4">
-                            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto">
+                            <div className="w-16 h-16 bg-gray-50 rounded-md flex items-center justify-center mx-auto">
                                 <Search size={32} className="text-gray-300" />
                             </div>
                             <h3 className="text-lg font-bold text-gray-900">{t('No subjects found')}</h3>

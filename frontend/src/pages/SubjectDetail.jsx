@@ -211,15 +211,7 @@ const SubjectDetail = () => {
                 {/* Header Area */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                     <div className="space-y-4">
-                        <button
-                            onClick={() => navigate('/student/results')}
-                            className="flex items-center gap-2 text-gray-500 hover:text-gray-800 transition-colors group w-fit"
-                        >
-                            <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-all">
-                                <ChevronLeft size={18} />
-                            </div>
-                            <span className="text-sm font-bold">{t('Back to Performance Dashboard')}</span>
-                        </button>
+                        <button onClick={() => navigate('/student/results')} className="flex items-center gap-2 text-gray-500 hover:text-gray-800 transition-colors group w-fit"><div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-all"><ChevronLeft size={18} /></div><span className="text-sm font-bold">{t('Back to Performance Dashboard')}</span></button>
 
                         <div className="flex items-center gap-4">
                             <div className="h-16 w-16 rounded-md bg-gray-900 flex items-center justify-center text-white shadow-xl shadow-gray-200">
@@ -242,7 +234,7 @@ const SubjectDetail = () => {
                                 <Award size={24} />
                             </div>
                             <div>
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('Subject Specialist')}</p>
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('Faculty')}</p>
                                 <p className="text-sm font-black text-gray-800">{activeTeacher}</p>
                             </div>
                         </div>
@@ -254,8 +246,8 @@ const SubjectDetail = () => {
 
                     {/* Left: Weak Chapters (Audit) */}
                     <div className="lg:col-span-4 space-y-6">
-                        <div className="bg-white rounded-md shadow-sm border border-orange-200 overflow-hidden sticky top-24">
-                            <div className="p-6 bg-gradient-to-br from-orange-50 to-white border-b border-orange-100">
+                        <div className="bg-white rounded-md shadow-sm border border-orange-600 overflow-hidden sticky top-24">
+                            <div className="p-6 bg-gradient-to-br from-orange-50 to-white border-b border-orange-400">
                                 <h3 className="text-lg font-black text-orange-900 flex items-center gap-2 mb-1">
                                     <AlertTriangle size={20} className="text-orange-500" />
                                     <span>{t('Weak Chapters')}</span>
@@ -273,12 +265,12 @@ const SubjectDetail = () => {
                                     weakChapters.map((wc, idx) => (
                                         <div
                                             key={wc._id || idx}
-                                            className="p-4 rounded-md bg-gray-50 border border-gray-100 space-y-3 hover:border-orange-200 hover:bg-orange-50/30 transition-all cursor-pointer group"
+                                            className="p-4 rounded-md bg-gray-50 border border-black space-y-3 hover:border-orange-200 hover:bg-orange-50/30 transition-all cursor-pointer group"
                                             onClick={() => setSelectedTest(wc)}
                                         >
                                             <div className="flex items-center justify-between">
                                                 <h4 className="font-bold text-gray-800 text-sm truncate pr-2 group-hover:text-orange-700 transition-colors">{wc.chapter}</h4>
-                                                <span className="text-xs font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded-lg border border-rose-100">{wc.percentage}%</span>
+                                                <span className="text-xs font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-600">{wc.percentage}%</span>
                                             </div>
                                             {wc.remarks && (
                                                 <div className="bg-white/60 p-3 rounded-md border border-gray-100 group-hover:bg-white transition-colors">
@@ -313,20 +305,20 @@ const SubjectDetail = () => {
                                 results.map((r, idx) => (
                                     <div
                                         key={r._id || idx}
-                                        className="relative bg-white rounded-md p-4 sm:p-6 border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all cursor-pointer group flex flex-col sm:flex-row gap-4 sm:gap-6 sm:items-center"
+                                        className="relative bg-white rounded-md p-4 sm:p-6 border border-gray-300 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all cursor-pointer group flex flex-col sm:flex-row gap-4 sm:gap-6 sm:items-center"
                                         onClick={() => setSelectedTest(r)}
                                     >
                                         {/* Header / Score Area (Mobile Layout Changes) */}
                                         <div className="flex justify-between items-start sm:items-center sm:w-auto w-full gap-4">
 
                                             {/* Exam Info (Mobile Only - This moves to the right on desktop) */}
-                                            <div className="sm:hidden flex-1 min-w-0">
+                                            <div className="sm:hidden p-y5 flex-1 min-w-0">
                                                 <h4 className="text-base font-black text-gray-800 line-clamp-2 group-hover:text-blue-600 transition-colors uppercase tracking-tight leading-tight mb-1">{r.examName}</h4>
                                                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest truncate">{r.chapter}</p>
                                             </div>
 
                                             {/* Score Block */}
-                                            <div className={`h-10 sm:h-14 px-3 sm:px-4 min-w-[4rem] sm:min-w-[5rem] rounded-md flex-shrink-0 flex items-baseline justify-center gap-1 border-2 transition-colors ${r.hasPassed ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-rose-50 border-rose-100 text-rose-600'}`}>
+                                            <div className={`h-10 sm:h-14 py-2 px-3 sm:px-4 min-w-[4rem] sm:min-w-[5rem] rounded-md flex-shrink-0 flex items-baseline justify-center gap-1 border-2 transition-colors ${r.hasPassed ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-rose-50 border-rose-500 text-rose-600'}`}>
     <span className="text-lg sm:text-2xl font-black leading-none">{r.marksObtained}</span>
     <span className="text-[10px] sm:text-xs font-bold opacity-70 leading-none">/ {r.totalMarks}</span>
 </div>
@@ -345,7 +337,7 @@ const SubjectDetail = () => {
                                                 </div>
 
                                                 {/* Status Badge */}
-                                                <span className={`w-fit px-2.5 py-1 sm:px-3 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-widest border ${r.hasPassed ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-rose-50 text-rose-700 border-rose-100'}`}>
+                                                <span className={`w-fit px-2.5 py-1 sm:px-3 sm:py-1 rounded-md text-[9px] sm:text-[10px] font-black uppercase tracking-widest border ${r.hasPassed ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-rose-50 text-rose-700 border-rose-500'}`}>
                                                     {r.hasPassed ? t('Qualified') : t('Needs Revision')}
                                                 </span>
                                             </div>

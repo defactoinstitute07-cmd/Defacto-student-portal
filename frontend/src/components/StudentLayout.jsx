@@ -3,7 +3,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard, User, Trophy, BookOpen,
     FileText, Wallet, Award, Bell, BadgeCheck,
-    LogOut, Menu, X, GraduationCap, ShieldAlert
+    LogOut, Menu, X, GraduationCap, ShieldAlert,
+    Settings
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -13,6 +14,7 @@ const NAV_ITEMS = [
         items: [
             { to: '/student/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
             { to: '/student/profile', icon: User, label: 'My Profile' },
+            
         ]
     },
     {
@@ -29,6 +31,7 @@ const NAV_ITEMS = [
         items: [
             { to: '/student/fees', icon: Wallet, label: 'Fees' },
             { to: '/student/support', icon: ShieldAlert, label: 'Contact & Support' },
+            { to: '/student/settings', icon: Settings, label: 'Settings' },
         ]
     }
 ];
@@ -81,12 +84,11 @@ const StudentLayout = ({ children, title }) => {
             {/* Sidebar */}
             <nav className={`sidebar ${mini ? 'mini' : ''} ${mobileOpen ? 'open' : ''}`}>
                 <div className="sb-brand">
-                    <div className="sb-logo">
-                        <GraduationCap size={20} color="#fff" />
-                    </div>
+                   
                     {(!mini || mobileOpen) && (
                         <div className="sb-brand-text">
-                            <div className="sb-name">{t('Student Portal')}</div>
+                            <div className="sb-name">{t('De Facto Institute')}</div>
+                            <div className="sb-code">Student Erp System</div>
                             <div className="sb-code">{t('Roll')}: {student.rollNo || 'N/A'}</div>
                         </div>
                     )}

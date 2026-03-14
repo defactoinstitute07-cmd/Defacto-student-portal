@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import StudentLayout from '../components/StudentLayout';
-import { IndianRupee, Clock, CheckCircle2, AlertCircle, FileText, Download, Loader2, Calendar } from 'lucide-react';
-import ReceiptPreviewModal from '../components/ReceiptPreviewModal';
+import { IndianRupee, Clock, CheckCircle2, AlertCircle, FileText, Download, Loader2, Calendar, Eye } from 'lucide-react';
+import FeeInfoModal from '../components/FeeInfoModal';
 import api from '../services/api';
 import { useQuery } from '@tanstack/react-query';
 import { getCached, setCached } from '../utils/offlineCache';
@@ -15,6 +15,7 @@ import { useLanguage } from '../context/LanguageContext';
 const StudentFees = () => {
     const { t } = useLanguage();
     const [stats, setStats] = useState({ totalPaid: 0, pendingDues: 0 });
+    const [infoModal, setInfoModal] = useState({ isOpen: false, fee: null, payment: null });
     const [previewPdf, setPreviewPdf] = useState({ isOpen: false, blobUrl: null, filename: '' });
 
     // Fallback student info from local storage if needed
@@ -172,16 +173,16 @@ const StudentFees = () => {
             return currentY + (maxLines * 5) + 2; // Return the new Y position
         };
 
-        const currentStudent = studentInfo || {};
+        const currentStudent = (feeData.studentId && typeof feeData.studentId === 'object') ? feeData.studentId : (studentInfo || {});
 
         y = drawPair('Name', currentStudent.name?.toUpperCase() || 'N/A', 'Receipt No', receiptNo || 'N/A', y);
-        y = drawPair('S/O/D/O', currentStudent.fatherName?.toUpperCase() || 'N/A', 'Receipt Date', dateStr, y);
-        y = drawPair('Mother Name', currentStudent.motherName?.toUpperCase() || 'N/A', 'Payment Mode', mode.toUpperCase(), y);
-        y = drawPair('Student ID', currentStudent.rollNo || 'N/A', 'Transaction ID', txnId, y);
-        y = drawPair('Course', currentStudent.className?.toUpperCase() || 'N/A', 'Transaction Date', dateStr, y);
-        y = drawPair('Fin. Session', currentStudent.session || '2025/26', '', '', y);
-        y = drawPair('Domicile', 'State Domicile', '', '', y);
-        y = drawPair('Address', (currentStudent.address || 'N/A').replace(/\n/g, ' ').slice(0, 150), '', '', y);
+        y = drawPair('S/O/D/O', (currentStudent.fatherName || 'N/A').toUpperCase(), 'Receipt Date', dateStr, y);
+        y = drawPair('Mother Name', (currentStudent.motherName || 'N/A').toUpperCase(), 'Payment Mode', mode.toUpperCase(), y);
+        y = drawPair('Student ID', currentStudent.rollNo || 'N/A', 'Contact No', currentStudent.contact || 'N/A', y);
+        y = drawPair('Course', (currentStudent.className || 'N/A').toUpperCase(), 'DOB', currentStudent.dob ? new Date(currentStudent.dob).toLocaleDateString('en-GB') : 'N/A', y);
+        y = drawPair('Email', currentStudent.email || 'N/A', 'Gender', (currentStudent.gender || 'N/A').toUpperCase(), y);
+        y = drawPair('Fin. Session', currentStudent.session || '2025/26', 'Transaction ID', txnId, y);
+        y = drawPair('Address', (currentStudent.address || 'N/A').replace(/\n/g, ' ').slice(0, 80), 'Domicile', 'State Domicile', y);
 
         y += 12;
 
@@ -499,13 +500,17 @@ const StudentFees = () => {
                                                         <div className="font-medium text-slate-900">₹{fmt(p.paidAmount)} <span className="text-xs text-slate-500 font-normal">({p.paymentMethod})</span></div>
                                                         <div className="text-xs text-slate-500 mt-0.5">{new Date(p.date).toLocaleDateString()}</div>
                                                     </div>
-                                                    <button
-                                                        onClick={() => handleViewReceipt(fee, p)}
-                                                        className="h-8 w-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 transition-colors"
-                                                        title={t('Download Receipt')}
-                                                    >
-                                                        <Download size={14} />
-                                                    </button>
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => setInfoModal({ isOpen: true, fee, payment: p })}
+                                                            className="h-8 px-2 flex items-center justify-center gap-1.5 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 hover:bg-indigo-100 transition-colors text-[10px] font-bold uppercase tracking-widest"
+                                                            title={t('View Info')}
+                                                        >
+                                                            <Eye size={14} />
+                                                            {t('Info')}
+                                                        </button>
+                                                       
+                                                    </div>
                                                 </div>
                                             ))}
                                             {fee.pendingAmount > 0 && (
@@ -527,13 +532,15 @@ const StudentFees = () => {
                 )}
             </div>
 
-            <ReceiptPreviewModal
-                isOpen={previewPdf.isOpen}
-                onClose={() => setPreviewPdf({ ...previewPdf, isOpen: false })}
-                blobUrl={previewPdf.blobUrl}
-                filename={previewPdf.filename}
-                onDownload={handleDownloadReceipt}
+            <FeeInfoModal
+                isOpen={infoModal.isOpen}
+                onClose={() => setInfoModal({ ...infoModal, isOpen: false })}
+                fee={infoModal.fee}
+                student={studentInfo}
             />
+
+            {/* Keeping ReceiptPreviewModal hidden if needed, or remove it based on user preference */}
+            {/* <ReceiptPreviewModal ... /> */}
         </StudentLayout>
     );
 };

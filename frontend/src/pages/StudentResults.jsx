@@ -288,7 +288,7 @@ const StudentResults = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
                         {[1, 2, 3].map(i => (
                             <div key={i} className="bg-white rounded-md p-4 sm:p-6 flex items-center gap-3 sm:gap-4 border border-gray-100">
-                                <Skeleton className="h-10 w-10 sm:h-12 sm:w-12 rounded-full" />
+                                <Skeleton className="h-10 w-10 sm:h-12 sm:w-12 rounded-md" />
                                 <div className="flex-1">
                                     <Skeleton className="h-3 w-20 mb-2" />
                                     <Skeleton className="h-6 w-24" />
@@ -337,7 +337,7 @@ const StudentResults = () => {
                 {/* Key Metrics Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
                     <div className="bg-white rounded-md shadow-sm border border-gray-100 p-4 sm:p-6 flex items-center gap-3 sm:gap-4">
-                        <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                        <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-md bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
                             <BookOpen size={20} className="sm:hidden" />
                             <BookOpen size={24} className="hidden sm:block" />
                         </div>
@@ -348,7 +348,7 @@ const StudentResults = () => {
                     </div>
 
                     <div className="bg-white rounded-md shadow-sm border border-gray-100 p-4 sm:p-6 flex items-center gap-3 sm:gap-4">
-                        <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+                        <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-md bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
                             <Award size={20} className="sm:hidden" />
                             <Award size={24} className="hidden sm:block" />
                         </div>
@@ -359,7 +359,7 @@ const StudentResults = () => {
                     </div>
 
                     <div className="bg-white rounded-md shadow-sm border border-gray-100 p-4 sm:p-6 flex items-center gap-3 sm:gap-4 sm:col-span-2 lg:col-span-1">
-                        <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-full flex items-center justify-center shrink-0 ${weakSubjects.length > 0 ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'}`}>
+                        <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-md flex items-center justify-center shrink-0 ${weakSubjects.length > 0 ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'}`}>
                             {weakSubjects.length > 0 ? (
                                 <>
                                     <TrendingDown size={20} className="sm:hidden" />
@@ -443,9 +443,7 @@ const StudentResults = () => {
                                                     <TrendingDown size={12} className="sm:w-[14px] sm:h-[14px] text-orange-500" />
                                                 </div>
 
-                                                <div className="mt-2 text-[8px] sm:text-[9px] font-black uppercase text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                                                    {t('View Focus Audit')} {'>'}
-                                                </div>
+                                                
 
                                             </button>
                                         ))}
@@ -567,7 +565,7 @@ const StudentResults = () => {
                                                 </div>
 
                                                 <span
-                                                    className={`px-2 py-1 rounded-full text-xs font-medium border shrink-0 ${r.hasPassed
+                                                    className={`px-2 py-1 rounded-md text-xs font-medium border shrink-0 ${r.hasPassed
                                                             ? 'bg-green-50 text-green-700 border-green-200'
                                                             : 'bg-red-50 text-red-700 border-red-200'
                                                         }`}
