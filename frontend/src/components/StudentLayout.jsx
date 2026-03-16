@@ -88,7 +88,7 @@ const StudentLayout = ({ children, title }) => {
                    
                     {(!mini || mobileOpen) && (
                         <div className="sb-brand-text">
-                            <div className="sb-name">{t('De Facto Institute')}</div>
+                            <div className="sb-name">{t('Institute')}</div>
                             <div className="sb-code">Student Erp System</div>
                             <div className="sb-code">{t('Roll')}: {student.rollNo || 'N/A'}</div>
                         </div>

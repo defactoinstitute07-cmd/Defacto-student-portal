@@ -210,7 +210,7 @@ const StudentLogin = () => {
     </div>
 
                     <h1 className="text-2xl font-bold text-[#0f172a] tracking-tight mb-2">
-                        {t('De Facto Institute Erp')}
+                        {t('Institute Erp')}
                     </h1>
                     <p className="text-slate-500 text-sm font-medium">
                         {t('Secure login for students only.')}
