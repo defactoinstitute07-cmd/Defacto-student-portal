@@ -24,9 +24,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import com.google.android.material.progressindicator.LinearProgressIndicator
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
@@ -335,6 +337,10 @@ class WebViewActivity : AppCompatActivity() {
             }
         )
 
+    private fun serializeSession(session: AuthState?): String {
+        return session?.let { buildBootstrapPayload(it).toString() } ?: "{}"
+    }
+
     private fun clearWebViewData() {
         portalWebView.stopLoading()
         portalWebView.loadUrl("about:blank")
@@ -376,8 +382,30 @@ class WebViewActivity : AppCompatActivity() {
     private inner class NativeAuthBridge {
         @JavascriptInterface
         fun getBootstrap(): String {
-            val session = currentSession ?: return "{}"
-            return buildBootstrapPayload(session).toString()
+            val session = currentSession ?: authRepository.loadCachedSession()
+            return serializeSession(session)
+        }
+
+        @JavascriptInterface
+        fun refreshSession(): String {
+            val refreshed = runBlocking(Dispatchers.IO) {
+                try {
+                    authRepository.ensureValidSession(forceRefresh = true)
+                        ?: authRepository.ensureValidSession(validateWithServer = true)
+                } catch (_: IOException) {
+                    authRepository.loadCachedSession()
+                }
+            }
+
+            if (refreshed != null) {
+                currentSession = refreshed
+                runOnUiThread {
+                    injectRuntimeAuth(refreshed)
+                    scheduleRefresh(refreshed)
+                }
+            }
+
+            return serializeSession(refreshed)
         }
 
         @JavascriptInterface

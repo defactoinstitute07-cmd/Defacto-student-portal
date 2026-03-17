@@ -8,11 +8,10 @@ const hasBridge = () => Boolean(getBridge()?.getBootstrap);
 
 const isNativePayload = (payload) => Boolean(payload && payload.isNativeShell);
 
-const readBridgeBootstrap = () => {
-    try {
-        const raw = getBridge()?.getBootstrap?.();
-        if (!raw) return null;
+const parseBridgePayload = (raw) => {
+    if (!raw) return null;
 
+    try {
         const parsed = JSON.parse(raw);
         if (!isNativePayload(parsed)) return null;
 
@@ -21,6 +20,15 @@ const readBridgeBootstrap = () => {
     } catch {
         return null;
     }
+};
+
+const readBridgeBootstrap = (forceRefresh = false) => {
+    const bridge = getBridge();
+    const raw = forceRefresh
+        ? bridge?.refreshSession?.()
+        : bridge?.getBootstrap?.();
+
+    return parseBridgePayload(raw);
 };
 
 const parseBootstrap = () => {
@@ -155,6 +163,21 @@ export const syncNativeSession = () => {
     }
 
     const bootstrap = ensureNativeSessionLoaded() || parseBootstrap();
+    if (!bootstrap) {
+        return null;
+    }
+
+    applyNativeSession(bootstrap);
+    window.__NATIVE_AUTH_BOOTSTRAP__ = bootstrap;
+    return bootstrap;
+};
+
+export const refreshNativeSession = () => {
+    if (typeof window === 'undefined') {
+        return null;
+    }
+
+    const bootstrap = readBridgeBootstrap(true) || syncNativeSession();
     if (!bootstrap) {
         return null;
     }

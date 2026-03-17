@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { isNativeShell, syncNativeSession, triggerNativeLogout } from './nativeAuth';
+import { isNativeShell, refreshNativeSession, syncNativeSession, triggerNativeLogout } from './nativeAuth';
 
 const getBaseURL = () => {
     const envBase = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
@@ -25,7 +25,7 @@ const normalizeAuthReason = (error) => {
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const retryNativeRequest = async (error) => {
+const retryNativeRequest = async (error, options = {}) => {
     const config = error?.config;
     if (!config) {
         return null;
@@ -36,7 +36,9 @@ const retryNativeRequest = async (error) => {
         return null;
     }
 
-    const bootstrap = syncNativeSession();
+    const bootstrap = options.forceRefresh
+        ? refreshNativeSession() || syncNativeSession()
+        : syncNativeSession();
     const token = bootstrap?.accessToken || localStorage.getItem('studentToken');
     if (!token) {
         return null;
@@ -83,7 +85,7 @@ api.interceptors.response.use(
             }
 
             if (statusCode === 401) {
-                const retriedResponse = await retryNativeRequest(error);
+                const retriedResponse = await retryNativeRequest(error, { forceRefresh: true });
                 if (retriedResponse) {
                     return retriedResponse;
                 }
