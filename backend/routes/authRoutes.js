@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
+const mobileAuthController = require('../controllers/mobileAuthController');
 const authMiddleware = require('../middleware/authMiddleware');
 const { uploadProfile } = require('../config/cloudinary');
 const { cacheMiddleware } = require('../middleware/cache');
@@ -10,6 +11,10 @@ router.post('/students/add', authController.addStudent);
 
 // Student Login
 router.post('/student/login', authController.studentLogin);
+router.post('/student/mobile/login', mobileAuthController.mobileLogin);
+router.post('/student/mobile/refresh', mobileAuthController.mobileRefresh);
+router.post('/student/mobile/logout', mobileAuthController.mobileLogout);
+router.get('/student/mobile/session', ...mobileAuthController.mobileSession);
 
 // Get Student Profile
 router.get('/student/me', authMiddleware, cacheMiddleware(30), authController.getStudentProfile);

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { isNativeShell } from './nativeAuth';
 
 const getBaseURL = () => {
     const envBase = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
@@ -29,7 +30,9 @@ api.interceptors.response.use(
         if (error.response?.status === 401) {
             localStorage.removeItem('studentToken');
             localStorage.removeItem('studentInfo');
-            window.location.href = '/student/login';
+            if (!isNativeShell()) {
+                window.location.href = '/student/login';
+            }
         }
         return Promise.reject(error);
     }

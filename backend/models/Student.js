@@ -28,6 +28,26 @@ const deviceInfoSchema = new mongoose.Schema({
     packageName: { type: String, default: '' }
 }, { _id: false });
 
+const mobileRefreshSessionSchema = new mongoose.Schema({
+    tokenHash: { type: String, required: true },
+    device: {
+        type: deviceInfoSchema,
+        default: () => ({})
+    },
+    issuedAt: {
+        type: Date,
+        default: Date.now
+    },
+    lastUsedAt: {
+        type: Date,
+        default: Date.now
+    },
+    expiresAt: {
+        type: Date,
+        required: true
+    }
+}, { _id: true });
+
 const studentSchema = new mongoose.Schema({
     name: { type: String, required: true, trim: true, index: true },
     rollNo: { type: String, unique: true },
@@ -78,6 +98,10 @@ const studentSchema = new mongoose.Schema({
     lastDevice: {
         type: deviceInfoSchema,
         default: () => ({})
+    },
+    mobileRefreshSessions: {
+        type: [mobileRefreshSessionSchema],
+        default: []
     },
     portalAccess: {
         type: portalAccessSchema,
