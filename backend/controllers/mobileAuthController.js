@@ -8,6 +8,7 @@ const {
     normalizeDeviceInfo,
     pruneMobileRefreshSessions
 } = require('../utils/mobileAuth');
+const { sendApiError } = require('../utils/apiError');
 
 const updateStudentActivity = async (student, deviceInfo) => {
     const now = new Date();
@@ -64,7 +65,7 @@ exports.mobileLogin = async (req, res) => {
         });
     } catch (error) {
         console.error('Error in mobileLogin:', error);
-        res.status(500).json({ success: false, message: 'Server error: ' + error.message });
+        sendApiError(res, error, 'Login failed. Please try again.');
     }
 };
 
@@ -108,7 +109,7 @@ exports.mobileRefresh = async (req, res) => {
         });
     } catch (error) {
         console.error('Error in mobileRefresh:', error);
-        res.status(500).json({ success: false, message: 'Server error: ' + error.message });
+        sendApiError(res, error, 'Unable to refresh the session right now.');
     }
 };
 
@@ -135,7 +136,7 @@ exports.mobileLogout = async (req, res) => {
         res.json({ success: true, message: 'Logout successful.' });
     } catch (error) {
         console.error('Error in mobileLogout:', error);
-        res.status(500).json({ success: false, message: 'Server error: ' + error.message });
+        sendApiError(res, error, 'Unable to log out right now.');
     }
 };
 
@@ -157,7 +158,7 @@ exports.mobileSession = [
             });
         } catch (error) {
             console.error('Error in mobileSession:', error);
-            res.status(500).json({ success: false, message: 'Server error: ' + error.message });
+            sendApiError(res, error, 'Unable to validate the session right now.');
         }
     }
 ];

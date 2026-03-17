@@ -2,6 +2,7 @@ const ExamResult = require('../models/ExamResult');
 const Exam = require('../models/Exam');
 const Student = require('../models/Student');
 const mongoose = require('mongoose');
+const { sendApiError } = require('../utils/apiError');
 
 // Helper function to calculate percentage
 const calcPercentage = (obtained, total) => ((obtained / total) * 100).toFixed(2);
@@ -145,7 +146,7 @@ exports.getStudentResults = async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching student results:', error);
-        res.status(500).json({ success: false, message: 'Server error fetching results' });
+        sendApiError(res, error, 'Unable to fetch results right now.');
     }
 };
 
@@ -272,6 +273,6 @@ exports.getLeaderboard = async (req, res) => {
         res.json({ success: true, leaderboard });
     } catch (error) {
         console.error('Error fetching leaderboard:', error);
-        res.status(500).json({ success: false, message: 'Server error fetching leaderboard' });
+        sendApiError(res, error, 'Unable to fetch leaderboard right now.');
     }
 };

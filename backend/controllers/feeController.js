@@ -1,4 +1,5 @@
 const Fee = require('../models/Fee');
+const { sendApiError } = require('../utils/apiError');
 
 // GET /api/student/fees
 exports.getStudentFees = async (req, res) => {
@@ -14,7 +15,7 @@ exports.getStudentFees = async (req, res) => {
         res.json({ success: true, fees });
     } catch (error) {
         console.error('Error fetching student fees:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
+        sendApiError(res, error, 'Unable to fetch student fees right now.');
     }
 };
 
@@ -35,7 +36,7 @@ exports.getFeeReceipt = async (req, res) => {
         res.json({ success: true, receipt: fee });
     } catch (error) {
         console.error('Error fetching fee receipt:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
+        sendApiError(res, error, 'Unable to fetch fee receipt right now.');
     }
 };
 
@@ -50,6 +51,6 @@ exports.createFee = async (req, res) => {
         res.json({ success: true, fee });
     } catch (error) {
         console.error('Error creating fee:', error);
-        res.status(500).json({ success: false, message: error.message || 'Server error' });
+        sendApiError(res, error, 'Unable to create fee right now.');
     }
 };

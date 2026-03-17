@@ -8,6 +8,7 @@ require('../models/Subject');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { invalidateUserCache } = require('../middleware/cache');
+const { sendApiError } = require('../utils/apiError');
 
 const normalizeDeviceInfo = (payload = {}) => ({
     platform: String(payload.platform || '').trim(),
@@ -115,7 +116,7 @@ exports.getSubjectAttendanceDetail = async (req, res) => {
         res.json({ success: true, records });
     } catch (error) {
         console.error('Error in getSubjectAttendanceDetail:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
+        sendApiError(res, error, 'Server error');
     }
 };
 
@@ -154,7 +155,7 @@ exports.addStudent = async (req, res) => {
         });
     } catch (error) {
         console.error('Error in addStudent:', error);
-        res.status(500).json({ success: false, message: 'Server error: ' + error.message });
+        sendApiError(res, error, 'Unable to add student right now.');
     }
 };
 
@@ -220,7 +221,7 @@ exports.studentLogin = async (req, res) => {
         });
     } catch (error) {
         console.error('Error in studentLogin:', error);
-        res.status(500).json({ success: false, message: 'Server error: ' + error.message });
+        sendApiError(res, error, 'Login failed. Please try again.');
     }
 };
 
@@ -258,7 +259,7 @@ exports.registerDevice = async (req, res) => {
         res.json({ success: true, message: 'Device registered', registeredAt: now.toISOString() });
     } catch (error) {
         console.error('Error in registerDevice:', error);
-        res.status(500).json({ success: false, message: 'Server error: ' + error.message });
+        sendApiError(res, error, 'Unable to register this device right now.');
     }
 };
 
@@ -307,7 +308,7 @@ exports.trackActivity = async (req, res) => {
         res.json({ success: true, message: 'Activity recorded', updated: result.modifiedCount > 0 });
     } catch (error) {
         console.error('[authController.trackActivity] CRITICAL ERROR:', error);
-        res.status(500).json({ success: false, message: 'Server error: ' + error.message });
+        sendApiError(res, error, 'Unable to record activity right now.');
     }
 };
 
@@ -464,7 +465,7 @@ exports.getStudentProfile = async (req, res) => {
         res.json({ success: true, student: profileData });
     } catch (error) {
         console.error('Error fetching student profile:', error);
-        res.status(500).json({ success: false, message: 'Server error: ' + error.message });
+        sendApiError(res, error, 'Unable to fetch student profile right now.');
     }
 };
 
@@ -496,7 +497,7 @@ exports.resetPassword = async (req, res) => {
         res.json({ success: true, message: 'Password updated successfully.' });
     } catch (error) {
         console.error('Error in resetPassword:', error);
-        res.status(500).json({ success: false, message: 'Server error: ' + error.message });
+        sendApiError(res, error, 'Unable to reset password right now.');
     }
 };
 // Complete Setup (First Login)
@@ -561,10 +562,6 @@ exports.completeSetup = async (req, res) => {
         });
     } catch (error) {
         console.error('CRITICAL ERROR in completeSetup:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error: ' + error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-        });
+        sendApiError(res, error, 'Unable to complete setup right now.');
     }
 };

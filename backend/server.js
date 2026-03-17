@@ -8,6 +8,7 @@ const authRoutes = require('./routes/authRoutes');
 const feeRoutes = require('./routes/feeRoutes');
 const resultRoutes = require('./routes/resultRoutes');
 const { redis } = require('./middleware/cache');
+const { connectToDatabase, getDatabaseHealth } = require('./config/database');
 
 const app = express();
 
@@ -44,17 +45,15 @@ const globalLimiter = rateLimit({
 });
 app.use(globalLimiter);
 
-// Routes
-app.use('/api', authRoutes);
-app.use('/api/student/fees', feeRoutes);
-app.use('/api/student/results', resultRoutes);
-
 // Health Check
 app.get('/api/health', (req, res) => {
+    const database = getDatabaseHealth();
     res.json({
         status: 'ok',
-        mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+        mongodb: database.status,
         redis: redis ? (redis.status || 'connected') : 'disabled',
+        lastConnectedAt: database.lastConnectedAt,
+        lastDatabaseError: database.lastError,
         env: {
             MONGODB_URI: process.env.MONGODB_URI ? 'set' : 'missing',
             JWT_SECRET: process.env.JWT_SECRET ? 'set' : 'missing'
@@ -62,11 +61,30 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// Database Connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/erp_system';
-mongoose.connect(MONGODB_URI)
-    .then(() => console.log('Connected to MongoDB'))
-    .catch(err => console.error('MongoDB connection error:', err));
+const ensureDatabase = async (req, res, next) => {
+    try {
+        await connectToDatabase();
+        next();
+    } catch (error) {
+        console.error('[database.ensureDatabase]', {
+            path: req.originalUrl,
+            method: req.method,
+            message: error.message
+        });
+
+        res.status(503).json({
+            success: false,
+            code: 'DATABASE_UNAVAILABLE',
+            message: 'Database is waking up or temporarily unavailable. Please try again in a few moments.'
+        });
+    }
+};
+
+// Routes
+app.use('/api', ensureDatabase);
+app.use('/api', authRoutes);
+app.use('/api/student/fees', feeRoutes);
+app.use('/api/student/results', resultRoutes);
 
 const PORT = process.env.PORT || 5005;
 
@@ -81,6 +99,10 @@ app.use((err, req, res, next) => {
 });
 
 if (require.main === module) {
+    connectToDatabase()
+        .then(() => console.log('Connected to MongoDB'))
+        .catch((err) => console.error('MongoDB connection error:', err.message));
+
     app.listen(PORT, () => {
         console.log(`Student Auth Server running on port ${PORT}`);
     });
