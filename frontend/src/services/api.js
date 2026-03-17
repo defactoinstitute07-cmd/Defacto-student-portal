@@ -60,6 +60,10 @@ const nativeLogoutReason = (reason) => {
 };
 
 api.interceptors.request.use((config) => {
+    if (isNativeShell()) {
+        syncNativeSession();
+    }
+
     const token = localStorage.getItem('studentToken');
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;

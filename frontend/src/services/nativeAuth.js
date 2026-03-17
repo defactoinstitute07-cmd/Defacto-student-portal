@@ -4,6 +4,7 @@ let nativeSession = null;
 let shimInstalled = false;
 
 const getBridge = () => (typeof window !== 'undefined' ? window.NativeAuth : null);
+const hasBridge = () => Boolean(getBridge()?.getBootstrap);
 
 const isNativePayload = (payload) => Boolean(payload && payload.isNativeShell);
 
@@ -36,6 +37,20 @@ const parseBootstrap = () => {
 
 const applyNativeSession = (payload) => {
     nativeSession = isNativePayload(payload) ? payload : null;
+};
+
+const ensureNativeSessionLoaded = () => {
+    if (nativeSession) {
+        return nativeSession;
+    }
+
+    const bootstrap = readBridgeBootstrap();
+    if (!bootstrap) {
+        return null;
+    }
+
+    applyNativeSession(bootstrap);
+    return bootstrap;
 };
 
 const clearSensitiveKey = (key) => {
@@ -72,7 +87,8 @@ const installStorageShim = () => {
     const originalRemoveItem = Storage.prototype.removeItem;
 
     Storage.prototype.getItem = function getItem(key) {
-        if (this === window.localStorage && nativeSession && SENSITIVE_KEYS.has(String(key))) {
+        if (this === window.localStorage && SENSITIVE_KEYS.has(String(key)) && (nativeSession || hasBridge())) {
+            ensureNativeSessionLoaded();
             return sensitiveValueFor(String(key));
         }
 
@@ -80,14 +96,15 @@ const installStorageShim = () => {
     };
 
     Storage.prototype.setItem = function setItem(key, value) {
-        if (this === window.localStorage && nativeSession && SENSITIVE_KEYS.has(String(key))) {
+        if (this === window.localStorage && SENSITIVE_KEYS.has(String(key)) && (nativeSession || hasBridge())) {
+            ensureNativeSessionLoaded();
             if (key === 'studentToken') {
-                nativeSession = { ...nativeSession, accessToken: String(value) };
+                nativeSession = { ...(nativeSession || {}), accessToken: String(value) };
             } else if (key === 'studentInfo') {
                 try {
-                    nativeSession = { ...nativeSession, student: JSON.parse(String(value)) };
+                    nativeSession = { ...(nativeSession || {}), student: JSON.parse(String(value)) };
                 } catch {
-                    nativeSession = { ...nativeSession };
+                    nativeSession = { ...(nativeSession || {}) };
                 }
             }
             return;
@@ -97,7 +114,8 @@ const installStorageShim = () => {
     };
 
     Storage.prototype.removeItem = function removeItem(key) {
-        if (this === window.localStorage && nativeSession && SENSITIVE_KEYS.has(String(key))) {
+        if (this === window.localStorage && SENSITIVE_KEYS.has(String(key)) && (nativeSession || hasBridge())) {
+            ensureNativeSessionLoaded();
             clearSensitiveKey(String(key));
             return;
         }
@@ -129,14 +147,14 @@ export const initNativeAuthBridge = () => {
     return bootstrap;
 };
 
-export const isNativeShell = () => Boolean(nativeSession?.isNativeShell || isNativePayload(parseBootstrap()));
+export const isNativeShell = () => Boolean(nativeSession?.isNativeShell || hasBridge() || isNativePayload(parseBootstrap()));
 
 export const syncNativeSession = () => {
     if (typeof window === 'undefined') {
         return null;
     }
 
-    const bootstrap = readBridgeBootstrap() || parseBootstrap();
+    const bootstrap = ensureNativeSessionLoaded() || parseBootstrap();
     if (!bootstrap) {
         return null;
     }
