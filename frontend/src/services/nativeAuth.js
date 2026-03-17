@@ -187,9 +187,35 @@ export const refreshNativeSession = () => {
     return bootstrap;
 };
 
+const normalizeReason = (value) => {
+    if (!value) return null;
+    return String(value).trim().toLowerCase().replace(/-/g, '_') || null;
+};
+
+const serializeLogoutPayload = (payload) => {
+    if (typeof payload === 'string') {
+        return payload;
+    }
+
+    const normalized = {
+        reason: normalizeReason(payload?.reason) || 'logout',
+        upstreamReason: normalizeReason(payload?.upstreamReason),
+        statusCode: Number.isFinite(Number(payload?.statusCode)) ? Number(payload.statusCode) : undefined,
+        message: payload?.message ? String(payload.message) : undefined,
+        path: payload?.path ? String(payload.path) : undefined,
+        source: payload?.source ? String(payload.source) : undefined
+    };
+
+    return JSON.stringify(
+        Object.fromEntries(
+            Object.entries(normalized).filter(([, value]) => value !== undefined && value !== null && value !== '')
+        )
+    );
+};
+
 export const triggerNativeLogout = (reason = 'logout') => {
     try {
-        getBridge()?.logout?.(reason);
+        getBridge()?.logout?.(serializeLogoutPayload(reason));
     } catch {
         // Native bridge may be absent when running in a browser.
     }

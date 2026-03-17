@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import java.io.IOException
 
 class AuthRouterActivity : AppCompatActivity() {
@@ -29,6 +30,16 @@ class AuthRouterActivity : AppCompatActivity() {
                 } else {
                     WebViewActivity.createIntent(this@AuthRouterActivity)
                 }
+            } catch (error: ApiException) {
+                LoginActivity.createIntent(
+                    this@AuthRouterActivity,
+                    JSONObject().apply {
+                        put("reason", error.reason ?: "session_expired")
+                        put("statusCode", error.statusCode)
+                        put("message", error.message)
+                        put("source", "auth_router")
+                    }.toString()
+                )
             } catch (_: IOException) {
                 if (cachedSession != null && !JwtUtils.isExpired(cachedSession.accessToken)) {
                     WebViewActivity.createIntent(this@AuthRouterActivity)

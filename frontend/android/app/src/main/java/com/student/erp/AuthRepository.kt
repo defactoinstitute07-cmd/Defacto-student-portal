@@ -96,7 +96,7 @@ class AuthRepository(
     } catch (error: ApiException) {
         if (isHardAuthFailure(error)) {
             secureTokenStore.clear()
-            null
+            throw error
         } else if (isDatabaseUnavailable(error) || isTokenLocallyValid(cached.accessToken, 0L)) {
             cached
         } else {

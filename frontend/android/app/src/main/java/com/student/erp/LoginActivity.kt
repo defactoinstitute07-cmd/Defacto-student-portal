@@ -15,6 +15,7 @@ import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import java.io.IOException
 
 class LoginActivity : AppCompatActivity() {
@@ -85,23 +86,9 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun handleAuthError(code: Int, reason: String?, fallbackMessage: String) {
-        val normalizedReason = reason
-            ?.trim()
-            ?.lowercase()
-            ?.replace('-', '_')
-
-        val message = when {
-            code == 401 && normalizedReason == "invalid_credentials" -> getString(R.string.error_invalid_credentials)
-            code == 401 && normalizedReason == "session_expired" -> getString(R.string.error_session_expired)
-            code == 401 && normalizedReason == "token_invalid" -> getString(R.string.error_authentication_failed)
-            code == 401 && normalizedReason == "db_unavailable" -> getString(R.string.error_server_starting)
-            code == 401 -> getString(R.string.error_login_failed_401)
-            code == 429 -> getString(R.string.error_rate_limited)
-            code == 503 || normalizedReason == "db_unavailable" -> getString(R.string.error_server_unavailable)
-            else -> fallbackMessage.ifBlank { getString(R.string.error_generic) }
-        }
-
-        showError(message)
+        val normalizedReason = normalizeReason(reason)
+        val message = resolveFriendlyMessage(code, normalizedReason, fallbackMessage)
+        showError(buildTechnicalMessage(message, code, normalizedReason, fallbackMessage, source = "native_login"))
     }
 
     private fun validate(rollNo: String, password: String): Boolean {
@@ -142,13 +129,102 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun resolveMessage(rawMessage: String): String {
-        return when (rawMessage.trim().lowercase().replace('-', '_')) {
+        val diagnostic = parseDiagnostic(rawMessage)
+        if (diagnostic != null) {
+            val normalizedReason = normalizeReason(diagnostic.optString("upstreamReason").ifBlank {
+                diagnostic.optString("reason")
+            })
+            val statusCode = diagnostic.optInt("statusCode").takeIf { it > 0 }
+            val detailMessage = diagnostic.optString("message").takeIf { it.isNotBlank() }
+            val source = diagnostic.optString("source").takeIf { it.isNotBlank() }
+            val path = diagnostic.optString("path").takeIf { it.isNotBlank() }
+            val friendlyMessage = resolveFriendlyMessage(
+                statusCode,
+                normalizedReason,
+                detailMessage.orEmpty()
+            )
+
+            return buildTechnicalMessage(
+                friendlyMessage,
+                statusCode,
+                normalizedReason,
+                detailMessage,
+                source = source,
+                path = path
+            )
+        }
+
+        return when (normalizeReason(rawMessage)) {
             "session_expired", "web_session_cleared" -> getString(R.string.error_session_expired)
             "token_invalid", "token_missing" -> getString(R.string.error_authentication_failed)
             "db_unavailable" -> getString(R.string.error_server_starting)
             "user_logout", "logout" -> getString(R.string.login_signed_out)
             else -> rawMessage
         }
+    }
+
+    private fun resolveFriendlyMessage(code: Int?, normalizedReason: String?, fallbackMessage: String): String {
+        return when {
+            code == 401 && normalizedReason == "invalid_credentials" -> getString(R.string.error_invalid_credentials)
+            code == 401 && normalizedReason == "session_expired" -> getString(R.string.error_session_expired)
+            code == 401 && normalizedReason == "token_invalid" -> getString(R.string.error_authentication_failed)
+            code == 401 && normalizedReason == "token_missing" -> getString(R.string.error_authentication_failed)
+            code == 401 && normalizedReason == "db_unavailable" -> getString(R.string.error_server_starting)
+            code == 401 -> getString(R.string.error_login_failed_401)
+            code == 429 -> getString(R.string.error_rate_limited)
+            code == 503 || normalizedReason == "db_unavailable" -> getString(R.string.error_server_unavailable)
+            normalizedReason == "session_expired" || normalizedReason == "web_session_cleared" -> getString(R.string.error_session_expired)
+            normalizedReason == "token_invalid" || normalizedReason == "token_missing" -> getString(R.string.error_authentication_failed)
+            normalizedReason == "user_logout" || normalizedReason == "logout" -> getString(R.string.login_signed_out)
+            normalizedReason == "db_unavailable" -> getString(R.string.error_server_starting)
+            else -> fallbackMessage.ifBlank { getString(R.string.error_generic) }
+        }
+    }
+
+    private fun buildTechnicalMessage(
+        userMessage: String,
+        code: Int?,
+        reason: String?,
+        detailMessage: String?,
+        source: String? = null,
+        path: String? = null
+    ): String {
+        val diagnostics = mutableListOf<String>()
+
+        code?.let { diagnostics += "HTTP $it" }
+        normalizeReason(reason)?.let { diagnostics += "reason=$it" }
+        detailMessage
+            ?.takeIf { it.isNotBlank() && !it.equals(userMessage, ignoreCase = true) }
+            ?.let { diagnostics += "message=$it" }
+        path?.takeIf { it.isNotBlank() }?.let { diagnostics += "path=$it" }
+        source?.takeIf { it.isNotBlank() }?.let { diagnostics += "source=$it" }
+
+        if (diagnostics.isEmpty()) {
+            return userMessage
+        }
+
+        return "$userMessage\nTechnical details: ${diagnostics.joinToString(" | ")}"
+    }
+
+    private fun parseDiagnostic(rawMessage: String): JSONObject? {
+        val trimmed = rawMessage.trim()
+        if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) {
+            return null
+        }
+
+        return try {
+            JSONObject(trimmed)
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun normalizeReason(reason: String?): String? {
+        return reason
+            ?.trim()
+            ?.lowercase()
+            ?.replace('-', '_')
+            ?.takeIf { it.isNotBlank() }
     }
 
     companion object {

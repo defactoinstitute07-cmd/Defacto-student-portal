@@ -55,10 +55,25 @@ const retryNativeRequest = async (error, options = {}) => {
 
 const nativeLogoutReason = (reason) => {
     if (reason === 'token_invalid' || reason === 'token_missing') {
-        return 'token-invalid';
+        return 'token_invalid';
     }
 
-    return 'session-expired';
+    return reason || 'session_expired';
+};
+
+const buildNativeLogoutPayload = (error, reason) => {
+    const statusCode = error?.response?.status ?? null;
+    const message = error?.response?.data?.message || error?.message || null;
+    const path = typeof error?.config?.url === 'string' ? error.config.url : null;
+
+    return {
+        reason: nativeLogoutReason(reason),
+        upstreamReason: reason,
+        statusCode,
+        message,
+        path,
+        source: 'webview_api'
+    };
 };
 
 api.interceptors.request.use((config) => {
@@ -90,7 +105,7 @@ api.interceptors.response.use(
                     return retriedResponse;
                 }
 
-                triggerNativeLogout(nativeLogoutReason(reason));
+                triggerNativeLogout(buildNativeLogoutPayload(error, reason));
             }
 
             return Promise.reject(error);

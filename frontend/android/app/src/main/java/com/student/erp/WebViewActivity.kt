@@ -200,6 +200,9 @@ class WebViewActivity : AppCompatActivity() {
 
         val session = try {
             authRepository.ensureValidSession(validateWithServer = canValidateWithServer)
+        } catch (error: ApiException) {
+            handleSessionLoss(buildSessionLossPayload(error, source = "native_bootstrap"))
+            return
         } catch (_: IOException) {
             val cached = authRepository.loadCachedSession()
             if (cached != null && authRepository.isTokenLocallyValid(cached.accessToken, 0L)) {
@@ -235,6 +238,8 @@ class WebViewActivity : AppCompatActivity() {
                 currentSession = refreshed
                 injectRuntimeAuth(refreshed)
                 scheduleRefresh(refreshed)
+            } catch (error: ApiException) {
+                handleSessionLoss(buildSessionLossPayload(error, source = "native_refresh"))
             } catch (_: IOException) {
                 currentSession?.let { scheduleRefresh(it) }
             }
@@ -366,9 +371,38 @@ class WebViewActivity : AppCompatActivity() {
         lifecycleScope.launch {
             authRepository.logout()
             clearWebViewData()
-            startActivity(LoginActivity.createIntent(this@WebViewActivity, normalizeReason(reason)))
+            startActivity(LoginActivity.createIntent(this@WebViewActivity, serializeSessionLoss(reason)))
             finish()
         }
+    }
+
+    private fun serializeSessionLoss(rawReason: String): String {
+        val trimmed = rawReason.trim()
+        if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) {
+            return normalizeReason(trimmed)
+        }
+
+        return try {
+            JSONObject(trimmed).apply {
+                optString("reason")
+                    .takeIf { it.isNotBlank() }
+                    ?.let { put("reason", normalizeReason(it)) }
+                optString("upstreamReason")
+                    .takeIf { it.isNotBlank() }
+                    ?.let { put("upstreamReason", normalizeReason(it)) }
+            }.toString()
+        } catch (_: Exception) {
+            normalizeReason(trimmed)
+        }
+    }
+
+    private fun buildSessionLossPayload(error: ApiException, source: String): String {
+        return JSONObject().apply {
+            put("reason", normalizeReason(error.reason ?: "session_expired"))
+            put("statusCode", error.statusCode)
+            put("message", error.message)
+            put("source", source)
+        }.toString()
     }
 
     private fun normalizeReason(reason: String): String {

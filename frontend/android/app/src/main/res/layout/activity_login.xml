@@ -94,6 +94,7 @@
                     android:layout_marginTop="12dp"
                     android:textAppearance="@style/TextAppearance.Material3.BodySmall"
                     android:textColor="@android:color/holo_red_dark"
+                    android:textIsSelectable="true"
                     android:visibility="gone" />
 
                 <com.google.android.material.progressindicator.LinearProgressIndicator
