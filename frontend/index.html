@@ -5,36 +5,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Institute</title>
-    
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GL9H77KZJL"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-GL9H77KZJL');
+</script>
 </head>
 
 <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-    <script>
-(function() {
-    const BACKEND_URL = 'tutution-erp-api.vercel.app'; // <--- Check if this is your correct backend URL
-    const ENDPOINT = BACKEND_URL + '/api/traffic/log';
 
-    const logTraffic = async () => {
-        try {
-            const payload = {
-                path: window.location.pathname,
-                hostname: window.location.hostname,
-                domain: window.location.origin,
-                userType: 'External'
-            };
-            await fetch(ENDPOINT, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-        } catch (e) {}
-    };
-    if (document.readyState === 'complete') logTraffic();
-    else window.addEventListener('load', logTraffic);
-})();
-</script>
 
 </body>
 
