@@ -21,7 +21,12 @@ const getYearStr = (billingMonthStr) => {
 // GET /api/student/fees
 exports.getStudentFees = async (req, res) => {
     try {
-        const studentId = req.user.id; // From auth middleware
+        const studentId = req.user?.id || req.user?._id; // Handle both id and _id just in case
+        
+        if (!studentId) {
+            console.error('[Fees] No student ID found in request user.');
+            return res.status(401).json({ success: false, message: 'Authentication failed: Student ID missing.' });
+        }
 
         // Fetch student from MongoDB
         const student = await Student.findById(studentId)
@@ -29,16 +34,16 @@ exports.getStudentFees = async (req, res) => {
             .lean();
 
         if (!student) {
-            return res.status(404).json({ success: false, message: 'Student not found' });
+            console.error(`[Fees] Student ${studentId} not found in MongoDB.`);
+            return res.status(404).json({ success: false, message: 'Student record not found.' });
         }
 
         const fees = [];
 
         // 1. Get FeeBalance (For Pending Dues overview)
-        // Since Prisma creates mixed-case table names in Postgres, use quotes
         const balanceRes = await db.query(
             'SELECT * FROM "FeeBalance" WHERE "studentId" = $1',
-            [studentId]
+            [String(studentId)] // Ensure it's a string
         );
 
         if (balanceRes.rows && balanceRes.rows.length > 0) {
@@ -46,9 +51,7 @@ exports.getStudentFees = async (req, res) => {
             const currentBalance = Number(fb.currentBalance) || 0;
             const overdueAmount = Number(fb.overdueAmount) || 0;
 
-            // If the student currently owes money, build a "Pending" card
             if (currentBalance > 0) {
-                // If lastChargedMonth is "2026-04", show that month name
                 let mObj = fb.lastChargedMonth ? fb.lastChargedMonth : `${new Date().getFullYear()}-${new Date().getMonth()+1}`;
                 
                 fees.push({
@@ -74,13 +77,12 @@ exports.getStudentFees = async (req, res) => {
         // 2. Get FeePayments (For Breakdown / Invoices)
         const paymentsRes = await db.query(
             'SELECT * FROM "FeePayment" WHERE "studentId" = $1 ORDER BY "paymentDate" DESC',
-            [studentId]
+            [String(studentId)]
         );
         
-        // Map individual payments to "Paid" Invoice representations
         paymentsRes.rows.forEach(fp => {
             const amount = Number(fp.amount) || 0;
-            if (amount <= 0) return; // Ignore zero transactions if any
+            if (amount <= 0) return;
             
             fees.push({
                 _id: fp.id,
@@ -89,7 +91,7 @@ exports.getStudentFees = async (req, res) => {
                 year: getYearStr(fp.billingMonth),
                 status: 'paid',
                 totalFee: amount,
-                monthlyTuitionFee: amount, // Simplify breakdown to match sum
+                monthlyTuitionFee: amount,
                 registrationFee: 0,
                 fine: 0,
                 otherExpenses: [],
@@ -107,10 +109,6 @@ exports.getStudentFees = async (req, res) => {
             });
         });
 
-        // Optional: Send the actual fee structure along for reference? We don't really need it
-        // since we construct the summary out of raw balances + payments.
-        
-        // Sort effectively (Pending first, then Paid sorted by Date)
         fees.sort((a, b) => {
             if (a.status !== 'paid' && b.status === 'paid') return -1;
             if (a.status === 'paid' && b.status !== 'paid') return 1;
@@ -121,8 +119,10 @@ exports.getStudentFees = async (req, res) => {
         res.json({ success: true, fees });
 
     } catch (error) {
-        console.error('Error fetching real-time student fees from Prisma schema:', error);
-        sendApiError(res, error, 'Unable to fetch student fees from Real-Time database.');
+        console.error('CRITICAL ERROR in getStudentFees:', error);
+        // Expose real error message in debug response to help identifying cause on Vercel
+        const message = process.env.NODE_ENV === 'development' ? error.message : 'Unable to fetch fees right now.';
+        res.status(500).json({ success: false, message, debug: error.message });
     }
 };
 
@@ -130,21 +130,28 @@ exports.getStudentFees = async (req, res) => {
 exports.getFeeReceipt = async (req, res) => {
     try {
         const paymentId = req.params.id; // from frontend
-        const studentId = req.user.id;
+        const studentId = req.user?.id || req.user?._id;
+
+        if (!studentId) {
+             return res.status(401).json({ success: false, message: 'Authentication failed: Student ID missing.' });
+        }
 
         const student = await Student.findById(studentId).lean();
         if (!student) {
-             return res.status(404).json({ success: false, message: 'Student not found' });
+             console.error(`[Receipt] Student ${studentId} not found for payment ${paymentId}`);
+             return res.status(404).json({ success: false, message: 'Student record not found.' });
         }
 
         // Verify the payment ID actually belongs to this student
+        // Use quotes for studentId column if it's mixed case in SQL
         const pRes = await db.query(
             'SELECT * FROM "FeePayment" WHERE id = $1 AND "studentId" = $2',
-            [paymentId, studentId]
+            [String(paymentId), String(studentId)]
         );
 
-        if (pRes.rows.length === 0) {
-            return res.status(404).json({ success: false, message: 'Fee Payment record not found' });
+        if (!pRes.rows || pRes.rows.length === 0) {
+            console.warn(`[Receipt] Fee Payment ${paymentId} not found in Postgres for student ${studentId}`);
+            return res.status(404).json({ success: false, message: 'Fee Payment record not found.' });
         }
 
         const fp = pRes.rows[0];

@@ -126,228 +126,238 @@ const StudentProfile = () => {
         onError: () => setError(t('Failed to load profile data.'))
     });
 
-    if (isLoading) {
+    // If there's an error and no student data, display an error message or redirect
+    if (!isLoading && !student && error) {
         return (
-            <StudentLayout title="Profile">
-                <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
-                    <RefreshCcw className="animate-spin text-[#191838]" size={28} />
-                    <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-400">{t('Loading Profile...')}</p>
-                </div>
-            </StudentLayout>
-        );
-    }
-
-    if (!student) {
-        return (
-            <StudentLayout title="Profile">
-                <div className="px-4 py-10">
-                    <div className="space-y-3 rounded-3xl border border-rose-200 bg-rose-50 p-5 shadow-sm">
-                        <div className="flex items-center gap-3 text-rose-700">
-                            <AlertTriangle size={18} />
-                            <p className="text-sm font-bold">{t('Profile data could not be loaded.')}</p>
-                        </div>
-                        <p className="text-xs text-rose-600/80">
-                            {error || t('This build is trying to reach {{url}}.', { url: apiBaseUrl })}
-                        </p>
-                        <button
-                            type="button"
-                            onClick={() => window.location.reload()}
-                            className="h-11 w-full rounded-2xl bg-[#191838] text-xs font-black uppercase tracking-[0.24em] text-white"
-                        >
-                            {t('Retry')}
-                        </button>
+            <div className="px-4 py-10">
+                <div className="space-y-3 rounded-3xl border border-rose-200 bg-rose-50 p-5 shadow-sm">
+                    <div className="flex items-center gap-3 text-rose-700">
+                        <AlertTriangle size={18} />
+                        <p className="text-sm font-bold">{t('Profile data could not be loaded.')}</p>
                     </div>
+                    <p className="text-xs text-rose-600/80">
+                        {error || t('This build is trying to reach {{url}}.', { url: apiBaseUrl })}
+                    </p>
+                    <button
+                        type="button"
+                        onClick={() => window.location.reload()}
+                        className="h-11 w-full rounded-2xl bg-[#191838] text-xs font-black uppercase tracking-[0.24em] text-white"
+                    >
+                        {t('Retry')}
+                    </button>
                 </div>
-            </StudentLayout>
+            </div>
         );
     }
 
-    const initials = String(student.name || 'S')
+    const initials = String(student?.name || 'S')
         .split(' ')
         .filter(Boolean)
         .slice(0, 2)
         .map((part) => part[0]?.toUpperCase() || '')
         .join('') || 'S';
 
-    const attendancePercent = student.attendanceSummary?.percentage || 0;
-    const academicStatus = student.status === 'batch_pending' ? t('Pending Batch') : (student.status || t('Active'));
+    const attendancePercent = student?.attendanceSummary?.percentage || 0;
+    const academicStatus = student?.status === 'batch_pending' ? t('Pending Batch') : (student?.status || t('Active'));
     const primaryColor = "#191838";
 
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-[#f8fafc] pb-24 font-sans selection:bg-indigo-100 flex flex-col no-scrollbar scroll-smooth">
+                {/* Skeleton Header */}
+                <div className="bg-white px-6 pt-10 pb-8 rounded-b-[40px] shadow-sm border-b border-slate-100 mb-8">
+                    <div className="flex flex-col items-center text-center max-w-lg mx-auto">
+                        <Skeleton className="w-24 h-24 rounded-[32px] mb-5" />
+                        <Skeleton className="h-8 w-48 mb-2" />
+                        <Skeleton className="h-4 w-64" />
+                    </div>
+                </div>
+
+                <div className="px-6 space-y-8">
+                    {/* Skeleton Stats Grid */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <Skeleton className="h-32 w-full rounded-[28px]" />
+                        <Skeleton className="h-32 w-full rounded-[28px]" />
+                    </div>
+
+                    {/* Skeleton Detail Rows */}
+                    <div className="space-y-4">
+                        <Skeleton className="h-6 w-32 mb-4" />
+                        {[1, 2, 3, 4].map(i => (
+                            <Skeleton key={i} className="h-16 w-full rounded-2xl" />
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <StudentLayout title="Profile">
-            <div className="mx-auto max-w-2xl px-4 py-6">
+        <div className="mx-auto max-w-2xl px-4 py-6 pb-24">
+            
+            {/* 1. Header Card - Avatar & Primary Info */}
+            <div className="relative overflow-hidden rounded-[32px] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] sm:p-8">
+                {/* Decorative Background Pattern */}
+                <div className="absolute -right-8 -top-8 h-40 w-40 rounded-full bg-indigo-50/50" />
                 
-                {/* 1. Header Card - Avatar & Primary Info */}
-                <div className="relative overflow-hidden rounded-[32px] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] sm:p-8">
-                    {/* Decorative Background Pattern */}
-                    <div className="absolute -right-8 -top-8 h-40 w-40 rounded-full bg-indigo-50/50" />
-                    
-                    <div className="relative flex flex-col items-center gap-5 sm:flex-row sm:text-left">
-                        <div className="relative h-24 w-24 shrink-0">
-                            <div className="h-full w-full overflow-hidden rounded-[32px] border-4 border-white bg-slate-50 shadow-md">
-                                {student.profileImage ? (
-                                    <img src={student.profileImage} alt={student.name} className="h-full w-full object-cover" />
-                                ) : (
-                                    <div className="flex h-full w-full items-center justify-center text-2xl font-black text-slate-300">
-                                        {initials}
+                <div className="relative flex flex-col items-center gap-5 sm:flex-row sm:text-left">
+                    <div className="relative h-24 w-24 shrink-0">
+                        <div className="h-full w-full overflow-hidden rounded-[32px] border-4 border-white bg-slate-50 shadow-md">
+                            {student.profileImage ? (
+                                <img src={student.profileImage} alt={student.name} className="h-full w-full object-cover" />
+                            ) : (
+                                <div className="flex h-full w-full items-center justify-center text-2xl font-black text-slate-300">
+                                    {initials}
+                                </div>
+                            )}
+                        </div>
+                        <div className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-[#191838] text-white shadow-sm">
+                            <UserCheck size={14} />
+                        </div>
+                    </div>
+
+                    <div className="flex-1 text-center sm:text-left">
+                        <h2 className="text-2xl font-black text-gray-900">{student.name}</h2>
+                        <div className="mt-2 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-[11px] font-bold text-slate-600">
+                                <Hash size={12} /> {student.rollNo || EMPTY_VALUE}
+                            </span>
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-bold text-[#191838]">
+                                <Clock size={12} /> {student.session || '2026-2027'}
+                            </span>
+                        </div>
+                        <p className="mt-3 text-sm font-semibold text-slate-500">
+                            {student.className || student.batchName || t('Batch Pending')}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {/* 2. Grid for Sections */}
+            <div className="mt-6 grid grid-cols-1 gap-6">
+                
+                {/* Academic Summary */}
+                <section>
+                    <SectionHeader title={t('Academic Summary')} />
+                    <div className="rounded-[28px] border border-gray-100 bg-white p-5 shadow-sm">
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">{t('Attendance')}</span>
+                            <span className="text-lg font-black text-[#191838]">{attendancePercent}%</span>
+                        </div>
+                        <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                            <div className="h-full bg-[#191838] transition-all" style={{ width: `${attendancePercent}%` }} />
+                        </div>
+                        
+                        <div className="mt-5 space-y-3">
+                            <DetailRow icon={BookOpen} label={t('Current Session')} value={student.session} colorClass="text-indigo-600" />
+                            <DetailRow icon={Calendar} label={t('Admission Date')} value={formatDateValue(student.admissionDate, locale)} colorClass="text-indigo-600" />
+                            <DetailRow icon={UserCheck} label={t('Account Status')} value={academicStatus} colorClass="text-indigo-600" />
+                        </div>
+                    </div>
+                </section>
+
+                {/* Guardian Info */}
+                <section>
+                    <SectionHeader title={t('Guardian Info')} />
+                    <div className="space-y-3">
+                        <DetailRow icon={User} label={t("Father's Name")} value={formatValue(student.fatherName)} colorClass="text-indigo-500" />
+                        <DetailRow icon={Heart} label={t("Mother's Name")} value={formatValue(student.motherName)} colorClass="text-rose-500" />
+                    </div>
+                </section>
+
+                {/* Personal Contact */}
+                <section>
+                    <SectionHeader title={t('Personal Contact')} />
+                    <div className="space-y-3">
+                        <DetailRow icon={Mail} label={t('Email Address')} value={formatValue(student.email)} colorClass="text-blue-500" />
+                        <DetailRow icon={Phone} label={t('Phone Number')} value={formatValue(student.contact)} colorClass="text-amber-500" />
+                        <DetailRow icon={MapPin} label={t('Address')} value={formatValue(student.address)} colorClass="text-rose-500" />
+                        <DetailRow icon={User} label={t('Gender')} value={formatValue(student.gender)} colorClass="text-indigo-500" />
+                        <DetailRow icon={Calendar} label={t('DOB')} value={formatDateValue(student.dob, locale)} colorClass="text-blue-500" />
+                    </div>
+                </section>
+
+                {/* Fees Overview */}
+                <section>
+                    <SectionHeader title={t('Fees Overview')} />
+                    <div className="rounded-[28px] border border-gray-100 bg-white p-5 shadow-sm">
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-orange-500">
+                                        <CreditCard size={18} />
                                     </div>
-                                )}
+                                    <div>
+                                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t('Total Fees')}</p>
+                                        <p className="text-sm font-black text-slate-800">{formatCurrency(student.fees)}</p>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-[#191838] text-white shadow-sm">
-                                <UserCheck size={14} />
+                            <div className="flex items-center justify-between border-t border-slate-50 pt-4">
+                                <div>
+                                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t('Registration')}</p>
+                                    <p className="text-sm font-semibold text-slate-700">{formatCurrency(student.registrationFee)}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t('Paid')}</p>
+                                    <p className="text-sm font-bold text-[#12112a]">{formatCurrency(student.feesPaid)}</p>
+                                </div>
                             </div>
                         </div>
+                    </div>
+                </section>
+            </div>
 
-                        <div className="flex-1 text-center sm:text-left">
-                            <h2 className="text-2xl font-black text-gray-900">{student.name}</h2>
-                            <div className="mt-2 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-                                <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-[11px] font-bold text-slate-600">
-                                    <Hash size={12} /> {student.rollNo || EMPTY_VALUE}
-                                </span>
-                                <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-bold text-[#191838]">
-                                    <Clock size={12} /> {student.session || '2026-2027'}
-                                </span>
-                            </div>
-                            <p className="mt-3 text-sm font-semibold text-slate-500">
-                                {student.className || student.batchName || t('Batch Pending')}
+            {/* 3. Bio / Notes */}
+            {(student.notes || student.bio) && (
+                <section className="mt-8">
+                    <SectionHeader title={t('Notes & Bio')} />
+                    <div className="rounded-[28px] border border-gray-100 bg-indigo-50/30 p-5">
+                        <div className="flex gap-3">
+                            <FileText className="shrink-0 text-[#191838]" size={18} />
+                            <p className="text-sm italic leading-relaxed text-slate-600">
+                                {student.notes || student.bio}
                             </p>
                         </div>
                     </div>
+                </section>
+            )}
+
+            {/* Settings & Support */}
+            <section>
+                <SectionHeader title={t('Settings & Support')} />
+                <div className="rounded-[28px] bg-white p-5 border border-slate-100 shadow-sm divide-y divide-slate-50">
+                    <SettingRow 
+                        icon={Bell} 
+                        label={t('Push Notifications')} 
+                        type="toggle" 
+                        active={pushEnabled} 
+                        onClick={() => setPushEnabled(!pushEnabled)}
+                    />
+                    <SettingRow 
+                        icon={Briefcase} 
+                        label={t('Contact Support')} 
+                        type="link" 
+                        onClick={() => navigate('/student/support')}
+                    />
                 </div>
+                
+                <button 
+                    onClick={() => {
+                        localStorage.removeItem('studentToken');
+                        navigate('/student/login');
+                    }}
+                    className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-4 text-sm font-extrabold text-rose-500 border border-rose-100 shadow-sm transition active:scale-95"
+                >
+                    <LogOut size={18} />
+                    {t('Sign Out')}
+                </button>
+            </section>
 
-                {/* 2. Grid for Sections */}
-                <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
-                    
-                    {/* Academic Progress & Info */}
-                    <div className="space-y-6">
-                        <section>
-                            <SectionHeader title={t('Academic Summary')} />
-                            <div className="rounded-[28px] border border-gray-100 bg-white p-5 shadow-sm">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400">{t('Attendance')}</span>
-                                    <span className="text-lg font-black text-[#191838]">{attendancePercent}%</span>
-                                </div>
-                                <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-100">
-                                    <div className="h-full bg-[#191838] transition-all" style={{ width: `${attendancePercent}%` }} />
-                                </div>
-                                
-                                <div className="mt-5 space-y-3">
-                                    <DetailRow icon={BookOpen} label={t('Current Session')} value={student.session} colorClass="text-indigo-600" />
-                                    <DetailRow icon={Calendar} label={t('Admission Date')} value={formatDateValue(student.admissionDate, locale)} colorClass="text-indigo-600" />
-                                    <DetailRow icon={UserCheck} label={t('Account Status')} value={academicStatus} colorClass="text-indigo-600" />
-                                </div>
-                            </div>
-                        </section>
-
-                        <section>
-                            <SectionHeader title={t('Guardian Info')} />
-                            <div className="space-y-3">
-                                <DetailRow icon={User} label={t("Father's Name")} value={formatValue(student.fatherName)} colorClass="text-indigo-500" />
-                                <DetailRow icon={Heart} label={t("Mother's Name")} value={formatValue(student.motherName)} colorClass="text-rose-500" />
-                            </div>
-                        </section>
-                    </div>
-
-                    {/* Personal & Fees Info */}
-                    <div className="space-y-6">
-                        <section>
-                            <SectionHeader title={t('Personal Contact')} />
-                            <div className="space-y-3">
-                                <DetailRow icon={Mail} label={t('Email Address')} value={formatValue(student.email)} colorClass="text-blue-500" />
-                                <DetailRow icon={Phone} label={t('Phone Number')} value={formatValue(student.contact)} colorClass="text-amber-500" />
-                                <DetailRow icon={MapPin} label={t('Address')} value={formatValue(student.address)} colorClass="text-rose-500" />
-                                <DetailRow icon={User} label={t('Gender')} value={formatValue(student.gender)} colorClass="text-indigo-500" />
-                                <DetailRow icon={Calendar} label={t('DOB')} value={formatDateValue(student.dob, locale)} colorClass="text-blue-500" />
-                            </div>
-                        </section>
-
-                        <section>
-                            <SectionHeader title={t('Fees Overview')} />
-                            <div className="rounded-[28px] border border-gray-100 bg-white p-5 shadow-sm">
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-orange-500">
-                                                <CreditCard size={18} />
-                                            </div>
-                                            <div>
-                                                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t('Total Fees')}</p>
-                                                <p className="text-sm font-black text-slate-800">{formatCurrency(student.fees)}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center justify-between border-t border-slate-50 pt-4">
-                                        <div>
-                                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t('Registration')}</p>
-                                            <p className="text-sm font-semibold text-slate-700">{formatCurrency(student.registrationFee)}</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t('Paid')}</p>
-                                            <p className="text-sm font-bold text-[#12112a]">{formatCurrency(student.feesPaid)}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-                    </div>
-                </div>
-
-                {/* 3. Bio / Notes */}
-                {(student.notes || student.bio) && (
-                    <section className="mt-8">
-                        <SectionHeader title={t('Notes & Bio')} />
-                        <div className="rounded-[28px] border border-gray-100 bg-indigo-50/30 p-5">
-                            <div className="flex gap-3">
-                                <FileText className="shrink-0 text-[#191838]" size={18} />
-                                <p className="text-sm italic leading-relaxed text-slate-600">
-                                    {student.notes || student.bio}
-                                </p>
-                            </div>
-                        </div>
-                    </section>
-                )}
-
-                {/* 4. Support & Settings */}
-                <div className="mt-10 rounded-[32px] bg-slate-50 p-6">
-                    <div className="divide-y divide-slate-100">
-                        <SettingRow 
-                            icon={Bell} 
-                            label={t('Push Notifications')} 
-                            type="toggle" 
-                            active={pushEnabled} 
-                            onClick={() => setPushEnabled(!pushEnabled)}
-                        />
-                        <SettingRow 
-                            icon={Shield} 
-                            label={t('Privacy & Security')} 
-                            type="link" 
-                            onClick={() => navigate('/student/settings')}
-                        />
-                        <SettingRow 
-                            icon={Briefcase} 
-                            label={t('Contact Support')} 
-                            type="link" 
-                            onClick={() => navigate('/student/support')}
-                        />
-                    </div>
-                    
-                    <button 
-                        onClick={() => {
-                            localStorage.removeItem('studentToken');
-                            navigate('/student/login');
-                        }}
-                        className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-4 text-sm font-bold text-red-500 shadow-sm transition hover:bg-red-50"
-                    >
-                        <LogOut size={18} />
-                        {t('Sign Out')}
-                    </button>
-                </div>
-
-                <p className="mt-8 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
-                    ClassNexus ERP v2.4.0
-                </p>
-            </div>
-        </StudentLayout>
+            <p className="mt-12 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 pb-10">
+                ClassNexus ERP v2.4.0
+            </p>
+        </div>
     );
 };
 

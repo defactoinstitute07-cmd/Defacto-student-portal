@@ -191,45 +191,41 @@ const StudentAttendance = () => {
 
     if (isLoading) {
         return (
-            <StudentLayout title="Attendance">
-                <div className="mx-auto max-w-6xl space-y-6">
-                    <Skeleton className="h-72 w-full rounded-[32px]" />
-                    <div className="grid gap-4 md:grid-cols-3">
-                        {[1, 2, 3].map((item) => (
-                            <Skeleton key={item} className="h-44 w-full rounded-[28px]" />
-                        ))}
-                    </div>
-                    <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-                        <Skeleton className="h-[30rem] w-full rounded-[28px]" />
-                        <Skeleton className="h-[30rem] w-full rounded-[28px]" />
-                    </div>
+            <div className="mx-auto max-w-6xl space-y-6">
+                <Skeleton className="h-72 w-full rounded-[32px]" />
+                <div className="grid gap-4 md:grid-cols-3">
+                    {[1, 2, 3].map((item) => (
+                        <Skeleton key={item} className="h-44 w-full rounded-[28px]" />
+                    ))}
                 </div>
-            </StudentLayout>
+                <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+                    <Skeleton className="h-[30rem] w-full rounded-[28px]" />
+                    <Skeleton className="h-[30rem] w-full rounded-[28px]" />
+                </div>
+            </div>
         );
     }
 
     if (!student) {
         return (
-            <StudentLayout title="Attendance">
-                <div className="px-4 py-10">
-                    <div className="space-y-3 rounded-3xl border border-rose-200 bg-white p-5 shadow-sm">
-                        <div className="flex items-center gap-3 text-rose-700">
-                            <AlertCircle size={18} />
-                            <p className="text-sm font-bold">{t('Attendance data could not be loaded.')}</p>
-                        </div>
-                        <p className="text-xs leading-relaxed text-gray-600">
-                            {error || t('This build is trying to reach {{url}}. If you are using the local backend, keep it running and connect the phone to the same Wi-Fi.', { url: apiBaseUrl })}
-                        </p>
-                        <button
-                            type="button"
-                            onClick={() => window.location.reload()}
-                            className="h-11 w-full rounded-2xl bg-[#191838] text-xs font-black uppercase tracking-[0.24em] text-gray-900"
-                        >
-                            {t('Retry')}
-                        </button>
+            <div className="px-4 py-10">
+                <div className="space-y-3 rounded-3xl border border-rose-200 bg-white p-5 shadow-sm">
+                    <div className="flex items-center gap-3 text-rose-700">
+                        <AlertCircle size={18} />
+                        <p className="text-sm font-bold">{t('Attendance data could not be loaded.')}</p>
                     </div>
+                    <p className="text-xs leading-relaxed text-gray-600">
+                        {error || t('This build is trying to reach {{url}}. If you are using the local backend, keep it running and connect the phone to the same Wi-Fi.', { url: apiBaseUrl })}
+                    </p>
+                    <button
+                        type="button"
+                        onClick={() => window.location.reload()}
+                        className="h-11 w-full rounded-2xl bg-[#191838] text-xs font-black uppercase tracking-[0.24em] text-gray-900"
+                    >
+                        {t('Retry')}
+                    </button>
                 </div>
-            </StudentLayout>
+            </div>
         );
     }
 
@@ -255,183 +251,181 @@ const StudentAttendance = () => {
     };
 
     return (
-        <StudentLayout title="Attendance">
-            <div className="mx-auto max-w-6xl space-y-6">
-                <section className="relative overflow-hidden rounded-[32px] border border-blue-100 bg-gradient-to-r from-blue-50 via-white to-blue-50 shadow-[0_8px_30px_rgba(37,99,235,0.08)]">
-    {/* Light blue dot pattern */}
-    <div className="absolute inset-0 opacity-40 [background-image:radial-gradient(circle_at_1px_1px,rgba(37,99,235,0.15)_1px,transparent_0)] [background-size:18px_18px]" />
+        <div className="mx-auto max-w-6xl space-y-6">
+            <section className="relative overflow-hidden rounded-[32px] border border-blue-100 bg-gradient-to-r from-blue-50 via-white to-blue-50 shadow-[0_8px_30px_rgba(37,99,235,0.08)]">
+                {/* Light blue dot pattern */}
+                <div className="absolute inset-0 opacity-40 [background-image:radial-gradient(circle_at_1px_1px,rgba(37,99,235,0.15)_1px,transparent_0)] [background-size:18px_18px]" />
 
-    <div className="relative px-5 pb-6 pt-6 sm:px-8 sm:pb-8 sm:pt-8">
-        <div className="min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-blue-600">
-                {t('Attendance Dashboard')}
-            </p>
-            <h1 className="mt-3 break-words text-3xl font-black tracking-tight text-blue-900 sm:text-4xl">
-                {t('Track your presence across all academic subjects.')}
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm font-medium text-blue-700 sm:text-base">
-                {t('Review your subject-wise consistency, overall percentage, and recent attendance activity from one place.')}
-            </p>
-        </div>
-
-        <div className="mt-6 grid gap-3 sm:grid-cols-3">
-            <HeroMetric
-                label={t('Overall Percentage')}
-                value={`${summary.percentage || 0}%`}
-                hint={t('Presence Rating')}
-            />
-            <HeroMetric
-                label={t('Total Classes')}
-                value={summary.total || 0}
-                hint={t('Cumulative Sessions')}
-            />
-            <HeroMetric
-                label={t('Classes Attended')}
-                value={summary.present || 0}
-                hint={t('Sessions Present')}
-            />
-        </div>
-    </div>
-</section>
-
-                {error ? (
-                    <div className="flex items-center gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700">
-                        <AlertTriangle size={16} />
-                        <span>{error}</span>
+                <div className="relative px-5 pb-6 pt-6 sm:px-8 sm:pb-8 sm:pt-8">
+                    <div className="min-w-0">
+                        <p className="text-[10px] font-black uppercase tracking-[0.28em] text-blue-600">
+                            {t('Attendance Dashboard')}
+                        </p>
+                        <h1 className="mt-3 break-words text-3xl font-black tracking-tight text-blue-900 sm:text-4xl">
+                            {t('Track your presence across all academic subjects.')}
+                        </h1>
+                        <p className="mt-3 max-w-2xl text-sm font-medium text-blue-700 sm:text-base">
+                            {t('Review your subject-wise consistency, overall percentage, and recent attendance activity from one place.')}
+                        </p>
                     </div>
-                ) : null}
 
-                <div className="grid gap-4 md:grid-cols-3">
-                    <SummaryCard
-                        icon={Calendar}
-                        label={t('Total Classes')}
-                        value={summary.total || 0}
-                        sub={t('Cumulative Sessions')}
-                        tone={{ ...getPercentageTone(70), label: t('Attendance') }}
-                    />
-                    <SummaryCard
-                        icon={CheckCircle2}
-                        label={t('Classes Attended')}
-                        value={summary.present || 0}
-                        sub={t('Sessions Present')}
-                        tone={{ ...getPercentageTone(85), label: t('Present') }}
-                    />
-                    <SummaryCard
-                        icon={BadgeCheck}
-                        label={t('Overall Percentage')}
-                        value={`${summary.percentage || 0}%`}
-                        sub={t('Presence Rating')}
-                        tone={{ ...overallTone, label: t(overallTone.label) }}
-                    />
+                    <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                        <HeroMetric
+                            label={t('Overall Percentage')}
+                            value={`${summary.percentage || 0}%`}
+                            hint={t('Presence Rating')}
+                        />
+                        <HeroMetric
+                            label={t('Total Classes')}
+                            value={summary.total || 0}
+                            hint={t('Cumulative Sessions')}
+                        />
+                        <HeroMetric
+                            label={t('Classes Attended')}
+                            value={summary.present || 0}
+                            hint={t('Sessions Present')}
+                        />
+                    </div>
                 </div>
+            </section>
 
-                <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-                    <SectionCard
-                        eyebrow={t('Subject-wise Analytics')}
-                        title={t('Attendance Dashboard')}
-                        action={(
-                            <span className={`inline-flex w-fit rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] ${overallTone.soft}`}>
-                                {subjects.length} {t('Subjects')}
-                            </span>
-                        )}
-                    >
-                        {subjects.length > 0 ? (
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                {subjects.map((subject, index) => (
-                                    <SubjectCard
-                                        key={subject.subjectId || index}
-                                        subject={subject}
-                                        t={t}
-                                        onOpen={() => navigate(`/student/attendance/${subject.subjectId}`)}
-                                    />
-                                ))}
+            {error ? (
+                <div className="flex items-center gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700">
+                    <AlertTriangle size={16} />
+                    <span>{error}</span>
+                </div>
+            ) : null}
+
+            <div className="grid gap-4 md:grid-cols-3">
+                <SummaryCard
+                    icon={Calendar}
+                    label={t('Total Classes')}
+                    value={summary.total || 0}
+                    sub={t('Cumulative Sessions')}
+                    tone={{ ...getPercentageTone(70), label: t('Attendance') }}
+                />
+                <SummaryCard
+                    icon={CheckCircle2}
+                    label={t('Classes Attended')}
+                    value={summary.present || 0}
+                    sub={t('Sessions Present')}
+                    tone={{ ...getPercentageTone(85), label: t('Present') }}
+                />
+                <SummaryCard
+                    icon={BadgeCheck}
+                    label={t('Overall Percentage')}
+                    value={`${summary.percentage || 0}%`}
+                    sub={t('Presence Rating')}
+                    tone={{ ...overallTone, label: t(overallTone.label) }}
+                />
+            </div>
+
+            <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+                <SectionCard
+                    eyebrow={t('Subject-wise Analytics')}
+                    title={t('Attendance Dashboard')}
+                    action={(
+                        <span className={`inline-flex w-fit rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] ${overallTone.soft}`}>
+                            {subjects.length} {t('Subjects')}
+                        </span>
+                    )}
+                >
+                    {subjects.length > 0 ? (
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            {subjects.map((subject, index) => (
+                                <SubjectCard
+                                    key={subject.subjectId || index}
+                                    subject={subject}
+                                    t={t}
+                                    onOpen={() => navigate(`/student/attendance/${subject.subjectId}`)}
+                                />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="rounded-3xl border border-dashed border-gray-100 bg-white p-10 text-center">
+                            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-slate-300 shadow-sm">
+                                <BookOpen size={24} />
+                            </div>
+                            <p className="mt-4 text-sm font-semibold text-gray-500">{t('No subject attendance data available yet.')}</p>
+                        </div>
+                    )}
+                </SectionCard>
+
+                <div className="space-y-6">
+                    <SectionCard eyebrow={t('Attendance')} title={t('Recent Attendance')}>
+                        {recent.length > 0 ? (
+                            <div className="space-y-3">
+                                {recent.map((item, index) => {
+                                    const subject = item.subjectId?.name || item.subjectName || 'Subject';
+
+                                    return (
+                                        <div
+                                            key={item._id || index}
+                                            className="flex flex-col items-start gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                                        >
+                                            <div className="min-w-0">
+                                                <p className="break-words text-sm font-semibold text-gray-900 sm:truncate">{subject}</p>
+                                                <p className="mt-1 inline-flex items-center gap-2 text-xs font-medium text-gray-500">
+                                                    <Clock size={13} className="shrink-0" />
+                                                    {formatAttendanceDate(item.attendanceDate)}
+                                                </p>
+                                            </div>
+                                            <span className={`shrink-0 rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] ${getStatusBadgeClass(item.status)}`}>
+                                                {t(item.status || '-')}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         ) : (
-                            <div className="rounded-3xl border border-dashed border-gray-100 bg-white p-10 text-center">
-                                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-slate-300 shadow-sm">
-                                    <BookOpen size={24} />
-                                </div>
-                                <p className="mt-4 text-sm font-semibold text-gray-500">{t('No subject attendance data available yet.')}</p>
+                            <div className="rounded-3xl border border-dashed border-gray-100 bg-white p-8 text-center">
+                                <p className="text-sm font-semibold text-gray-500">{t('No recent attendance records yet.')}</p>
                             </div>
                         )}
                     </SectionCard>
 
-                    <div className="space-y-6">
-                        <SectionCard eyebrow={t('Attendance')} title={t('Recent Attendance')}>
-                            {recent.length > 0 ? (
-                                <div className="space-y-3">
-                                    {recent.map((item, index) => {
-                                        const subject = item.subjectId?.name || item.subjectName || 'Subject';
-
-                                        return (
-                                            <div
-                                                key={item._id || index}
-                                                className="flex flex-col items-start gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
-                                            >
-                                                <div className="min-w-0">
-                                                    <p className="break-words text-sm font-semibold text-gray-900 sm:truncate">{subject}</p>
-                                                    <p className="mt-1 inline-flex items-center gap-2 text-xs font-medium text-gray-500">
-                                                        <Clock size={13} className="shrink-0" />
-                                                        {formatAttendanceDate(item.attendanceDate)}
-                                                    </p>
-                                                </div>
-                                                <span className={`shrink-0 rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] ${getStatusBadgeClass(item.status)}`}>
-                                                    {t(item.status || '-')}
-                                                </span>
-                                            </div>
-                                        );
-                                    })}
+                    <SectionCard eyebrow={t('Academic Requirement')} title={t('Attendance')}>
+                        <div className="rounded-3xl border border-blue-100 bg-blue-50 p-5">
+                            <div className="flex items-start gap-3">
+                                <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-blue-600 shadow-sm">
+                                    <AlertCircle size={18} />
                                 </div>
-                            ) : (
-                                <div className="rounded-3xl border border-dashed border-gray-100 bg-white p-8 text-center">
-                                    <p className="text-sm font-semibold text-gray-500">{t('No recent attendance records yet.')}</p>
-                                </div>
-                            )}
-                        </SectionCard>
-
-                        <SectionCard eyebrow={t('Academic Requirement')} title={t('Attendance')}>
-                            <div className="rounded-3xl border border-blue-100 bg-blue-50 p-5">
-                                <div className="flex items-start gap-3">
-                                    <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-blue-600 shadow-sm">
-                                        <AlertCircle size={18} />
-                                    </div>
-                                    <div className="min-w-0">
-                                        <p className="text-sm font-black text-blue-950">{t('Academic Requirement')}</p>
-                                        <p className="mt-2 text-sm font-medium leading-6 text-blue-800">
-                                            {t('Students must maintain at least 75% attendance in each subject to be eligible for final examinations. For any disputes regarding your status, please visit the HOD office.')}
-                                        </p>
-                                    </div>
+                                <div className="min-w-0">
+                                    <p className="text-sm font-black text-blue-950">{t('Academic Requirement')}</p>
+                                    <p className="mt-2 text-sm font-medium leading-6 text-blue-800">
+                                        {t('Students must maintain at least 75% attendance in each subject to be eligible for final examinations. For any disputes regarding your status, please visit the HOD office.')}
+                                    </p>
                                 </div>
                             </div>
+                        </div>
 
-                            <div className="mt-4 grid grid-cols-3 gap-3">
-                                <div className="rounded-2xl border border-indigo-200 bg-indigo-50 p-4 text-center">
-                                    <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-indigo-700 shadow-sm">
-                                        <CheckCircle2 size={18} />
-                                    </div>
-                                    <p className="mt-3 text-[10px] font-black uppercase tracking-[0.2em] text-indigo-700">{t('Present')}</p>
-                                    <p className="mt-2 text-xl font-black text-indigo-700">{summary.present || 0}</p>
+                        <div className="mt-4 grid grid-cols-3 gap-3">
+                            <div className="rounded-2xl border border-indigo-200 bg-indigo-50 p-4 text-center">
+                                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-indigo-700 shadow-sm">
+                                    <CheckCircle2 size={18} />
                                 </div>
-                                <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-center">
-                                    <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-rose-700 shadow-sm">
-                                        <XCircle size={18} />
-                                    </div>
-                                    <p className="mt-3 text-[10px] font-black uppercase tracking-[0.2em] text-rose-700">{t('Absent')}</p>
-                                    <p className="mt-2 text-xl font-black text-rose-700">{summary.absent || 0}</p>
-                                </div>
-                                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-center">
-                                    <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-amber-700 shadow-sm">
-                                        <Loader2 size={18} />
-                                    </div>
-                                    <p className="mt-3 text-[10px] font-black uppercase tracking-[0.2em] text-amber-700">{t('Late')}</p>
-                                    <p className="mt-2 text-xl font-black text-amber-700">{summary.late || 0}</p>
-                                </div>
+                                <p className="mt-3 text-[10px] font-black uppercase tracking-[0.2em] text-indigo-700">{t('Present')}</p>
+                                <p className="mt-2 text-xl font-black text-indigo-700">{summary.present || 0}</p>
                             </div>
-                        </SectionCard>
-                    </div>
+                            <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-center">
+                                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-rose-700 shadow-sm">
+                                    <XCircle size={18} />
+                                </div>
+                                <p className="mt-3 text-[10px] font-black uppercase tracking-[0.2em] text-rose-700">{t('Absent')}</p>
+                                <p className="mt-2 text-xl font-black text-rose-700">{summary.absent || 0}</p>
+                            </div>
+                            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-center">
+                                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-amber-700 shadow-sm">
+                                    <Loader2 size={18} />
+                                </div>
+                                <p className="mt-3 text-[10px] font-black uppercase tracking-[0.2em] text-amber-700">{t('Late')}</p>
+                                <p className="mt-2 text-xl font-black text-amber-700">{summary.late || 0}</p>
+                            </div>
+                        </div>
+                    </SectionCard>
                 </div>
             </div>
-        </StudentLayout>
+        </div>
     );
 };
 

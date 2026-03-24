@@ -90,36 +90,46 @@ const StudentSubjects = () => {
 
     if (isLoading) {
         return (
-            <StudentLayout title="Subject Hub">
-                <div className="flex h-64 items-center justify-center">
-                    <Skeleton className="h-12 w-12 rounded-full" />
+            <div className="bg-white px-5 pt-8 no-scrollbar scroll-smooth">
+                <div className="flex gap-6 border-b border-slate-100 mb-6">
+                    {[1, 2, 3].map(i => (
+                        <Skeleton key={i} className="h-10 w-24 mb-3" />
+                    ))}
                 </div>
-            </StudentLayout>
+                <div className="flex items-center justify-between mb-8">
+                    <Skeleton className="h-6 w-48" />
+                    <Skeleton className="h-6 w-24 rounded-full" />
+                </div>
+                <div className="space-y-5">
+                    {[1, 2, 3, 4].map(i => (
+                        <Skeleton key={i} className="h-32 w-full rounded-[24px]" />
+                    ))}
+                </div>
+            </div>
         );
     }
 
     return (
-        <StudentLayout title="Subject Hub">
-            <div 
-                className="bg-white text-slate-900 pb-24" 
-                style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
-            >
-                {/* Tabs - Now part of the main page content below the layout header */}
-                <div className="flex gap-6 border-b border-slate-100 px-6 pt-2 overflow-x-auto no-scrollbar">
-                    {['Ongoing', 'Completed', 'Upcoming'].map((tab) => (
-                        <button
-                            key={tab}
-                            onClick={() => setActiveTab(tab)}
-                            className={`pb-3 text-[15px] font-semibold transition-colors whitespace-nowrap ${
-                                activeTab === tab 
-                                ? 'border-b-[2.5px] border-[#191838] text-[#191838]' 
-                                : 'text-slate-400 border-transparent hover:text-slate-600'
-                            }`}
-                        >
-                            {t(tab)}
-                        </button>
-                    ))}
-                </div>
+        <div 
+            className="bg-white text-slate-900 pb-24" 
+            style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
+        >
+            {/* Tabs - Now part of the main page content below the layout header */}
+            <div className="flex gap-6 border-b border-slate-100 px-6 pt-2 overflow-x-auto no-scrollbar">
+                {['Ongoing', 'Completed', 'Upcoming'].map((tab) => (
+                    <button
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        className={`pb-3 text-[15px] font-semibold transition-colors whitespace-nowrap ${
+                            activeTab === tab 
+                            ? 'border-b-[2.5px] border-[#191838] text-[#191838]' 
+                            : 'text-slate-400 border-transparent hover:text-slate-600'
+                        }`}
+                    >
+                        {t(tab)}
+                    </button>
+                ))}
+            </div>
 
             <main className="px-5 pt-6">
                 <div className="flex items-center justify-between mb-6">
@@ -221,7 +231,6 @@ const StudentSubjects = () => {
                 }
             ` }} />
         </div>
-        </StudentLayout>
     );
 };
 
