@@ -192,7 +192,7 @@ const StudentLayout = ({ children, title, backUrl }) => {
 
             {/* Mobile Bottom Navigation */}
             <nav
-                className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[94%] max-w-lg z-[150] md:hidden"
+                className="fixed bottom-2 left-1/2 -translate-x-1/2 w-[94%] max-w-lg z-[150] md:hidden"
                 aria-label="Primary"
             >
                 <div className="relative bg-white/80 backdrop-blur-2xl border border-white/40 shadow-[0_12px_40px_rgba(0,0,0,0.12)] rounded-[28px] px-2 py-2 flex items-center justify-around overflow-hidden">

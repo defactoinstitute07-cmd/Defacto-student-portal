@@ -1,0 +1,41 @@
+{
+  "FeeBalance": {
+    "id": "cmn38c4rq0003sknsb4hrzcl1",
+    "studentId": "69c14127368af9612ff37381",
+    "batchId": "69b9459615c71461d447e79a",
+    "feeStructureId": "cmn382uko0001wgnsj80vsbbh",
+    "lastChargedMonth": "2026-04",
+    "totalCharged": "3000.00",
+    "totalPaid": "3000.00",
+    "currentBalance": "0.00",
+    "overdueAmount": "0.00",
+    "status": "CLEAR",
+    "dueDate": null,
+    "lastPaymentAt": "2026-03-23T11:45:16.847Z",
+    "lastCalculatedAt": "2026-03-23T11:45:17.803Z",
+    "notes": null,
+    "createdAt": "2026-03-23T08:06:45.350Z",
+    "updatedAt": "2026-03-23T11:45:17.827Z"
+  },
+  "FeePayment": {
+    "id": "cmn38c4xa0004sknskmmh8l9d",
+    "studentId": "69c14127368af9612ff37381",
+    "batchId": "69b9459615c71461d447e79a",
+    "feeBalanceId": "cmn38c4rq0003sknsb4hrzcl1",
+    "feeStructureId": "cmn382uko0001wgnsj80vsbbh",
+    "billingMonth": "2026-03",
+    "amount": "1500.00",
+    "balanceBeforePayment": "1500.00",
+    "balanceAfterPayment": "0.00",
+    "paymentDate": "2026-03-23T08:06:44.422Z",
+    "paymentMethod": "CASH",
+    "referenceNo": null,
+    "remarks": null,
+    "receiptNumber": "RCP-1774273005548-30TMZU",
+    "studentNameSnapshot": "Rishabh Bisht",
+    "rollNoSnapshot": "STU2601",
+    "batchNameSnapshot": "SC-11-26(PCB)",
+    "createdAt": "2026-03-23T08:06:45.550Z",
+    "updatedAt": "2026-03-23T08:06:45.550Z"
+  }
+}
