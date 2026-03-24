@@ -47,12 +47,25 @@ const globalLimiter = rateLimit({
 app.use(globalLimiter);
 
 // Health Check
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
+    const { getDatabaseHealth } = require('./config/database');
+    const postgres = require('./config/postgres');
+    
     const database = getDatabaseHealth();
+    let postgresStatus = 'unknown';
+    
+    try {
+        await postgres.query('SELECT NOW()');
+        postgresStatus = 'connected';
+    } catch (err) {
+        postgresStatus = 'error: ' + err.message;
+    }
+
     res.json({
         status: 'ok',
         mongodb: database.status,
-        redis: redis ? (redis.status || 'connected') : 'disabled',
+        postgres: postgresStatus,
+        redis: (require('./middleware/cache').redis) ? 'connected' : 'disabled',
         lastConnectedAt: database.lastConnectedAt,
         lastDatabaseError: database.lastError,
         env: {
