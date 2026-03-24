@@ -1,15 +1,40 @@
 import axios from 'axios';
 import { isNativeShell, refreshNativeSession, syncNativeSession, triggerNativeLogout } from './nativeAuth';
 
+const LEGACY_API_ORIGIN = 'https://student-erp-server-api.vercel.app';
+const PRIMARY_API_ORIGIN = 'https://student-erp-6w9m.onrender.com';
+
+const normalizeBaseURL = (rawBase) => {
+    const value = String(rawBase || '').trim();
+    if (!value) return '/api';
+    if (!value.startsWith('http')) return value;
+
+    try {
+        const url = new URL(value);
+
+        if (url.origin === LEGACY_API_ORIGIN) {
+            const target = new URL(PRIMARY_API_ORIGIN);
+            url.protocol = target.protocol;
+            url.host = target.host;
+        }
+
+        if (!url.pathname.startsWith('/api')) {
+            url.pathname = `${url.pathname.replace(/\/+$/, '')}/api`;
+        }
+
+        return url.toString().replace(/\/$/, '');
+    } catch (error) {
+        if (!value.includes('/api')) {
+            return value.endsWith('/') ? `${value}api` : `${value}/api`;
+        }
+
+        return value;
+    }
+};
+
 const getBaseURL = () => {
     const envBase = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
-    if (!envBase) return '/api';
-
-    // If it's a full URL and doesn't end with /api, append it
-    if (envBase.startsWith('http') && !envBase.includes('/api')) {
-        return envBase.endsWith('/') ? `${envBase}api` : `${envBase}/api`;
-    }
-    return envBase;
+    return normalizeBaseURL(envBase);
 };
 
 const api = axios.create({
