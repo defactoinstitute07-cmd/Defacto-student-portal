@@ -130,7 +130,7 @@ const StudentLogin = () => {
     };
 
     return (
-        <div className="relative min-h-screen w-full flex items-center justify-center p-4 font-sans overflow-hidden bg-[#0a1128]">
+        <div className="relative min-h-screen w-full flex items-center justify-center p-4 font-sans overflow-hidden bg-[#0a0a0f]">
             <div className="absolute right-4 top-4 z-[120]">
                 <LanguageToggleButton variant="topbar" />
             </div>
@@ -174,31 +174,31 @@ const StudentLogin = () => {
             {/* --- ANIMATED BACKGROUND ELEMENTS --- */}
             
             {/* Base Radial Gradient */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/40 via-[#0a1128] to-[#0a1128]"></div>
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-indigo-900/20 via-[#0a0a0f] to-[#06060a]"></div>
 
             {/* Animated Glowing Light Lines (SVG) */}
             <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-60" preserveAspectRatio="none">
                 <defs>
-                    <linearGradient id="cyan-glow" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#06b6d4" stopOpacity="0" />
-                        <stop offset="50%" stopColor="#22d3ee" stopOpacity="0.8" />
-                        <stop offset="100%" stopColor="#06b6d4" stopOpacity="0" />
+                    <linearGradient id="indigo-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#4ade80" stopOpacity="0" />
+                        <stop offset="50%" stopColor="#191838" stopOpacity="0.8" />
+                        <stop offset="100%" stopColor="#4ade80" stopOpacity="0" />
                     </linearGradient>
                     <linearGradient id="purple-glow" x1="100%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stopColor="#a855f7" stopOpacity="0" />
-                        <stop offset="50%" stopColor="#c084fc" stopOpacity="0.8" />
-                        <stop offset="100%" stopColor="#a855f7" stopOpacity="0" />
+                        <stop offset="0%" stopColor="#191838" stopOpacity="0" />
+                        <stop offset="50%" stopColor="#4ade80" stopOpacity="0.8" />
+                        <stop offset="100%" stopColor="#191838" stopOpacity="0" />
                     </linearGradient>
                 </defs>
                 {/* Curved swishes mimicking cinematic light leaks */}
-                <path d="M-100,800 C300,600 500,100 1200,300" fill="none" stroke="url(#cyan-glow)" strokeWidth="8" className="glowing-path" style={{ filter: 'blur(4px)' }} />
+                <path d="M-100,800 C300,600 500,100 1200,300" fill="none" stroke="url(#indigo-glow)" strokeWidth="8" className="glowing-path" style={{ filter: 'blur(4px)' }} />
                 <path d="M1200,800 C800,900 300,400 -100,200" fill="none" stroke="url(#purple-glow)" strokeWidth="6" className="glowing-path" style={{ animationDelay: '-4s', filter: 'blur(6px)' }} />
-                <path d="M-200,500 C400,300 800,800 1400,400" fill="none" stroke="url(#cyan-glow)" strokeWidth="3" className="glowing-path" style={{ animationDelay: '-2s' }} />
+                <path d="M-200,500 C400,300 800,800 1400,400" fill="none" stroke="url(#indigo-glow)" strokeWidth="3" className="glowing-path" style={{ animationDelay: '-2s' }} />
             </svg>
 
             {/* Floating Film Reels (Pure SVG) */}
             <div className="absolute top-10 right-[10%] opacity-20 film-reel-1 pointer-events-none">
-                <svg width="180" height="180" viewBox="0 0 100 100" className="spin-element text-cyan-200">
+                <svg width="180" height="180" viewBox="0 0 100 100" className="spin-element text-indigo-300">
                     <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="12 6" />
                     <circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" strokeWidth="2" />
                     <circle cx="50" cy="50" r="10" fill="currentColor" />
@@ -210,7 +210,7 @@ const StudentLogin = () => {
             </div>
 
             <div className="absolute bottom-10 left-[5%] opacity-20 film-reel-2 pointer-events-none">
-                <svg width="220" height="220" viewBox="0 0 100 100" className="spin-element text-purple-200" style={{ animationDirection: 'reverse', animationDuration: '35s' }}>
+                <svg width="220" height="220" viewBox="0 0 100 100" className="spin-element text-indigo-200" style={{ animationDirection: 'reverse', animationDuration: '35s' }}>
                     <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="10" strokeDasharray="15 5" />
                     <circle cx="50" cy="50" r="28" fill="none" stroke="currentColor" strokeWidth="3" />
                     <circle cx="50" cy="50" r="12" fill="none" stroke="currentColor" strokeWidth="4" />
@@ -219,22 +219,21 @@ const StudentLogin = () => {
             </div>
 
             {/* Glowing Particles/Dust */}
-            <div className="absolute top-[20%] left-[20%] w-2 h-2 bg-cyan-400 rounded-full blur-[2px]" style={{ animation: 'pulse-glow 3s infinite' }}></div>
-            <div className="absolute top-[60%] right-[25%] w-3 h-3 bg-purple-400 rounded-full blur-[2px]" style={{ animation: 'pulse-glow 4s infinite 1s' }}></div>
-            <div className="absolute bottom-[30%] left-[30%] w-1.5 h-1.5 bg-blue-300 rounded-full blur-[1px]" style={{ animation: 'pulse-glow 2.5s infinite 2s' }}></div>
+            <div className="absolute top-[20%] left-[20%] w-2 h-2 bg-indigo-400 rounded-full blur-[2px]" style={{ animation: 'pulse-glow 3s infinite' }}></div>
+            <div className="absolute top-[60%] right-[25%] w-3 h-3 bg-indigo-300 rounded-full blur-[2px]" style={{ animation: 'pulse-glow 4s infinite 1s' }}></div>
+            <div className="absolute bottom-[30%] left-[30%] w-1.5 h-1.5 bg-indigo-200 rounded-full blur-[1px]" style={{ animation: 'pulse-glow 2.5s infinite 2s' }}></div>
 
 
-            {/* --- FOREGROUND LOGIN CARD (Remains exactly like your design) --- */}
-            <div className="relative z-10 w-full max-w-[420px] bg-white rounded-[24px] shadow-[0_20px_60px_rgb(0,0,0,0.4)] border border-slate-100 p-8 sm:p-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {/* --- FOREGROUND LOGIN CARD --- */}
+            <div className="relative z-10 w-full max-w-[420px] bg-white/5 rounded-[20px] shadow-[0_20px_60px_rgba(0,0,0,0.5)] border border-white/10 p-8 sm:p-10 animate-in fade-in slide-in-from-bottom-4 duration-700 backdrop-blur-xl">
                 
                 {/* Top Icon & Headers */}
                 <div className="flex flex-col items-center mb-8 relative">
-                    {/* Glowing effect strictly behind the shield icon to tie it to the background */}
                     {/* Top Icon / Logo Section */}
     
    
     {/* Image Container */}
-    <div className="relative w-20 h-20 bg-white rounded-md flex items-center justify-center shadow-lg shadow-slate-900/10 mb-6 p-2 border border-slate-50 group hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+    <div className="relative w-20 h-20 bg-white/5 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-900/20 mb-6 p-2 border border-white/10 group hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
         <img 
             src={instituteLogo} 
             alt="Institute Logo" 
@@ -242,17 +241,17 @@ const StudentLogin = () => {
         />
     </div>
 
-                    <h1 className="text-2xl font-bold text-[#0f172a] tracking-tight mb-2">
+                    <h1 className="text-2xl font-bold text-white tracking-tight mb-2">
                         {t('Institute Erp')}
                     </h1>
-                    <p className="text-slate-500 text-sm font-medium">
+                    <p className="text-white/50 text-sm font-medium">
                         {t('Secure login for students only.')}
                     </p>
                 </div>
 
                 {/* Error Banner */}
                 {formError && (
-                    <div className="mb-6 bg-red-50 border border-red-100 text-red-600 p-3 rounded-xl flex items-center gap-3 animate-in fade-in zoom-in duration-300" role="alert">
+                    <div className="mb-6 bg-red-500/100/10 border border-red-500/30 text-red-300 p-3 rounded-xl flex items-center gap-3 animate-in fade-in zoom-in duration-300" role="alert">
                         <AlertCircle size={18} className="shrink-0" />
                         <p className="text-sm font-medium">{formError}</p>
                     </div>
@@ -263,12 +262,12 @@ const StudentLogin = () => {
                     
                     {/* Student ID Field */}
                     <div className="space-y-2">
-                        <label htmlFor="student-roll" className="block text-sm font-semibold text-[#0f172a]">
+                        <label htmlFor="student-roll" className="block text-sm font-semibold text-white/70">
                             {t('Student ID')}
                         </label>
                         <div className="relative group">
                             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                <Mail size={18} className={`transition-colors ${shouldShowFieldError('rollNo') ? 'text-red-400' : 'text-slate-400 group-focus-within:text-[#0f172a]'}`} />
+                                <Mail size={18} className={`transition-colors ${shouldShowFieldError('rollNo') ? 'text-red-400' : 'text-white/30 group-focus-within:text-[#191838]'}`} />
                             </div>
                             <input
                                 id="student-roll"
@@ -278,7 +277,7 @@ const StudentLogin = () => {
                                 onBlur={() => setTouched((prev) => ({ ...prev, rollNo: true }))}
                                 placeholder={t('Student ID')}
                                 autoComplete="username"
-                                className={`w-full pl-10 pr-4 py-3 bg-[#f8fafc] border ${shouldShowFieldError('rollNo') ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20' : 'border-slate-200 focus:border-[#0f172a] focus:ring-[#0f172a]/10'} rounded-xl text-[#0f172a] placeholder-slate-400 focus:outline-none focus:ring-4 transition-all`}
+                                className={`w-full pl-10 pr-4 py-3 bg-white/5 border ${shouldShowFieldError('rollNo') ? 'border-red-400/50 focus:border-red-400 focus:ring-red-400/20' : 'border-white/10 focus:border-[#191838] focus:ring-[#191838]/15'} rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-4 transition-all`}
                             />
                         </div>
                         {shouldShowFieldError('rollNo') && (
@@ -288,12 +287,12 @@ const StudentLogin = () => {
 
                     {/* Password Field */}
                     <div className="space-y-2">
-                        <label htmlFor="student-password" className="block text-sm font-semibold text-[#0f172a]">
+                        <label htmlFor="student-password" className="block text-sm font-semibold text-white/70">
                             {t('Password')}
                         </label>
                         <div className="relative group">
                             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                <Lock size={18} className={`transition-colors ${shouldShowFieldError('password') ? 'text-red-400' : 'text-slate-400 group-focus-within:text-[#0f172a]'}`} />
+                                <Lock size={18} className={`transition-colors ${shouldShowFieldError('password') ? 'text-red-400' : 'text-white/30 group-focus-within:text-[#191838]'}`} />
                             </div>
                             <input
                                 id="student-password"
@@ -303,12 +302,12 @@ const StudentLogin = () => {
                                 onBlur={() => setTouched((prev) => ({ ...prev, password: true }))}
                                 placeholder={t('Enter your password')}
                                 autoComplete="current-password"
-                                className={`w-full pl-10 pr-12 py-3 bg-[#f8fafc] border ${shouldShowFieldError('password') ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20' : 'border-slate-200 focus:border-[#0f172a] focus:ring-[#0f172a]/10'} rounded-xl text-[#0f172a] placeholder-slate-400 focus:outline-none focus:ring-4 transition-all`}
+                                className={`w-full pl-10 pr-12 py-3 bg-white/5 border ${shouldShowFieldError('password') ? 'border-red-400/50 focus:border-red-400 focus:ring-red-400/20' : 'border-white/10 focus:border-[#191838] focus:ring-[#191838]/15'} rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-4 transition-all`}
                             />
                             <button
                                 type="button"
                                 onClick={() => setShowPassword((prev) => !prev)}
-                                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-[#0f172a] transition-colors"
+                                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-white/30 hover:text-[#191838] transition-colors"
                                 aria-label={showPassword ? t('Hide password') : t('Show password')}
                             >
                                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -323,7 +322,7 @@ const StudentLogin = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full mt-8 py-3.5 bg-[#0f172a] hover:bg-[#1e293b] text-white rounded-xl font-semibold text-[15px] flex items-center justify-center gap-2 shadow-[0_4px_14px_0_rgb(15,23,42,0.39)] hover:shadow-[0_6px_20px_rgba(15,23,42,0.23)] hover:-translate-y-0.5 transition-all duration-200 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed group overflow-hidden relative"
+                        className="w-full mt-8 py-3.5 bg-[#191838] hover:bg-[#12112a] text-white rounded-xl font-semibold text-[15px] flex items-center justify-center gap-2 shadow-[0_4px_14px_0_rgba(33,196,93,0.35)] hover:shadow-[0_6px_20px_rgba(33,196,93,0.28)] hover:-translate-y-0.5 transition-all duration-200 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed group overflow-hidden relative"
                     >
                         {/* Button Shimmer Effect */}
                         <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:animate-[shimmer_1.5s_infinite]"></div>

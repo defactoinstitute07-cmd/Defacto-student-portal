@@ -87,7 +87,7 @@ const SplashScreen = ({ onComplete }) => {
 
         {/* Premium Loading Indicator */}
         <div className="mt-24 w-64 md:w-80 flex flex-col items-center">
-          <div className="relative w-full h-1 bg-white/5 rounded-full overflow-hidden">
+          <div className="relative w-full h-1 bg-white rounded-full overflow-hidden">
             <div 
               className="absolute top-0 left-0 h-full bg-[#d4af37] transition-all duration-300 ease-linear shadow-[0_0_10px_#d4af37]"
               style={{ width: `${loadingProgress}%` }}
@@ -97,7 +97,7 @@ const SplashScreen = ({ onComplete }) => {
             <span className="text-[10px] uppercase tracking-[0.5em] text-[#d4af37] font-bold">
               Establishing Secure Connection
             </span>
-            <span className="text-[10px] text-slate-500 font-mono">
+            <span className="text-[10px] text-gray-900/50 font-mono">
               {Math.floor(loadingProgress)}%
             </span>
           </div>

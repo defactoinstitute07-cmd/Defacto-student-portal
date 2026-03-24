@@ -1,548 +1,296 @@
 import React, { useState, useEffect } from 'react';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import StudentLayout from '../components/StudentLayout';
-import { IndianRupee, Clock, CheckCircle2, AlertCircle, FileText, Download, Loader2, Calendar, Eye } from 'lucide-react';
-import FeeInfoModal from '../components/FeeInfoModal';
+import { 
+    AlertCircle, 
+    CheckCircle2, 
+    Download, 
+    Loader2, 
+    Wallet,
+    CalendarDays, 
+    ChevronDown, 
+    FileText,
+    Receipt,
+    CreditCard
+} from 'lucide-react';
 import api from '../services/api';
 import { useQuery } from '@tanstack/react-query';
 import { getCached, setCached } from '../utils/offlineCache';
-import { Capacitor } from '@capacitor/core';
-import { Filesystem, Directory } from '@capacitor/filesystem';
-import { Share } from '@capacitor/share';
 import { useLanguage } from '../context/LanguageContext';
+import { generateFeeReceipt } from '../utils/receiptGenerator';
 
 const StudentFees = () => {
     const { t } = useLanguage();
-    const [stats, setStats] = useState({ totalPaid: 0, pendingDues: 0 });
-    const [infoModal, setInfoModal] = useState({ isOpen: false, fee: null, payment: null });
-    const [previewPdf, setPreviewPdf] = useState({ isOpen: false, blobUrl: null, filename: '' });
-
-    // Fallback student info from local storage if needed
-    const studentInfo = JSON.parse(localStorage.getItem('studentInfo') || '{}');
+    const [expandedFee, setExpandedFee] = useState(null);
+    const [hasAutoExpanded, setHasAutoExpanded] = useState(false);
 
     const { data: feesData, isLoading } = useQuery({
         queryKey: ['student', 'fees'],
         queryFn: async () => {
-            try {
-                const { data } = await api.get('/student/fees');
-                if (data.success) {
-                    await setCached('student.fees', data.fees);
-                    return data.fees;
-                }
-                return [];
-            } catch (error) {
-                const cached = await getCached('student.fees');
-                if (cached) return cached;
-                throw error;
+            const { data } = await api.get('/student/fees');
+            if (data.success) {
+                await setCached('student.fees', data.fees);
+                return data.fees;
             }
+            return [];
         }
     });
 
-    const fees = feesData || [];
-
-    useEffect(() => {
+    const fees = React.useMemo(() => feesData || [], [feesData]);
+    const stats = React.useMemo(() => {
         let paid = 0;
         let pending = 0;
         fees.forEach(f => {
             paid += (f.amountPaid || 0);
             pending += (f.pendingAmount > 0 ? f.pendingAmount : 0);
         });
-        setStats({ totalPaid: paid, pendingDues: pending });
+        return { totalPaid: paid, pendingDues: pending };
     }, [fees]);
 
-    const fmt = n => (n || 0).toLocaleString('en-IN');
-
-    const numberToWords = (num) => {
-        const a = ['', 'one ', 'two ', 'three ', 'four ', 'five ', 'six ', 'seven ', 'eight ', 'nine ', 'ten ', 'eleven ', 'twelve ', 'thirteen ', 'fourteen ', 'fifteen ', 'sixteen ', 'seventeen ', 'eighteen ', 'nineteen '];
-        const b = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
-        const inWords = (n) => {
-            if ((n = n.toString()).length > 9) return 'overflow';
-            let nArr = ('000000000' + n).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
-            if (!nArr) return '';
-            let str = '';
-            str += nArr[1] != 0 ? (a[Number(nArr[1])] || b[nArr[1][0]] + ' ' + a[nArr[1][1]]) + 'crore ' : '';
-            str += nArr[2] != 0 ? (a[Number(nArr[2])] || b[nArr[2][0]] + ' ' + a[nArr[2][1]]) + 'lakh ' : '';
-            str += nArr[3] != 0 ? (a[Number(nArr[3])] || b[nArr[3][0]] + ' ' + a[nArr[3][1]]) + 'thousand ' : '';
-            str += nArr[4] != 0 ? a[Number(nArr[4])] + 'hundred ' : '';
-            str += nArr[5] != 0 ? ((str != '') ? 'and ' : '') + (a[Number(nArr[5])] || b[nArr[5][0]] + ' ' + a[nArr[5][1]]) : '';
-            return str.toUpperCase();
-        };
-        return inWords(num) + ' RUPEES ONLY.';
-    };
-
-    const generateReceipt = async (feeData, paymentData, previewOnly = false) => {
-        const paymentAmount = Number(paymentData.paidAmount || paymentData.amount || 0);
-        const receiptNo = paymentData.receiptNo;
-        const mode = paymentData.paymentMethod || paymentData.mode || 'Cash';
-        const txnId = paymentData.transactionId || 'N/A';
-        const rawDate = paymentData.date ? new Date(paymentData.date) : new Date();
-        const dateStr = rawDate.toLocaleDateString('en-GB');
-
-        const settings = JSON.parse(localStorage.getItem('instituteSettings') || '{}');
-        const coachingName = settings.coachingName || 'ERP ACADEMY';
-        const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-
-        const logoUrl = settings.instituteLogo ?
-            (settings.instituteLogo.startsWith('http') ? settings.instituteLogo : settings.instituteLogo) : null;
-
-        if (logoUrl) {
-            try {
-                const imgBase64 = await new Promise((resolve) => {
-                    const img = new Image();
-                    img.crossOrigin = 'Anonymous';
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        canvas.width = img.width;
-                        canvas.height = img.height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0);
-                        resolve(canvas.toDataURL('image/png'));
-                    };
-                    img.onerror = () => resolve(null);
-                    img.src = logoUrl;
-                });
-
-                if (imgBase64) {
-                    doc.setGState(new doc.GState({ opacity: 0.1 }));
-                    doc.addImage(imgBase64, 'PNG', 55, 100, 100, 100);
-                    doc.setGState(new doc.GState({ opacity: 1 }));
-                } else {
-                    doc.setGState(new doc.GState({ opacity: 0.1 }));
-                    doc.setFontSize(60);
-                    doc.setTextColor(100, 100, 150);
-                    doc.text(coachingName.toUpperCase(), 105, 148, { align: 'center', angle: 45 });
-                    doc.setGState(new doc.GState({ opacity: 1 }));
-                    doc.setTextColor(0, 0, 0);
-                }
-            } catch (e) {
-                console.log(e);
+    useEffect(() => {
+        if (fees.length > 0 && !hasAutoExpanded) {
+            const firstUnpaid = fees.find(f => f.status !== 'paid');
+            if (firstUnpaid) {
+                setExpandedFee(firstUnpaid._id);
             }
-        } else {
-            doc.setGState(new doc.GState({ opacity: 0.1 }));
-            doc.setFontSize(60);
-            doc.setTextColor(100, 100, 150);
-            doc.text(coachingName.toUpperCase(), 105, 148, { align: 'center', angle: 45 });
-            doc.setGState(new doc.GState({ opacity: 1 }));
-            doc.setTextColor(0, 0, 0);
+            setHasAutoExpanded(true);
         }
+    }, [fees, hasAutoExpanded]);
 
-        // --- Header Section ---
-        doc.setFontSize(16);
-        doc.setFont('helvetica', 'bold');
-        doc.text(coachingName.toUpperCase(), 105, 15, { align: 'center' });
-
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
-        doc.text(settings.address || 'Institute Campus Address Line 1, City, State, ZIP', 105, 21, { align: 'center' });
-        doc.text(`Phone: ${settings.phone || '+91 0000000000'} | Email: ${settings.email || 'info@institute.ac.in'}`, 105, 27, { align: 'center' });
-
-        doc.setDrawColor(200);
-        doc.line(15, 31, 195, 31);
-
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'bold');
-        doc.text('FEE PAYMENT RECEIPT', 105, 39, { align: 'center' });
-
-        // --- Student & Payment Information Section ---
-        let y = 48;
-        doc.setFontSize(9);
-        const col1_X = 15;
-        const col1_ValX = 45;
-        const col2_X = 110;
-        const col2_ValX = 145;
-
-        const drawPair = (lLabel, lVal, rLabel, rVal, currentY) => {
-            doc.setFont('helvetica', 'bold');
-            doc.text(`${lLabel}:`, col1_X, currentY);
-            if (rLabel) doc.text(`${rLabel}:`, col2_X, currentY);
-
-            doc.setFont('helvetica', 'normal');
-
-            const lValStr = String(lVal);
-            const rValStr = String(rVal || '');
-
-            const lLines = doc.splitTextToSize(lValStr, 60);
-            doc.text(lLines, col1_ValX, currentY);
-
-            let rLines = [];
-            if (rLabel) {
-                rLines = doc.splitTextToSize(rValStr, 50);
-                doc.text(rLines, col2_ValX, currentY);
-            }
-
-            const maxLines = Math.max(lLines.length, rLines.length);
-            return currentY + (maxLines * 5) + 2; // Return the new Y position
-        };
-
-        const currentStudent = (feeData.studentId && typeof feeData.studentId === 'object') ? feeData.studentId : (studentInfo || {});
-
-        y = drawPair('Name', currentStudent.name?.toUpperCase() || 'N/A', 'Receipt No', receiptNo || 'N/A', y);
-        y = drawPair('S/O/D/O', (currentStudent.fatherName || 'N/A').toUpperCase(), 'Receipt Date', dateStr, y);
-        y = drawPair('Mother Name', (currentStudent.motherName || 'N/A').toUpperCase(), 'Payment Mode', mode.toUpperCase(), y);
-        y = drawPair('Student ID', currentStudent.rollNo || 'N/A', 'Contact No', currentStudent.contact || 'N/A', y);
-        y = drawPair('Course', (currentStudent.className || 'N/A').toUpperCase(), 'DOB', currentStudent.dob ? new Date(currentStudent.dob).toLocaleDateString('en-GB') : 'N/A', y);
-        y = drawPair('Email', currentStudent.email || 'N/A', 'Gender', (currentStudent.gender || 'N/A').toUpperCase(), y);
-        y = drawPair('Fin. Session', currentStudent.session || '2025/26', 'Transaction ID', txnId, y);
-        y = drawPair('Address', (currentStudent.address || 'N/A').replace(/\n/g, ' ').slice(0, 80), 'Domicile', 'State Domicile', y);
-
-        y += 12;
-
-        // --- Chronological Historical Deductions ---
-        let historicalRemaining = 0;
-        let found = false;
-
-        if (feeData.paymentHistory && feeData.paymentHistory.length > 0) {
-            for (const p of feeData.paymentHistory) {
-                if ((paymentData._id && p._id === paymentData._id) || (paymentData.receiptNo && p.receiptNo === paymentData.receiptNo)) {
-                    found = true;
-                    break;
-                }
-                historicalRemaining += (p.paidAmount || 0);
-            }
-            if (!found) {
-                historicalRemaining = feeData.paymentHistory.reduce((s, p) => s + (p.paidAmount || 0), 0);
-            }
-        }
-
-        let mutableHistoricalRemaining = historicalRemaining;
-        const drainHist = (amt) => {
-            const drained = Math.min(amt, mutableHistoricalRemaining);
-            mutableHistoricalRemaining -= drained;
-            return drained;
-        };
-
-        let currentPaymentRemaining = paymentAmount;
-        const distribute = (amt, alreadyPaidOffAmt = 0) => {
-            const actualRemainingToPayForThisItem = amt - alreadyPaidOffAmt;
-            const paidAmt = Math.min(actualRemainingToPayForThisItem, currentPaymentRemaining);
-            currentPaymentRemaining -= paidAmt;
-            return paidAmt;
-        };
-
-        // --- Fee Breakdown Table ---
-        const feeBodyLines = [];
-
-        const totalTuitionDue = feeData.monthlyTuitionFee || 0;
-        const totalRegDue = feeData.registrationFee || 0;
-        const totalFineDue = feeData.fine || 0;
-
-        const histTuition = drainHist(totalTuitionDue);
-        const histReg = drainHist(totalRegDue);
-        const histFine = drainHist(totalFineDue);
-
-        const t = distribute(totalTuitionDue, histTuition);
-        if (t > 0 || totalTuitionDue > 0) feeBodyLines.push([`Tuition Fee (${feeData.month} ${feeData.year})`, totalTuitionDue.toLocaleString()]);
-
-        const r = distribute(totalRegDue, histReg);
-        if (r > 0 || totalRegDue > 0) feeBodyLines.push(['Registration Fee', totalRegDue.toLocaleString()]);
-
-        const f = distribute(totalFineDue, histFine);
-        if (f > 0 || totalFineDue > 0) feeBodyLines.push(['Late Fine / Penalty', totalFineDue.toLocaleString()]);
-
-        if (feeData.otherExpenses && feeData.otherExpenses.length > 0) {
-            feeData.otherExpenses.forEach(exp => {
-                const histExp = drainHist(exp.amount || 0);
-                const ex = distribute(exp.amount || 0, histExp);
-                feeBodyLines.push([exp.title || 'Other Expense', (exp.amount || 0).toLocaleString()]);
-            });
-        }
-
-        autoTable(doc, {
-            startY: y,
-            head: [['Fee Type', 'Amount (RS.)']],
-            body: feeBodyLines,
-            theme: 'grid',
-            styles: { fontSize: 9, cellPadding: 3 },
-            headStyles: { fillColor: [240, 240, 240], textColor: 0, fontStyle: 'bold' },
-            columnStyles: { 0: { cellWidth: 120 }, 1: { cellWidth: 50, halign: 'right' } },
-            margin: { left: 20 }
-        });
-
-        const tableEnd = doc.lastAutoTable.finalY + 5;
-
-        const totalReceivedTillThisReceipt = historicalRemaining + paymentAmount;
-        const totalBalanceAfterThisReceipt = (feeData.totalFee || 0) - totalReceivedTillThisReceipt;
-
-        // --- Totals ---
-        autoTable(doc, {
-            startY: tableEnd,
-            margin: { left: 90 },
-            body: [
-                ['Subtotal :', (feeData.totalFee || 0).toLocaleString()],
-                ['Total Amount Paid :', paymentAmount.toLocaleString()],
-                ['Balance Amount :', totalBalanceAfterThisReceipt.toLocaleString()],
-            ],
-            theme: 'plain',
-            styles: { fontSize: 9, fontStyle: 'bold', halign: 'right' },
-            columnStyles: { 0: { cellWidth: 50 }, 1: { cellWidth: 30, halign: 'right' } }
-        });
-
-        let currentY = doc.lastAutoTable.finalY + 15;
-
-        // --- Amount In Words Section ---
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Amount (In Words):', 15, currentY);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`${numberToWords(paymentAmount).toUpperCase()}`, 15, currentY + 6);
-
-        // --- Status Section ---
-        let statusText = 'PENDING';
-        let statusColor = [220, 38, 38]; // Red
-        if (totalBalanceAfterThisReceipt <= 0) {
-            statusText = 'PAID';
-            statusColor = [22, 163, 74]; // Green
-        } else if (totalReceivedTillThisReceipt > 0) {
-            statusText = 'PARTIAL / PENDING';
-            statusColor = [234, 88, 12]; // Orange
-        }
-
-        doc.setFont('helvetica', 'bold');
-        doc.setFillColor(...statusColor);
-        doc.rect(195 - 40, currentY - 5, 40, 8, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.text(statusText, 195 - 20, currentY + 0.5, { align: 'center', baseline: 'middle' });
-        doc.setTextColor(0, 0, 0);
-
-        // --- Footer Section ---
-        const footerY = 260;
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'bold');
-        doc.text('System Generated Receipt', 15, footerY + 10);
-
-        doc.text('AUTHORIZED SIGNATURE', 195 - 15, footerY + 10, { align: 'right' });
-        doc.setDrawColor(0);
-        doc.line(195 - 65, footerY + 5, 195, footerY + 5);
-
-        if (previewOnly) {
-            return doc.output('bloburl');
-        } else {
-            doc.save(`Receipt_${receiptNo || currentStudent.rollNo || 'N/A'}.pdf`);
-        }
-    };
-
-    const handleViewReceipt = async (fee, payment) => {
-        try {
-            const url = await generateReceipt(fee, payment, true);
-            setPreviewPdf({ isOpen: true, blobUrl: url, filename: `Receipt_${payment.receiptNo}.pdf` });
-        } catch (e) {
-            console.error(e);
-            alert(t('Error generating receipt'));
-        }
-    };
-
-    const blobToBase64 = (blob) => new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-    });
-
-    const handleDownloadReceipt = async () => {
-        if (!previewPdf.blobUrl) return;
-
-        // Web (browser) flow
-        if (!Capacitor.isNativePlatform()) {
-            const link = document.createElement('a');
-            link.href = previewPdf.blobUrl;
-            link.download = previewPdf.filename || 'receipt.pdf';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            return;
-        }
-
-        // Native Android/iOS flow
-        try {
-            const blob = await fetch(previewPdf.blobUrl).then(r => r.blob());
-            const base64 = await blobToBase64(blob);
-            const base64Data = String(base64).split(',')[1];
-            const path = `receipts/${previewPdf.filename || 'receipt.pdf'}`;
-
-            const saved = await Filesystem.writeFile({
-                path,
-                data: base64Data,
-                directory: Directory.Documents
-            });
-
-            await Share.share({
-                title: t('Fee Receipt'),
-                text: t('Student fee receipt PDF'),
-                url: saved.uri
-            });
-        } catch (err) {
-            console.error(err);
-            alert(t('Unable to save receipt on this device.'));
-        }
+    const fmt = n => (n || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    
+    const formatDate = (dateStr) => {
+        if (!dateStr) return '';
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
     };
 
     if (isLoading) {
         return (
-            <StudentLayout title="My Fees">
-                <div className="flex h-64 items-center justify-center">
-                    <div className="flex flex-col items-center gap-2 text-slate-500">
-                        <Loader2 className="animate-spin" size={32} />
-                        <p>{t('Loading fee details...')}</p>
-                    </div>
-                </div>
-            </StudentLayout>
+            <div className="flex h-screen items-center justify-center bg-[#f8fafc]">
+                <Loader2 className="animate-spin text-[#191838]" size={32} />
+            </div>
         );
     }
 
     return (
-        <StudentLayout title="My Fees">
-            <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="rounded-md bg-white p-5 shadow-sm border border-slate-100 flex items-center gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-md bg-red-50 text-red-600">
-                        <AlertCircle size={24} />
-                    </div>
-                    <div>
-                        <p className="text-sm font-medium text-slate-500 uppercase tracking-widest">{t('Pending Dues')}</p>
-                        <h3 className="text-2xl font-bold text-slate-900 mt-0.5">₹{fmt(stats.pendingDues)}</h3>
-                    </div>
-                </div>
-
-                <div className="rounded-md bg-white p-5 shadow-sm border border-slate-100 flex items-center gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-md bg-emerald-50 text-emerald-600">
-                        <CheckCircle2 size={24} />
-                    </div>
-                    <div>
-                        <p className="text-sm font-medium text-slate-500 uppercase tracking-widest">{t('Total Paid')}</p>
-                        <h3 className="text-2xl font-bold text-slate-900 mt-0.5">₹{fmt(stats.totalPaid)}</h3>
-                    </div>
-                </div>
-            </div>
-
-            <div className="space-y-4">
-                <h3 className="text-lg font-bold text-slate-800">{t('Fee History')}</h3>
-
-                {fees.length === 0 ? (
-                    <div className="rounded-md bg-white p-8 text-center border border-slate-100 shadow-sm">
-                        <div className="mx-auto flex h-16 w-16 items-center justify-center w-full rounded-md bg-slate-50 text-slate-300 mb-4">
-                            <FileText size={32} />
+        <StudentLayout title="Fee Payment">
+            <div className="min-h-screen bg-[#f8fafc] pb-24 font-sans selection:bg-indigo-100">
+                
+                {/* Hero Header Area */}
+                <div className="bg-white px-6 pt-10 pb-8 rounded-b-[40px] shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] border-b border-slate-100">
+                    <div className="flex flex-col items-center text-center max-w-lg mx-auto">
+                        <div className="w-16 h-16 bg-indigo-50/50 rounded-2xl flex items-center justify-center text-[#191838] mb-5 shadow-sm border border-indigo-100/50">
+                            <Wallet size={32} strokeWidth={1.5} />
                         </div>
-                        <h3 className="text-base font-bold text-slate-700">{t('No Fee Records Found')}</h3>
-                        <p className="text-sm text-slate-500 mt-1 max-w-sm mx-auto">
-                            {t("It looks like you don't have any generated bills yet. Please wait for the admin to initiate a billing cycle.")}
+                        <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-2">
+                            {t('Financial Overview')}
+                        </h1>
+                        <p className="text-sm font-medium text-slate-500 max-w-[280px]">
+                            {t('Manage your tuition, view payment history, and download receipts.')}
                         </p>
                     </div>
-                ) : (
-                    fees.map((fee) => (
-                        <div key={fee._id} className="rounded-md bg-white shadow-sm border border-slate-100 overflow-hidden">
-                            <div className={`px-5 py-4 flex items-center justify-between border-b border-slate-100
-                                ${fee.status === 'paid' ? 'bg-emerald-50/50' : fee.status === 'overdue' ? 'bg-red-50/50' : 'bg-slate-50/50'}`}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className={`p-2 rounded-lg 
-                                        ${fee.status === 'paid' ? 'bg-emerald-100 text-emerald-600' :
-                                            fee.status === 'overdue' ? 'bg-red-100 text-red-600' : 'bg-slate-200 text-slate-600'}`}
-                                    >
-                                        <Calendar size={20} />
-                                    </div>
-                                    <div>
-                                        <h4 className="font-bold text-slate-900">{fee.month} {fee.year}</h4>
-                                        <div className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
-                                            {t('Status:')} <span className={`font-semibold uppercase tracking-wider
-                                                ${fee.status === 'paid' ? 'text-emerald-600' :
-                                                    fee.status === 'overdue' ? 'text-red-600' : 'text-slate-600'}`}>
-                                                {fee.status}
-                                            </span>
-                                        </div>
-                                    </div>
+                </div>
+
+                <div className="max-w-3xl mx-auto px-5 sm:px-6 -mt-6 relative z-10 space-y-8">
+                    
+                    {/* Summary Cards */}
+                    <div className="grid grid-cols-2 gap-4">
+                        {/* Pending Dues */}
+                        <div className="bg-white rounded-[28px] p-6 shadow-sm border border-slate-100 flex flex-col justify-between group hover:shadow-md transition-shadow">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-8 h-8 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center shrink-0">
+                                    <AlertCircle size={16} strokeWidth={2.5} />
                                 </div>
-                                <div className="text-right">
-                                    <div className="text-xl font-bold text-slate-900">₹{fmt(fee.totalFee)}</div>
-                                    <div className="text-xs text-slate-500 mt-0.5">{t('Total Billed')}</div>
-                                </div>
+                                <span className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
+                                    {t('Pending Dues')}
+                                </span>
                             </div>
+                            <div className="space-y-1">
+                                <h3 className="text-2xl sm:text-3xl font-black text-rose-600 tracking-tight tabular-nums">
+                                    ₹{fmt(stats.pendingDues)}
+                                </h3>
+                                {stats.pendingDues > 0 && (
+                                    <button className="text-[11px] font-bold text-[#191838] uppercase tracking-widest opacity-80 hover:opacity-100 transition-opacity mt-2 flex items-center gap-1">
+                                        {t('Pay Now')} →
+                                    </button>
+                                )}
+                            </div>
+                        </div>
 
-                            <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Breakdown */}
-                                <div>
-                                    <h5 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">{t('Bill Breakdown')}</h5>
-                                    <div className="space-y-2 text-sm">
-                                        <div className="flex justify-between items-center text-slate-600">
-                                            <span>{t('Monthly Tuition')}</span>
-                                            <span className="font-medium text-slate-900">₹{fmt(fee.monthlyTuitionFee)}</span>
-                                        </div>
-                                        {fee.registrationFee > 0 && (
-                                            <div className="flex justify-between items-center text-slate-600">
-                                                <span>{t('Registration Fee')}</span>
-                                                <span className="font-medium text-slate-900">₹{fmt(fee.registrationFee)}</span>
-                                            </div>
-                                        )}
-                                        {fee.fine > 0 && (
-                                            <div className="flex justify-between items-center text-red-500">
-                                                <span>{t('Late Fine Penalty')}</span>
-                                                <span className="font-medium">₹{fmt(fee.fine)}</span>
-                                            </div>
-                                        )}
-                                        {fee.otherExpenses?.map((exp, i) => (
-                                            <div key={i} className="flex justify-between items-center text-slate-600">
-                                                <span>{exp.title}</span>
-                                                <span className="font-medium text-slate-900">₹{fmt(exp.amount)}</span>
-                                            </div>
-                                        ))}
-                                        <div className="pt-2 mt-2 border-t border-slate-100 flex justify-between items-center font-bold">
-                                            <span className="text-slate-900">{t('Net Payable')}</span>
-                                            <span className="text-slate-900">₹{fmt(fee.totalFee)}</span>
-                                        </div>
-                                    </div>
+                        {/* Total Paid */}
+                        <div className="bg-white rounded-[28px] p-6 shadow-sm border border-slate-100 flex flex-col justify-between group hover:shadow-md transition-shadow">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0">
+                                    <CheckCircle2 size={16} strokeWidth={2.5} />
                                 </div>
+                                <span className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
+                                    {t('Total Paid')}
+                                </span>
+                            </div>
+                            <div className="space-y-1">
+                                <h3 className="text-2xl sm:text-3xl font-black text-emerald-600 tracking-tight tabular-nums">
+                                    ₹{fmt(stats.totalPaid)}
+                                </h3>
+                                <p className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-2 truncate">
+                                    {t('Session')}: {fees[0]?.studentId?.session || 'N/A'}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
 
-                                {/* Payments & Receipts */}
-                                <div>
-                                    <h5 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">{t('Payment History')}</h5>
-                                    {fee.paymentHistory && fee.paymentHistory.length > 0 ? (
-                                        <div className="space-y-3">
-                                            {fee.paymentHistory.map((p, i) => (
-                                                <div key={i} className="flex justify-between items-center bg-slate-50 p-3 rounded-md border border-slate-100">
-                                                    <div>
-                                                        <div className="font-medium text-slate-900">₹{fmt(p.paidAmount)} <span className="text-xs text-slate-500 font-normal">({p.paymentMethod})</span></div>
-                                                        <div className="text-xs text-slate-500 mt-0.5">{new Date(p.date).toLocaleDateString()}</div>
+                    {/* Breakdown Section */}
+                    <div>
+                        <div className="flex items-center gap-3 mb-5 px-1">
+                            <CalendarDays size={20} className="text-[#191838]" strokeWidth={2} />
+                            <h2 className="text-lg font-black text-slate-900 tracking-tight">
+                                {t('Monthly Breakdown')}
+                            </h2>
+                        </div>
+
+                        <div className="space-y-4">
+                            {fees.length > 0 ? (
+                                fees.map((fee) => {
+                                    const isPaid = fee.status === 'paid';
+                                    const isExpanded = expandedFee === fee._id;
+                                    const paidInfo = fee.paymentHistory && fee.paymentHistory.length > 0 ? fee.paymentHistory[0] : null;
+
+                                    return (
+                                        <div 
+                                            key={fee._id} 
+                                            className={`bg-white rounded-[28px] border transition-all duration-300 overflow-hidden ${isExpanded ? 'border-indigo-100 shadow-md shadow-indigo-500/5 ring-1 ring-indigo-50/50' : 'border-slate-100 shadow-sm hover:border-slate-200'}`}
+                                        >
+                                            {/* Transaction Row (Clickable) */}
+                                            <div 
+                                                className="p-5 sm:p-6 flex items-center justify-between cursor-pointer select-none"
+                                                onClick={() => setExpandedFee(isExpanded ? null : fee._id)}
+                                            >
+                                                <div className="flex items-center gap-4 sm:gap-5">
+                                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-colors ${isPaid ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}`}>
+                                                        {isPaid ? <Receipt size={22} strokeWidth={2} /> : <FileText size={22} strokeWidth={2} />}
                                                     </div>
-                                                    <div className="flex gap-2">
-                                                        <button
-                                                            onClick={() => setInfoModal({ isOpen: true, fee, payment: p })}
-                                                            className="h-8 px-2 flex items-center justify-center gap-1.5 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 hover:bg-indigo-100 transition-colors text-[10px] font-bold uppercase tracking-widest"
-                                                            title={t('View Info')}
-                                                        >
-                                                            <Eye size={14} />
-                                                            {t('Info')}
-                                                        </button>
-                                                       
+                                                    <div>
+                                                        <h4 className="font-extrabold text-slate-900 text-[15px] sm:text-[17px] tracking-tight mb-0.5">
+                                                            {fee.month} {fee.year}
+                                                        </h4>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${isPaid ? 'bg-emerald-100/50 text-emerald-700' : 'bg-rose-100/50 text-rose-700'}`}>
+                                                                {isPaid ? t('Paid') : t('Pending')}
+                                                            </span>
+                                                            <span className="text-[11px] font-semibold text-slate-400">
+                                                                {isPaid ? formatDate(paidInfo?.date || fee.paidDate) : `${t('Due')} ${formatDate(fee.dueDate)}`}
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            ))}
-                                            {fee.pendingAmount > 0 && (
-                                                <div className="pt-2 text-sm flex justify-between font-bold text-red-600">
-                                                    <span>{t('Remaining Due')}</span>
-                                                    <span>₹{fmt(fee.pendingAmount)}</span>
+
+                                                <div className="flex items-center gap-4">
+                                                    <span className="font-black text-slate-900 text-base sm:text-lg tabular-nums">
+                                                        ₹{fmt(fee.totalFee)}
+                                                    </span>
+                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isExpanded ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}>
+                                                        <ChevronDown size={18} className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Expandable Invoice Details */}
+                                            {isExpanded && (
+                                                <div className="px-5 sm:px-6 pb-6 animate-in slide-in-from-top-2 duration-300">
+                                                    <div className="pt-5 border-t border-slate-100">
+                                                        
+                                                        {/* Successful Payment Metadata */}
+                                                        {isPaid && paidInfo && (
+                                                            <div className="mb-6 p-4 rounded-2xl bg-slate-50 border border-slate-100/80 flex flex-col sm:flex-row gap-4 sm:gap-8">
+                                                                <div>
+                                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Method')}</p>
+                                                                    <p className="text-sm font-bold text-slate-700 flex items-center gap-1.5">
+                                                                        <CreditCard size={14} className="text-slate-400" /> 
+                                                                        {paidInfo.paymentMethod || t('Direct Transfer')}
+                                                                    </p>
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Transaction ID')}</p>
+                                                                    <p className="text-sm font-bold text-slate-700 font-mono tracking-tight">
+                                                                        {paidInfo.transactionId || 'N/A'}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Line Items */}
+                                                        <div className="space-y-3.5 mb-6">
+                                                            <div className="flex justify-between items-center text-[13px] sm:text-sm">
+                                                                <span className="text-slate-500 font-medium">{t('Tuition Fee')}</span>
+                                                                <span className="font-bold text-slate-800 tabular-nums">₹{fmt(fee.monthlyTuitionFee)}</span>
+                                                            </div>
+                                                            
+                                                            {fee.registrationFee > 0 && (
+                                                                <div className="flex justify-between items-center text-[13px] sm:text-sm">
+                                                                    <span className="text-slate-500 font-medium">{t('Registration Fee')}</span>
+                                                                    <span className="font-bold text-slate-800 tabular-nums">₹{fmt(fee.registrationFee)}</span>
+                                                                </div>
+                                                            )}
+
+                                                            {fee.otherExpenses?.map((expense, idx) => (
+                                                                <div key={idx} className="flex justify-between items-center text-[13px] sm:text-sm">
+                                                                    <span className="text-slate-500 font-medium">{t(expense.title)}</span>
+                                                                    <span className="font-bold text-slate-800 tabular-nums">₹{fmt(expense.amount)}</span>
+                                                                </div>
+                                                            ))}
+
+                                                            {fee.fine > 0 && (
+                                                                <div className="flex justify-between items-center text-[13px] sm:text-sm">
+                                                                    <span className="text-slate-500 font-medium">{t('Late Fine')}</span>
+                                                                    <span className="font-bold text-rose-600 tabular-nums">₹{fmt(fee.fine)}</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Invoice Footer / Call to Action */}
+                                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-5 border-t border-slate-100 border-dashed">
+                                                            <div className="flex items-baseline gap-2">
+                                                                <span className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('Total Amount')}</span>
+                                                                <span className="text-xl font-black text-[#191838] tabular-nums">₹{fmt(fee.totalFee)}</span>
+                                                            </div>
+
+                                                            <div className="flex gap-3">
+                                                                {isPaid ? (
+                                                                    <button 
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            generateFeeReceipt(fee);
+                                                                        }}
+                                                                        className="w-full sm:w-auto px-6 py-2.5 bg-white border-2 border-slate-100 hover:border-slate-200 text-slate-700 rounded-xl text-xs font-extrabold uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                                                                    >
+                                                                        <Download size={14} strokeWidth={2.5} /> {t('Download Receipt')}
+                                                                    </button>
+                                                                ) : (
+                                                                    <button className="w-full sm:w-auto px-8 py-3 bg-[#191838] hover:bg-[#12112a] text-white rounded-xl text-xs font-extrabold uppercase tracking-widest transition-all shadow-md shadow-indigo-900/10 active:scale-95">
+                                                                        {t('Pay Now')}
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        </div>
+
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>
-                                    ) : (
-                                        <div className="h-full flex items-center text-sm text-slate-500 bg-slate-50 rounded-md p-4 border border-slate-100">
-                                            {t('No payments made yet towards this billing cycle.')}
-                                        </div>
-                                    )}
+                                    );
+                                })
+                            ) : (
+                                <div className="text-center py-24 bg-white rounded-[32px] border border-slate-100 shadow-sm flex flex-col items-center justify-center">
+                                    <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 mb-4">
+                                        <Wallet size={32} strokeWidth={1.5} />
+                                    </div>
+                                    <h3 className="text-lg font-black text-slate-800 mb-1">{t('No Fees Found')}</h3>
+                                    <p className="text-sm font-medium text-slate-400 max-w-[200px]">{t('You do not have any fee records for this session yet.')}</p>
                                 </div>
-                            </div>
+                            )}
                         </div>
-                    ))
-                )}
+                    </div>
+                </div>
             </div>
-
-            <FeeInfoModal
-                isOpen={infoModal.isOpen}
-                onClose={() => setInfoModal({ ...infoModal, isOpen: false })}
-                fee={infoModal.fee}
-                student={studentInfo}
-            />
-
-            {/* Keeping ReceiptPreviewModal hidden if needed, or remove it based on user preference */}
-            {/* <ReceiptPreviewModal ... /> */}
         </StudentLayout>
     );
 };

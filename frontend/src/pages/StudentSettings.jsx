@@ -86,8 +86,8 @@ const StudentSettings = () => {
     };
 
     const pushStatusClass = pushStatus === 'granted'
-        ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-        : 'bg-amber-50 text-amber-600 border-amber-100';
+        ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+        : 'bg-amber-50 text-amber-700 border-amber-200';
     
     const pushStatusLabel = pushStatus === 'granted'
         ? t('Enabled')
@@ -110,7 +110,7 @@ const StudentSettings = () => {
                     
                     <div className="bg-white rounded-md border border-gray-100 shadow-sm p-5">
                         {(error || success) && (
-                            <div className={`p-3.5 rounded-md mb-5 flex items-start gap-3 animate-in slide-in-from-top-2 ${error ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'}`}>
+                            <div className={`p-3.5 rounded-md mb-5 flex items-start gap-3 animate-in slide-in-from-top-2 ${error ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-indigo-50 text-indigo-700 border border-indigo-200'}`}>
                                 <div className="mt-0.5">
                                     {error ? <AlertTriangle size={16} /> : <CheckCircle2 size={16} />}
                                 </div>
@@ -148,7 +148,7 @@ const StudentSettings = () => {
                             </div>
                             <button
                                 type="submit" disabled={pwdLoading}
-                                className="w-full mt-2 h-12 bg-gray-900 text-white text-xs font-black uppercase tracking-widest rounded-md active:scale-[0.98] transition-transform disabled:opacity-50 shadow-md shadow-gray-900/10 flex items-center justify-center gap-2"
+                                className="w-full mt-2 h-12 bg-gray-900 text-gray-900 text-xs font-black uppercase tracking-widest rounded-md active:scale-[0.98] transition-transform disabled:opacity-50 shadow-md shadow-gray-900/10 flex items-center justify-center gap-2"
                             >
                                 {pwdLoading && <RefreshCcw size={14} className="animate-spin" />}
                                 {pwdLoading ? t('Validating...') : t('Update Password')}
@@ -178,7 +178,7 @@ const StudentSettings = () => {
                         </div>
 
                         {pushNotice && (
-                            <div className={`p-3 rounded-md text-xs font-bold ${pushStatus === 'granted' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100'}`}>
+                            <div className={`p-3 rounded-md text-xs font-bold ${pushStatus === 'granted' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
                                 {pushNotice}
                             </div>
                         )}
@@ -187,7 +187,7 @@ const StudentSettings = () => {
                             type="button"
                             onClick={handleEnableNotifications}
                             disabled={pushLoading || !pushEnabledInBuild}
-                            className="w-full mt-2 h-12 bg-blue-600 text-white text-xs font-black uppercase tracking-widest rounded-md active:scale-[0.98] transition-transform disabled:opacity-50 shadow-md shadow-blue-600/20 flex items-center justify-center gap-2"
+                            className="w-full mt-2 h-12 bg-blue-600 text-gray-900 text-xs font-black uppercase tracking-widest rounded-md active:scale-[0.98] transition-transform disabled:opacity-50 shadow-md shadow-blue-600/20 flex items-center justify-center gap-2"
                         >
                             {pushLoading && <RefreshCcw size={14} className="animate-spin" />}
                             {pushLoading

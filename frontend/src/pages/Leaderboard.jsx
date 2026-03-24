@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trophy, Medal, Award, RefreshCcw, AlertTriangle } from 'lucide-react';
+import { Trophy, Medal, Award, RefreshCcw, AlertTriangle, ChevronDown, User } from 'lucide-react';
 import Skeleton from '../components/Skeleton';
 import api from '../services/api';
 import StudentLayout from '../components/StudentLayout';
@@ -21,40 +21,24 @@ const Leaderboard = () => {
     const debouncedSubject = useDebouncedValue(lbSubject, 300);
 
     useEffect(() => {
-        if (!token) {
-            navigate('/student/login');
-        }
+        if (!token) navigate('/student/login');
     }, [navigate, token]);
 
     useEffect(() => {
-        if (lbType === 'batch' && lbSubject !== 'All') {
-            setLbSubject('All');
-        }
+        if (lbType === 'batch' && lbSubject !== 'All') setLbSubject('All');
     }, [lbType, lbSubject]);
 
     const { data: resultsSummary, isLoading: summaryLoading } = useQuery({
         queryKey: ['student', 'results', 'summary'],
         enabled: !!token,
         queryFn: async () => {
-            try {
-                const res = await api.get('/student/results', { params: { limit: 1 } });
-                if (res.data.success) {
-                    await setCached('student.results.summary', res.data);
-                    return res.data;
-                }
-                throw new Error('Failed to load');
-            } catch (err) {
-                if (err.response?.status === 401) {
-                    localStorage.removeItem('studentToken');
-                    navigate('/student/login');
-                    throw err;
-                }
-                const cached = await getCached('student.results.summary');
-                if (cached) return cached;
-                throw err;
+            const res = await api.get('/student/results', { params: { limit: 1 } });
+            if (res.data.success) {
+                await setCached('student.results.summary', res.data);
+                return res.data;
             }
-        },
-        onError: () => setError(t('Failed to load leaderboard context.'))
+            throw new Error('Failed');
+        }
     });
 
     const subjects = useMemo(() => {
@@ -73,7 +57,6 @@ const Leaderboard = () => {
                 if (lbType === 'subject' && debouncedSubject && debouncedSubject !== 'All') {
                     params.subject = debouncedSubject;
                 }
-
                 const response = await api.get('/student/results/leaderboard', { params });
                 if (response.data.success) {
                     await setCached(leaderboardCacheKey, response.data.leaderboard);
@@ -81,171 +64,144 @@ const Leaderboard = () => {
                 }
                 return [];
             } catch (err) {
-                if (err.response?.status === 401) {
-                    localStorage.removeItem('studentToken');
-                    navigate('/student/login');
-                    throw err;
-                }
                 const cached = await getCached(leaderboardCacheKey);
                 if (cached) return cached;
                 throw err;
             }
-        },
-        onError: () => setError(t('Failed to load rankings.'))
+        }
     });
 
     const isLoading = summaryLoading || leaderboardLoading;
     const showRefreshing = leaderboardFetching && !leaderboardLoading;
 
     const getRankStyles = (idx) => {
-        if (idx === 0) return 'bg-yellow-400 text-yellow-900 scale-110 shadow-yellow-500/20';
-        if (idx === 1) return 'bg-gray-300 text-gray-900 shadow-gray-400/20';
-        if (idx === 2) return 'bg-orange-400 text-orange-900 shadow-orange-500/20';
-        return 'bg-white/10 text-gray-400 group-hover:bg-white/20 group-hover:text-white';
+        if (idx === 0) return 'bg-amber-100 text-amber-600 border-amber-200';
+        if (idx === 1) return 'bg-slate-100 text-slate-500 border-slate-200';
+        if (idx === 2) return 'bg-orange-100 text-orange-600 border-orange-200';
+        return 'bg-gray-50 text-gray-400 border-gray-100';
     };
 
-    if (isLoading) {
-        return (
-            <StudentLayout title="Leaderboard">
-                <div className="max-w-4xl mx-auto pb-12 space-y-6">
-                    <div className="bg-gray-900 rounded-md p-10 space-y-8">
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-2">
-                                <Skeleton className="h-8 w-48 bg-gray-800" />
-                                <Skeleton className="h-3 w-64 bg-gray-800" />
-                            </div>
-                            <Skeleton className="h-12 w-12 rounded-md bg-gray-800" />
-                        </div>
-                        <Skeleton className="h-14 w-full rounded-md bg-gray-800" />
-                        <div className="space-y-3">
-                            {[1, 2, 3, 4, 5].map(i => (
-                                <div key={i} className="flex items-center justify-between p-4 bg-gray-800/50 rounded-md">
-                                    <div className="flex items-center gap-4">
-                                        <Skeleton className="h-10 w-10 rounded-md bg-gray-800" />
-                                        <div className="space-y-2">
-                                            <Skeleton className="h-4 w-32 bg-gray-800" />
-                                            <Skeleton className="h-3 w-20 bg-gray-800" />
-                                        </div>
-                                    </div>
-                                    <Skeleton className="h-8 w-16 bg-gray-800" />
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+    if (isLoading) return (
+        <StudentLayout title="Leaderboard">
+            <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+                <Skeleton className="h-48 w-full rounded-[32px]" />
+                <div className="space-y-3">
+                    {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-20 w-full rounded-2xl" />)}
                 </div>
-            </StudentLayout>
-        );
-    }
+            </div>
+        </StudentLayout>
+    );
 
     return (
         <StudentLayout title="Hall of Fame">
-            <div className="max-w-4xl mx-auto pb-12">
+            <div className="max-w-4xl mx-auto px-4 pb-20 pt-4">
 
-                <div className="space-y-4 sm:space-y-6">
-                    {error && (
-                        <div className="bg-red-50 text-red-600 p-3 rounded-md flex items-center gap-2 text-sm border border-red-100">
-                            <AlertTriangle size={16} />
-                            <span>{error}</span>
-                        </div>
-                    )}
-
-                    <div className="bg-gray-900 rounded-md shadow-xl border border-gray-800 p-6 sm:p-10 text-white">
-                        <div className="flex items-center justify-between mb-10">
-                            <div className="space-y-1">
-                                <div className="flex items-center gap-3 text-yellow-400">
-                                    <Trophy size={28} />
-                                    <h3 className="text-2xl font-black uppercase tracking-tight">{t('Hall of Fame')}</h3>
+                {/* Fixed Header Card */}
+                <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#1e293b] to-[#0f172a] p-8 text-white shadow-xl mb-8">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/10 rounded-full -mr-20 -mt-20 blur-3xl" />
+                    <div className="relative flex items-center justify-between">
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-3">
+                                <div className="p-3 bg-yellow-400/20 rounded-2xl border border-yellow-400/30">
+                                    <Trophy size={28} className="text-yellow-400" />
                                 </div>
-                                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] pl-10">{t('Top Academic Performers')}</p>
+                                <p className="text-2xl font-black uppercase tracking-tight italic">{t('Hall of Fame')}</p>
                             </div>
-                            <div className="h-12 w-12 rounded-md bg-white/5 border border-white/10 flex items-center justify-center text-white/20">
-                                <Award size={24} />
-                            </div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] ml-2">
+                                {t('Academic Performance Rankings')}
+                            </p> {/* Fixed closing tag here */}
                         </div>
+                        <Award size={48} className="text-white/5" />
+                    </div>
+                </div>
 
-                        <div className="flex gap-3 mb-10 p-1.5 bg-white/5 rounded-md border border-white/10">
+                {/* Controls Section */}
+                <div className="bg-white p-4 rounded-[28px] border border-slate-100 shadow-sm mb-6">
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="flex flex-1 p-1.5 bg-slate-50 rounded-2xl border border-slate-100">
                             <button
                                 onClick={() => { setLbType('batch'); setLbSubject('All'); }}
-                                className={`flex-1 py-3 rounded-md text-xs font-black uppercase tracking-widest transition-all duration-300 ${lbType === 'batch' ? 'bg-white text-gray-900 shadow-xl' : 'text-gray-400 hover:text-white'}`}
+                                className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${lbType === 'batch' ? 'bg-white text-[#1e293b] shadow-md' : 'text-slate-400'}`}
                             >
-                                {t('Gloabl')}
+                                {t('Global')}
                             </button>
                             <button
                                 onClick={() => setLbType('subject')}
-                                className={`flex-1 py-3 rounded-md text-xs font-black uppercase tracking-widest transition-all duration-300 ${lbType === 'subject' ? 'bg-white text-gray-900 shadow-xl' : 'text-gray-400 hover:text-white'}`}
+                                className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${lbType === 'subject' ? 'bg-white text-[#1e293b] shadow-md' : 'text-slate-400'}`}
                             >
                                 {t('My Batch')}
                             </button>
                         </div>
 
                         {lbType === 'subject' && (
-                            <div className="mb-8 animate-in fade-in slide-in-from-top-2 duration-300">
-                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-3 block ml-1">{t('Filter by Subject')}</label>
+                            <div className="relative min-w-[200px] animate-in fade-in slide-in-from-right-4 duration-300">
                                 <select
                                     value={lbSubject}
                                     onChange={(e) => setLbSubject(e.target.value)}
-                                    className="w-full px-5 py-4 bg-gray-800 border border-gray-700 rounded-md text-sm font-bold text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                    className="w-full h-full px-5 py-3 bg-white border border-slate-200 rounded-2xl text-xs font-bold text-slate-700 outline-none appearance-none cursor-pointer"
                                 >
                                     {subjects.map(sub => (
                                         <option key={sub} value={sub}>{sub === 'All' ? t('All Subjects') : sub}</option>
                                     ))}
                                 </select>
+                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
                             </div>
                         )}
-
-                        <div className="space-y-2">
-                            {showRefreshing && (
-                                <div className="flex items-center justify-center gap-3 py-6 text-gray-500">
-                                    <RefreshCcw className="animate-spin" size={20} />
-                                    <p className="text-xs font-black uppercase tracking-[0.2em]">{t('Updating Ranks...')}</p>
-                                </div>
-                            )}
-
-                            {!showRefreshing && leaderboard.length === 0 ? (
-                                <div className="text-center py-20 bg-white/5 rounded-md border border-dashed border-white/10">
-                                    <div className="flex flex-col items-center gap-4 text-gray-600">
-                                        <Medal size={48} className="opacity-20" />
-                                        <p className="text-xs font-bold uppercase tracking-widest italic">{t('No ranking data available yet.')}</p>
-                                    </div>
-                                </div>
-                            ) : (
-                                leaderboard.length > 0 && (
-                                    <div className="space-y-1">
-                                        {leaderboard.map((item, idx) => (
-                                            <div
-                                                key={item.studentId || item.rollNo || idx}
-                                                className="flex items-center justify-between p-4 rounded-md transition-all border border-transparent hover:border-white/10 hover:bg-white/5 group"
-                                            >
-                                                <div className="flex items-center gap-4">
-                                                    <div className={`h-10 w-10 rounded-md flex items-center justify-center text-sm font-black shadow-lg transition-transform group-hover:scale-110 ${getRankStyles(idx)}`}>
-                                                        {idx + 1}
-                                                    </div>
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="h-10 w-10 rounded-md bg-white/10 border border-white/5 flex items-center justify-center overflow-hidden shrink-0">
-                                                            {item.profileImage ? (
-                                                                <img src={item.profileImage} alt={item.studentName} className="h-full w-full object-cover" />
-                                                            ) : (
-                                                                <span className="text-white/40 font-black">{item.studentName?.[0] || 'S'}</span>
-                                                            )}
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-sm font-black text-gray-100 group-hover:text-white transition-colors">{item.studentName}</p>
-                                                            <p className="text-[10px] font-black text-gray-500 uppercase tracking-tight mt-0.5">{item.batchName}</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="text-right">
-                                                    <p className={`text-xl font-black ${idx === 0 ? 'text-yellow-400' : 'text-gray-100'} group-hover:scale-105 transition-transform origin-right`}>{item.percentage}%</p>
-                                                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">{item.testCount} {t('Tests')}</p>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )
-                            )}
-                        </div>
                     </div>
                 </div>
+
+                {/* Leaderboard List */}
+                <div className="space-y-3">
+                    {showRefreshing && (
+                        <div className="flex items-center justify-center gap-3 py-4 animate-pulse">
+                            <RefreshCcw className="animate-spin text-indigo-500" size={18} />
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('Syncing Live Ranks...')}</p>
+                        </div>
+                    )}
+
+                    {leaderboard.length === 0 && !showRefreshing ? (
+                        <div className="text-center py-20 bg-white rounded-[32px] border-2 border-dashed border-slate-100">
+                            <Medal size={48} className="mx-auto text-slate-200 mb-4" />
+                            <p className="text-sm font-bold text-slate-400">{t('No rankings available.')}</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {leaderboard.map((item, idx) => (
+                                <div
+                                    key={item.studentId || idx}
+                                    className="group flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all active:scale-[0.99]"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className={`h-11 w-11 shrink-0 rounded-xl flex items-center justify-center text-[15px] font-black border ${getRankStyles(idx)}`}>
+                                            {idx + 1}
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <div className="h-10 w-10 rounded-full border-2 border-white bg-slate-100 shadow-sm overflow-hidden flex items-center justify-center">
+                                                {item.profileImage ? (
+                                                    <img src={item.profileImage} alt={item.studentName} className="h-full w-full object-cover" />
+                                                ) : (
+                                                    <User size={18} className="text-slate-300" />
+                                                )}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-black text-slate-800 truncate leading-tight">{item.studentName}</p>
+                                                <p className="text-[9px] font-bold text-indigo-500 uppercase tracking-tighter mt-1">{item.batchName || 'General'}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className={`text-lg font-black tracking-tight ${idx === 0 ? 'text-amber-500' : 'text-slate-800'}`}>{item.percentage}%</p>
+                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-1">{item.testCount} {t('Tests')}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                <p className="text-center text-[9px] font-black text-slate-300 uppercase tracking-[0.3em] mt-12 mb-6">
+                    ClassNexus RankEngine v3.2
+                </p>
             </div>
         </StudentLayout>
     );

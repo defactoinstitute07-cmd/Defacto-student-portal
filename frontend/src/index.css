@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @import "tailwindcss";
 
@@ -9,66 +9,69 @@
 }
 
 /* ════════════════════════════════
-   ERP Design System — Ultra Clean Edition
-   Primary: #0f172a (Charcoal)  BG: #f8fafc
+   ERP Design System — Dark Glassmorphism (ClassNexus)
+   Primary: #21c45d (Green)  BG: #0a0a0f
    ════════════════════════════════ */
 :root {
-    /* Primary */
-    --erp-primary: #0f172a;
-    /* Main Dark */
-    --erp-primary-dark: #020617;
-    /* Hover / Active */
-    --erp-primary-light: #334155;
-    /* Highlights */
+    /* Primary — Indigo Accent (User Requested) */
+    --erp-primary: #191838;
+    --erp-primary-dark: #12112a;
+    --erp-primary-light: #3f3c83;
 
-    /* Backgrounds */
+    /* Accent — Indigo */
+    --erp-accent: #191838;
+    --erp-accent-light: #4338ca;
+
+    /* Backgrounds (Light and Clean) */
     --erp-bg: #f8fafc;
-    /* Main background */
-    --erp-bg2: #f1f5f9;
-    /* Section background */
-    --erp-bg-grad-1: #eef2ff;
-    --erp-bg-grad-2: #ecfeff;
+    /* Very light slate/gray background */
+    --erp-bg2: #ffffff;
+    /* Pure white */
+    --erp-bg-grad-1: rgba(25, 24, 56, 0.05);
+    /* Indigo tint */
+    --erp-bg-grad-2: rgba(25, 24, 56, 0.02);
 
-    /* Surfaces */
-    --erp-surface: #ffffff;
-    /* Cards / tables */
-    --erp-input-bg: #f8fafc;
-    --erp-surface-2: #f7f9fc;
+    /* Surfaces — Glass/Cards (White transparent for light mode) */
+    --erp-surface: rgba(255, 255, 255, 0.9);
+    --erp-input-bg: rgba(0, 0, 0, 0.03);
+    /* Input boxes ke liye halka dark tint */
+    --erp-surface-2: rgba(255, 255, 255, 0.6);
 
-    /* Borders */
-    --erp-border: #e2e8f0;
-    --erp-border-focus: #3b82f6;
+    /* Borders (Subtle dark borders) */
+    --erp-border: rgba(0, 0, 0, 0.1);
+    --erp-border-focus: #191838;
 
-    /* Text */
+    /* Text (Dark for readability) */
     --erp-text: #0f172a;
-    --erp-text2: #475569;
-    --erp-muted: #94a3b8;
-    --erp-muted2: #64748b;
+    /* Slate 900 - Almost Black */
+    --erp-text2: rgba(15, 23, 42, 0.7);
+    --erp-muted: rgba(15, 23, 42, 0.45);
+    --erp-muted2: rgba(15, 23, 42, 0.55);
 
-    /* Accent & Status */
-    --erp-accent: #2563eb;
+    /* Status (Same colors work on light too) */
     --erp-error: #ef4444;
-    --erp-success: #10b981;
+    --erp-success: #191838;
+    /* Set primary as success or keep a subtle green? User said use #191838 instead of green overall. */
     --erp-warning: #f59e0b;
     --erp-danger: #ef4444;
-    --erp-ring: rgba(37, 99, 235, 0.18);
+    --erp-ring: rgba(25, 24, 56, 0.2);
 
-    /* Sidebar */
+    /* Sidebar & Layout */
     --sidebar-w: 280px;
     --sidebar-w-mini: 80px;
     --topbar-h: 72px;
 
     /* Radiuses */
---radius: 6px;
---radius-sm: 10px;
---radius-xs: 6px;
+    --radius: 12px;
+    --radius-sm: 12px;
+    --radius-xs: 8px;
 
-    /* Premium soft shadows */
-    --shadow-sm: 0 2px 4px -1px rgb(0 0 0 / 0.03);
-    --shadow: 0 4px 12px -2px rgb(0 0 0 / 0.05);
-    --shadow-md: 0 12px 24px -4px rgb(0 0 0 / 0.06);
-    --shadow-lg: 0 24px 48px -12px rgb(0 0 0 / 0.08);
-    --shadow-xl: 0 32px 64px -16px rgb(0 0 0 / 0.12);
+    /* Light shadows (Softer than dark mode for a floaty feel) */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
 
@@ -78,10 +81,11 @@ html {
 }
 
 body {
-    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
+    /* Background gradients updated to indigo tint */
     background:
-        radial-gradient(1200px 800px at 10% -10%, var(--erp-bg-grad-1), transparent 42%),
-        radial-gradient(1000px 700px at 90% -20%, var(--erp-bg-grad-2), transparent 46%),
+        radial-gradient(800px 600px at 20% 10%, rgba(25, 24, 56, 0.04), transparent 50%),
+        radial-gradient(600px 500px at 80% 80%, rgba(25, 24, 56, 0.02), transparent 50%),
         var(--erp-bg);
     color: var(--erp-text);
     min-height: 100vh;
@@ -95,7 +99,11 @@ h2,
 h3,
 h4,
 h5 {
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 700;
+    /* UPDATE: Pehle ye pure white (#ffffff) tha. Ise variable mein change kar diya hai 
+       taaki light mode mein ye dark slate color le le. */
+    color: var(--erp-text);
 }
 
 button,
@@ -119,7 +127,19 @@ textarea:focus-visible {
     outline-offset: 2px;
 }
 
-/* ── Scrollbar ─────────────────────────────────────── */
+/* ── Tailwind Overrides (Light Theme ke liye update kiye gaye) ── */
+/* Pehle ye white transparent thi, ab ye Light Mode ke cards ke hisaab se adjust hogi */
+.bg-white {
+    background: var(--erp-surface) !important;
+}
+
+/* Pehle ye white border thi, ab light theme ke hisaab se dark border hogi */
+.border-indigo-100\/50,
+.border-indigo-100 {
+    border-color: var(--erp-border) !important;
+}
+
+/* ── Scrollbar (Light Theme) ─────────────────────────────────────── */
 ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -130,20 +150,29 @@ textarea:focus-visible {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: var(--erp-border);
+    /* UPDATE: Light theme mein scrollbar dikhne ke liye dark (blackish transparent) hona chahiye */
+    background: rgba(0, 0, 0, 0.15);
     border-radius: 99px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--erp-muted);
+    background: rgba(0, 0, 0, 0.25);
+    /* Hover par thoda aur dark */
 }
 
 /* ══════════════════════════════════════════════════════
    LOGIN PAGE
    ══════════════════════════════════════════════════════ */
+/* Make sure your :root variables from the previous Light Theme step 
+  are included in your main CSS file before this code.
+*/
+
+/* ── Style 1: Modern Login (.login-modern) ── */
+
 .login-modern {
     min-height: 100vh;
-    background: #f6f8fc;
+    background: var(--erp-bg);
+    /* Updated to light background */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -153,38 +182,46 @@ textarea:focus-visible {
 .login-card-modern {
     width: 100%;
     max-width: 420px;
-    background: #ffffff;
-    border: 1px solid #e5e9f2;
-    border-radius: 16px;
+    background: var(--erp-surface);
+    /* Updated to light surface */
+    border: 1px solid var(--erp-border);
+    /* Updated to subtle light border */
+    border-radius: 20px;
     padding: 36px 28px 28px;
-    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+    box-shadow: var(--shadow-lg);
+    /* Updated to softer light shadow */
     text-align: center;
+    backdrop-filter: blur(20px);
 }
 
 .login-icon-modern {
     width: 58px;
     height: 58px;
     border-radius: 16px;
-    background: #0f172a;
+    background: var(--erp-primary);
     color: #ffffff;
+    /* Keep white for contrast against primary green */
     display: inline-flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 16px;
-    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.2);
+    box-shadow: 0 10px 24px rgba(33, 196, 93, 0.2);
+    /* Softened shadow */
 }
 
 .login-card-modern h1 {
     margin: 0;
     font-size: 22px;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--erp-text);
+    /* Updated to dark text */
 }
 
 .login-card-modern p {
     margin: 6px 0 18px;
     font-size: 13px;
-    color: #6b7280;
+    color: var(--erp-text2);
+    /* Updated to muted dark text */
 }
 
 .login-form-modern {
@@ -197,7 +234,8 @@ textarea:focus-visible {
 .login-field-modern label {
     display: block;
     font-size: 12px;
-    color: #4b5563;
+    color: var(--erp-text2);
+    /* Updated to muted dark text */
     margin-bottom: 6px;
     font-weight: 600;
 }
@@ -206,16 +244,21 @@ textarea:focus-visible {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: #f5f7fb;
-    border: 1px solid #e2e8f0;
+    background: var(--erp-input-bg);
+    /* Updated to light input bg */
+    border: 1px solid var(--erp-border);
+    /* Updated border */
     border-radius: 10px;
     padding: 10px 12px;
+    transition: all 0.2s ease;
 }
 
 .login-input-modern:focus-within {
-    border-color: #0f172a;
-    box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
-    background: #ffffff;
+    border-color: var(--erp-primary);
+    box-shadow: 0 0 0 3px var(--erp-ring);
+    /* Updated to light theme ring */
+    background: var(--erp-surface2);
+    /* Slightly brighter background on focus */
 }
 
 .login-input-modern input {
@@ -223,39 +266,49 @@ textarea:focus-visible {
     background: transparent;
     flex: 1;
     font-size: 14px;
-    color: #111827;
+    color: var(--erp-text);
+    /* Updated to dark text */
     outline: none;
 }
 
 .login-input-modern input::placeholder {
-    color: #9ca3af;
+    color: var(--erp-muted);
+    /* Updated placeholder color */
 }
 
 .login-input-icon {
-    color: #94a3b8;
+    color: var(--erp-muted);
+    /* Updated icon color */
 }
 
 .login-eye-modern {
     border: none;
     background: none;
-    color: #94a3b8;
+    color: var(--erp-muted);
+    /* Updated eye icon color */
     display: inline-flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.login-eye-modern:hover {
+    color: var(--erp-text);
 }
 
 .login-field-modern.error .login-input-modern {
-    border-color: #f87171;
+    border-color: var(--erp-error);
 }
 
 .login-submit-modern {
     width: 100%;
     height: 48px;
     border: none;
-    border-radius: 10px;
-    background: #0f172a;
+    border-radius: 12px;
+    background: var(--erp-primary);
     color: #ffffff;
+    /* Keep white for contrast */
     font-size: 14px;
     font-weight: 700;
     display: inline-flex;
@@ -264,12 +317,13 @@ textarea:focus-visible {
     gap: 10px;
     cursor: pointer;
     transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-    box-shadow: 0 14px 24px rgba(15, 23, 42, 0.2);
+    box-shadow: 0 10px 20px rgba(33, 196, 93, 0.2);
+    /* Softened shadow */
 }
 
 .login-submit-modern:hover:not(:disabled) {
     transform: translateY(-1px);
-    background: #111c33;
+    background: var(--erp-primary-dark);
 }
 
 .login-submit-modern:disabled {
@@ -284,12 +338,17 @@ textarea:focus-visible {
     align-items: center;
     justify-content: space-between;
     font-size: 12px;
-    color: #6b7280;
+    color: var(--erp-muted2);
+    /* Updated meta text color */
 }
+
+
+/* ── Style 2: Alternate Login Wrap (.login-wrap) ── */
 
 .login-wrap {
     min-height: 100vh;
-    background: #f8fafc;
+    background: var(--erp-bg);
+    /* Updated background */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -298,13 +357,17 @@ textarea:focus-visible {
 
 .login-card {
     background: var(--erp-surface);
-    border-radius: 5px;
+    /* Updated surface */
+    border-radius: 20px;
     padding: 48px 48px 40px;
     width: 100%;
     max-width: 440px;
     box-shadow: var(--shadow-xl);
+    /* Now uses softer light theme shadow */
     border: 1px solid var(--erp-border);
+    /* Updated border */
     animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    backdrop-filter: blur(20px);
 }
 
 @keyframes fadeUp {
@@ -329,14 +392,17 @@ textarea:focus-visible {
     justify-content: center;
     margin: 0 auto 24px;
     color: #fff;
-    box-shadow: 0 8px 20px -6px rgba(15, 23, 42, 0.4);
+    /* Keep white icon inside primary box */
+    box-shadow: 0 8px 20px -6px rgba(33, 196, 93, 0.3);
+    /* Green tinted soft shadow instead of dark slate */
     font-size: 28px;
 }
 
 .login-title {
     font-size: 1.6rem;
     font-weight: 800;
-    color: var(--erp-primary);
+    color: var(--erp-text);
+    /* Updated to dark text */
     text-align: center;
     margin-bottom: 4px;
 }
@@ -344,6 +410,7 @@ textarea:focus-visible {
 .login-sub {
     font-size: 0.875rem;
     color: var(--erp-muted2);
+    /* Updated subtitle color */
     text-align: center;
     margin-bottom: 30px;
 }
@@ -358,6 +425,7 @@ textarea:focus-visible {
     font-size: 0.75rem;
     font-weight: 700;
     color: var(--erp-text2);
+    /* Updated label color */
     margin-bottom: 8px;
     letter-spacing: 0.05em;
     text-transform: uppercase;
@@ -373,6 +441,7 @@ textarea:focus-visible {
     top: 50%;
     transform: translateY(-50%);
     color: var(--erp-muted);
+    /* Updated icon color */
     display: flex;
     align-items: center;
 }
@@ -395,9 +464,12 @@ textarea:focus-visible {
     width: 100%;
     height: 52px;
     background: var(--erp-input-bg);
+    /* Updated input background */
     border: 1px solid var(--erp-border);
+    /* Updated border */
     border-radius: var(--radius-sm);
     color: var(--erp-text);
+    /* Updated text color */
     font-size: 1rem;
     font-weight: 500;
     padding: 0 44px;
@@ -407,20 +479,25 @@ textarea:focus-visible {
 
 .lf input::placeholder {
     color: var(--erp-muted);
+    /* Updated placeholder */
     font-weight: 400;
 }
 
 .lf input:hover {
-    border-color: #cbd5e1;
+    border-color: rgba(0, 0, 0, 0.2);
+    /* Slightly darker border on hover for light theme */
 }
 
 .lf input:focus {
     border-color: var(--erp-accent);
     background: var(--erp-surface);
-    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+    /* Pure white background on focus */
+    box-shadow: 0 0 0 4px var(--erp-ring);
+    /* Light theme focus ring */
 }
 
 /* Forgot + Remember row */
+/* ── Form Extras (Remember me & Forgot Password) ── */
 .lf-extras {
     display: flex;
     align-items: center;
@@ -434,6 +511,7 @@ textarea:focus-visible {
     gap: 7px;
     font-size: 0.85rem;
     color: var(--erp-text2);
+    /* Variable light theme mein dark-muted text ban jayega */
     cursor: pointer;
 }
 
@@ -441,6 +519,8 @@ textarea:focus-visible {
     width: auto;
     height: auto;
     padding: 0;
+    accent-color: var(--erp-primary);
+    /* Light theme mein checkbox ka color green karne ke liye */
 }
 
 .lf-forgot {
@@ -455,31 +535,35 @@ textarea:focus-visible {
     opacity: 0.75;
 }
 
-/* Submit button */
+/* ── Submit Button ── */
 .btn-login {
     width: 100%;
     height: 52px;
     background: var(--erp-primary);
-    color: #fff;
+    color: #ffffff;
+    /* Green button par white text hamesha best lagta hai */
     border: none;
     border-radius: var(--radius-sm);
     font-size: 1rem;
     font-weight: 700;
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.15);
+    /* Shadow ko light theme ke hisaab se thoda soft aur clean kiya gaya hai */
+    box-shadow: 0 4px 12px -2px rgba(33, 196, 93, 0.25);
     margin-top: 10px;
 }
 
 .btn-login:hover:not(:disabled) {
-    background: var(--erp-primary-light);
+    /* UPDATE: Dark mode mein hover par button light hota tha, 
+       lekin Light Mode mein hover par button thoda dark hona chahiye taaki contrast achha rahe */
+    background: var(--erp-primary-dark);
     transform: translateY(-2px);
-    box-shadow: 0 8px 16px -4px rgba(15, 23, 42, 0.2);
+    box-shadow: 0 8px 16px -4px rgba(33, 196, 93, 0.35);
 }
 
 .btn-login:active:not(:disabled) {
@@ -490,13 +574,17 @@ textarea:focus-visible {
     opacity: 0.55;
     cursor: not-allowed;
     transform: none;
+    box-shadow: none;
+    /* Disabled button par shadow nahi honi chahiye */
 }
 
+/* ── Footer Area ── */
 .login-footer {
     text-align: center;
     margin-top: 24px;
     font-size: 0.85rem;
     color: var(--erp-muted2);
+    /* Light theme mein ye grayish-slate ho jayega */
 }
 
 .login-footer a {
@@ -510,14 +598,17 @@ textarea:focus-visible {
 }
 
 /* Mobile Login (Figma-inspired) */
+/* ── Mobile Login View ── */
 .login-mobile {
     min-height: 100vh;
-    background: #5c7cc6;
+    background: var(--erp-bg);
+    /* Updated to light background */
     display: flex;
     flex-direction: column;
     align-items: center;
-    font-family: 'Source Sans 3', 'Plus Jakarta Sans', sans-serif;
-    color: #0f172a;
+    font-family: 'Inter', system-ui, sans-serif;
+    color: var(--erp-text);
+    /* Updated to dark text */
 }
 
 .login-hero {
@@ -526,7 +617,8 @@ textarea:focus-visible {
     max-width: 420px;
     height: 320px;
     padding: 44px 24px 0;
-    color: #ffffff;
+    color: var(--erp-text);
+    /* Updated to dark text */
     overflow: hidden;
 }
 
@@ -537,6 +629,8 @@ textarea:focus-visible {
     width: 100%;
     height: auto;
     pointer-events: none;
+    /* Agar SVG curve use kar rahe hain toh light mode mein uska color change karna pad sakta hai,
+       usually fill="var(--erp-surface)" kaam karega agar inline SVG hai. */
 }
 
 .login-hero-art {
@@ -571,24 +665,35 @@ textarea:focus-visible {
     font-size: 30px;
     font-weight: 700;
     margin: 0 0 6px;
-    color: #ffffff;
-    font-family: 'Source Sans 3', sans-serif;
+    color: var(--erp-text);
+    /* Updated to dark text */
+    font-family: 'Inter', system-ui, sans-serif;
 }
 
 .login-heading p {
     margin: 0;
     font-size: 16px;
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--erp-text2);
+    /* Updated to muted dark text */
 }
 
+/* ── Mobile Bottom Sheet (Form Area) ── */
 .login-sheet {
     width: 100%;
     max-width: 420px;
-    background: #ffffff;
+    background: var(--erp-surface);
+    /* Updated to solid/glass white */
     border-radius: 40px 40px 0 0;
     padding: 28px 24px 32px;
     margin-top: -24px;
-    box-shadow: 0 -10px 30px rgba(15, 23, 42, 0.15);
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.08);
+    /* Updated to softer shadow */
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--erp-border);
+    /* Updated to light border */
+    border-bottom: none;
+    flex: 1;
+    /* Taki screen ke end tak stretch ho sake agar content kam ho */
 }
 
 .login-sheet-header {
@@ -599,19 +704,22 @@ textarea:focus-visible {
     margin: 0;
     font-size: 20px;
     font-weight: 700;
-    color: #1f2a44;
+    color: var(--erp-text);
+    /* Updated to dark text */
 }
 
 .login-sheet-header p {
     margin: 6px 0 0;
     font-size: 13px;
-    color: #9aa3ba;
+    color: var(--erp-muted2);
+    /* Updated to muted dark text */
 }
 
 .login-error {
-    background: #fff5f5;
-    border: 1px solid #feb2b2;
-    color: #c53030;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: var(--erp-error);
+    /* Updated to standard red */
     padding: 10px 12px;
     border-radius: 10px;
     font-size: 13px;
@@ -627,38 +735,45 @@ textarea:focus-visible {
 .login-field label {
     display: block;
     font-size: 12px;
-    color: #a9b0c2;
+    color: var(--erp-text2);
+    /* Updated to dark muted text */
     margin-bottom: 6px;
 }
 
 .login-field input {
     width: 100%;
     border: none;
-    border-bottom: 1px solid #e2e6f0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+    /* Updated to dark faint line */
     padding: 8px 0 10px;
     font-size: 15px;
-    color: #1f2937;
+    color: var(--erp-text);
+    /* Updated to dark text */
     outline: none;
     background: transparent;
+    transition: border-bottom-color 0.2s;
 }
 
 .login-field input::placeholder {
-    color: #c2c7d6;
+    color: var(--erp-muted);
+    /* Updated placeholder */
 }
 
 .login-field input:focus {
-    border-bottom-color: #5c7cc6;
+    border-bottom-color: var(--erp-primary);
+    /* Use brand green for focus */
 }
 
 .login-field.error input {
-    border-bottom-color: #f87171;
+    border-bottom-color: var(--erp-error);
 }
 
 .login-field-message {
     display: block;
     margin-top: 6px;
     font-size: 11px;
-    color: #dc2626;
+    color: var(--erp-error);
+    /* Standardized error color */
     font-weight: 600;
 }
 
@@ -688,10 +803,14 @@ textarea:focus-visible {
     cursor: pointer;
 }
 
-.login-eye img {
+.login-eye img,
+.login-eye svg {
     width: 18px;
     height: auto;
-    opacity: 0.7;
+    opacity: 0.6;
+    /* Agar eye icon SVG hai, uski stroke/fill color adjust karna zaroori hai light mode mein */
+    filter: invert(0);
+    /* Make sure it's dark if the original image was white */
 }
 
 .login-submit {
@@ -700,7 +819,7 @@ textarea:focus-visible {
     height: 54px;
     border: none;
     border-radius: 14px;
-    background: linear-gradient(180deg, #5f7fd1 0%, #4b6db8 100%);
+    background: linear-gradient(180deg, var(--erp-primary) 0%, var(--erp-primary-dark) 100%);
     color: #ffffff;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -710,7 +829,8 @@ textarea:focus-visible {
     justify-content: center;
     gap: 12px;
     cursor: pointer;
-    box-shadow: 0 10px 20px rgba(79, 109, 184, 0.35);
+    box-shadow: 0 10px 20px rgba(33, 196, 93, 0.25);
+    /* Softer green shadow */
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -722,7 +842,7 @@ textarea:focus-visible {
 
 .login-submit:hover:not(:disabled) {
     transform: translateY(-1px);
-    box-shadow: 0 12px 24px rgba(79, 109, 184, 0.4);
+    box-shadow: 0 12px 24px rgba(33, 196, 93, 0.35);
 }
 
 .login-arrow {
@@ -743,7 +863,8 @@ textarea:focus-visible {
     align-items: center;
     justify-content: space-between;
     font-size: 12px;
-    color: #9aa3ba;
+    color: var(--erp-muted2);
+    /* Updated to grayish text */
 }
 
 .login-forgot {
@@ -751,7 +872,8 @@ textarea:focus-visible {
     border: none;
     padding: 0;
     font-size: 13px;
-    color: #0f172a;
+    color: var(--erp-accent);
+    /* Updated to brand accent color */
     font-weight: 600;
     cursor: pointer;
 }
@@ -760,7 +882,7 @@ textarea:focus-visible {
     text-decoration: underline;
 }
 
-/* Alert */
+/* ── Global Alerts ── */
 .alert {
     padding: 10px 14px;
     border-radius: var(--radius-xs);
@@ -772,15 +894,19 @@ textarea:focus-visible {
 }
 
 .alert-error {
-    background: #fff5f5;
-    border: 1px solid #feb2b2;
-    color: #c53030;
+    background: rgba(239, 68, 68, 0.08);
+    /* Slightly lighter background */
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #b91c1c;
+    /* Darker red for text readability on light mode */
 }
 
 .alert-success {
-    background: #f0fff4;
-    border: 1px solid #9ae6b4;
-    color: #276749;
+    background: rgba(33, 196, 93, 0.08);
+    /* Slightly lighter background */
+    border: 1px solid rgba(33, 196, 93, 0.3);
+    color: #15803d;
+    /* Darker green for text readability on light mode */
 }
 
 /* Spinner */
@@ -804,17 +930,20 @@ textarea:focus-visible {
     background: var(--erp-bg);
 }
 
-/* SIDEBAR */
+/* ── SIDEBAR ── */
 .sidebar {
     width: var(--sidebar-w);
     height: 100%;
-    background: linear-gradient(180deg, #0f172a 0%, #0b1220 100%);
+    /* Dark gradient ki jagah solid light background ya light gradient use kiya hai */
+    background: #ffffff;
     display: flex;
     flex-direction: column;
     z-index: 200;
     transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
     flex-shrink: 0;
     position: relative;
+    border-right: 1px solid var(--erp-border);
+    /* Light mode border */
 }
 
 @media (max-width: 768px) {
@@ -841,7 +970,9 @@ textarea:focus-visible {
     position: fixed;
     inset: 0;
     z-index: 199;
-    background: rgba(0, 0, 0, 0.4);
+    /* Overlay semi-transparent black hi theek rahega light mode mein bhi */
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
 }
 
 .erp-body {
@@ -852,7 +983,7 @@ textarea:focus-visible {
     overflow: hidden;
 }
 
-/* Brand */
+/* ── Brand Section ── */
 .sb-brand {
     display: flex;
     align-items: center;
@@ -866,32 +997,37 @@ textarea:focus-visible {
     width: 34px;
     height: 34px;
     border-radius: 9px;
-    background: rgba(255, 255, 255, 0.18);
+    /* Logo ko brand primary green colour de diya hai taaki light background par pop kare */
+    background: var(--erp-primary);
+    color: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 17px;
     flex-shrink: 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 10px rgba(33, 196, 93, 0.25);
+    /* Soft green shadow */
 }
 
 .sb-name {
     font-size: 1.6rem;
     font-weight: 600;
-    color: #fff;
+    color: var(--erp-text);
+    /* Dark text for light mode */
     white-space: nowrap;
     overflow: hidden;
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
 }
 
 .sb-code {
     font-size: 0.68rem;
-    color: rgba(255, 255, 255, 0.55);
+    color: var(--erp-muted2);
+    /* Muted slate text */
     margin-top: 1px;
     white-space: nowrap;
 }
 
-/* Nav section */
+/* ── Navigation Section ── */
 .sb-nav {
     flex: 1;
     overflow-y: auto;
@@ -902,7 +1038,8 @@ textarea:focus-visible {
 .sb-section-label {
     font-size: 0.78rem;
     font-weight: 700;
-    color: rgba(255, 255, 255, 0.35);
+    color: var(--erp-muted);
+    /* Darker muted color */
     text-transform: uppercase;
     letter-spacing: 0.08em;
     padding: 14px 10px 6px;
@@ -919,7 +1056,8 @@ textarea:focus-visible {
     cursor: pointer;
     transition: all 0.2s;
     text-decoration: none;
-    color: rgba(255, 255, 255, 0.65);
+    color: var(--erp-text2);
+    /* Slate color for unselected items */
     white-space: nowrap;
     overflow: hidden;
     margin-bottom: 4px;
@@ -928,20 +1066,25 @@ textarea:focus-visible {
 }
 
 .sb-item:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: #fff;
+    background: rgba(0, 0, 0, 0.04);
+    /* Hover par faint dark background */
+    color: var(--erp-text);
+    /* Hover par text completely dark ho jayega */
     transform: translateX(4px);
 }
 
 .sb-item.active {
-    background: rgba(255, 255, 255, 0.14);
-    color: #fff;
+    background: rgba(33, 196, 93, 0.08);
+    /* Light green background */
+    color: var(--erp-primary-dark);
+    /* Dark green text for better contrast */
     box-shadow: inset 3px 0 0 var(--erp-accent);
-    border-color: rgba(255, 255, 255, 0.12);
+    border-color: rgba(33, 196, 93, 0.15);
 }
 
 .sb-item:focus-visible {
-    outline: 2px solid rgba(255, 255, 255, 0.35);
+    outline: 2px solid var(--erp-ring);
+    /* Light theme focus ring */
     outline-offset: 2px;
 }
 
@@ -957,108 +1100,194 @@ textarea:focus-visible {
     font-weight: 500;
 }
 
-/* Sidebar footer */
+/* ── Sidebar Footer ── */
 .sb-footer {
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid var(--erp-border);
+    /* Light mode border */
     padding: 12px 8px;
 }
 
-/* TOPBAR */
+/* TOPBAR — Premium Dark Gradient */
+/* ── TOPBAR ── */
 .topbar {
     height: var(--topbar-h);
+    /* Swapped dark gradient for a solid white/light-surface background */
     background: var(--erp-surface);
-    border-bottom: 1px solid var(--erp-border);
+    border-bottom: none;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 24px;
+    padding: 24px;
     z-index: 100;
     gap: 14px;
-    box-shadow: var(--shadow-sm);
+    /* Softer, lighter shadow for the floating topbar effect */
+    box-shadow: 0 4px 20px -8px rgba(0, 0, 0, 0.08);
     flex-shrink: 0;
     position: sticky;
+    margin: 7px;
     top: 0;
+    border-radius: 20px;
+    overflow: hidden;
+    /* Subtle grey border instead of white transparent */
+    border: 1px solid var(--erp-border);
+    backdrop-filter: blur(12px);
+    /* Keep the blur if you want a glass look on light background */
+}
+
+/* Optional Dot Pattern Background inside Topbar */
+.topbar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.05;
+    /* Reduced opacity for light theme */
+    /* Changed dots from white to dark for visibility on light bg */
+    background-image: radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.5) 1px, transparent 0);
+    background-size: 18px 18px;
+    pointer-events: none;
+}
+
+.tb-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    z-index: 1;
 }
 
 .tb-hamburger {
-    width: 36px;
-    height: 36px;
-    border-radius: var(--radius-xs);
-    background: none;
-    border: 1px solid var(--erp-border);
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    /* Light grey background for the button */
+    background: rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 0, 0, 0.08);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--erp-text2);
-    transition: background 0.18s;
+    /* Dark muted color for icon */
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
     flex-shrink: 0;
 }
 
 .tb-hamburger:hover {
-    background: var(--erp-bg2);
+    background: rgba(0, 0, 0, 0.08);
+    color: var(--erp-text);
+    border-color: rgba(0, 0, 0, 0.15);
+    transform: scale(1.05);
+    /* Soft shadow on hover */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .tb-title {
-    font-size: 1rem;
+    font-size: 1.05rem;
     font-weight: 700;
-    color: var(--erp-primary);
-    font-family: 'Outfit', sans-serif;
+    color: var(--erp-text);
+    /* Dark text */
+    font-family: 'Inter', system-ui, sans-serif;
     flex: 1;
+    position: relative;
+    z-index: 1;
+    letter-spacing: 0.01em;
 }
 
 .tb-right {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+    position: relative;
+    z-index: 1;
+}
+
+.tb-greeting {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--erp-text2);
+    /* Muted dark text */
+    white-space: nowrap;
+    letter-spacing: 0.01em;
+}
+
+.tb-greeting strong {
+    color: var(--erp-text);
+    /* Solid dark text for emphasis */
+    font-weight: 700;
 }
 
 .tb-avatar {
-    width: 34px;
-    height: 34px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
-    background: var(--erp-primary);
+    /* Keep the brand green gradient for the avatar */
+    background: linear-gradient(135deg, var(--erp-primary) 0%, var(--erp-primary-dark) 100%);
     color: #fff;
     font-size: 14px;
-    font-weight: 700;
+    font-weight: 800;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    /* Adjusted shadow: dark outline replaced with light outline, softer green drop shadow */
+    box-shadow: 0 0 0 2px #ffffff, 0 4px 10px rgba(33, 196, 93, 0.25);
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    flex-shrink: 0;
 }
 
-.tb-name {
+.tb-avatar:hover {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 3px #ffffff, 0 6px 16px rgba(33, 196, 93, 0.35);
+}
+
+.tb-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.tb-name,
+.tb-name-desktop {
     font-size: 0.85rem;
     font-weight: 600;
     color: var(--erp-text2);
+    /* Muted dark text */
 }
 
 .btn-tb-logout {
     padding: 8px 16px;
     border: 1px solid var(--erp-border);
-    border-radius: var(--radius-sm);
-    background: var(--erp-surface);
+    border-radius: 12px;
+    background: var(--erp-input-bg);
+    /* Very light grey */
     cursor: pointer;
     font-size: 0.85rem;
     font-weight: 600;
     color: var(--erp-text2);
+    /* Muted dark text */
     transition: all 0.2s;
-    box-shadow: var(--shadow-sm);
+    box-shadow: none;
 }
 
 .btn-tb-logout:hover {
-    border-color: #fca5a5;
-    color: var(--erp-danger);
-    background: #fef2f2;
+    border-color: rgba(239, 68, 68, 0.3);
+    /* Soft red border */
+    color: var(--erp-error);
+    /* Standard red text */
+    background: rgba(239, 68, 68, 0.05);
+    /* Very faint red background */
 }
 
-/* MAIN */
+/* ── MAIN CONTENT AREA ── */
 .erp-main {
     flex: 1;
     display: flex;
     flex-direction: column;
     height: 100%;
     overflow: hidden;
+    /* Uses the light grey/white background defined in your :root variables */
     background: var(--erp-bg);
 }
 
@@ -1084,7 +1313,7 @@ textarea:focus-visible {
     }
 }
 
-/* Page Header */
+/* ── Page Header ── */
 .page-hdr {
     margin-bottom: 24px;
     display: flex;
@@ -1097,35 +1326,42 @@ textarea:focus-visible {
 .page-hdr h1 {
     font-size: 1.5rem;
     font-weight: 800;
-    color: var(--erp-primary);
+    color: var(--erp-text);
+    /* Updated to dark text */
 }
 
 .page-hdr p {
     font-size: 0.875rem;
     color: var(--erp-muted2);
+    /* Updated to muted dark text */
     margin-top: 3px;
 }
 
 /* ══════════════════════════════════════════════════════
-   COMMON COMPONENTS
+   COMMON COMPONENTS (LIGHT THEME)
    ══════════════════════════════════════════════════════ */
 
-/* Card */
+/* Generic Card */
 .card {
     background: var(--erp-surface);
+    /* Light surface */
     border: 1px solid var(--erp-border);
+    /* Subtle light border */
     border-radius: var(--radius);
     box-shadow: var(--shadow-sm);
+    /* Soft shadow */
     overflow: hidden;
 }
 
-/* Stat card */
+/* ── Stat Card ── */
 .stat-card {
     background: var(--erp-surface);
+    /* Solid white or very light grey card */
     border: 1px solid var(--erp-border);
     border-radius: var(--radius);
     padding: 24px;
     box-shadow: var(--shadow-sm);
+    /* Softer shadow for light mode */
     display: flex;
     align-items: center;
     gap: 20px;
@@ -1134,6 +1370,7 @@ textarea:focus-visible {
     overflow: hidden;
 }
 
+/* Subtle background glow effect inside the card */
 .stat-card::after {
     content: '';
     position: absolute;
@@ -1141,14 +1378,17 @@ textarea:focus-visible {
     right: 0;
     width: 140px;
     height: 140px;
-    background: radial-gradient(circle at top right, rgba(15, 23, 42, 0.03), transparent 70%);
+    /* Kept the green tint, but made it slightly more visible on a white background */
+    background: radial-gradient(circle at top right, rgba(33, 196, 93, 0.08), transparent 70%);
     pointer-events: none;
 }
 
 .stat-card:hover {
     box-shadow: var(--shadow-md);
+    /* Slightly deeper shadow on hover */
     transform: translateY(-4px);
-    border-color: #cbd5e1;
+    border-color: rgba(0, 0, 0, 0.15);
+    /* Slightly darker border on hover for contrast */
 }
 
 .stat-icon {
@@ -1166,6 +1406,7 @@ textarea:focus-visible {
     font-size: 0.75rem;
     font-weight: 700;
     color: var(--erp-muted2);
+    /* Slate color */
     text-transform: uppercase;
     letter-spacing: 0.06em;
 }
@@ -1174,6 +1415,7 @@ textarea:focus-visible {
     font-size: 2rem;
     font-weight: 800;
     color: var(--erp-text);
+    /* Solid dark text */
     line-height: 1;
     margin-top: 6px;
 }
@@ -1181,31 +1423,46 @@ textarea:focus-visible {
 .stat-sub {
     font-size: 0.8rem;
     color: var(--erp-muted);
+    /* Lighter slate color */
     margin-top: 6px;
     font-weight: 500;
 }
 
+/* ── Icon Color Variations ── 
+   Adjusted text colors to be slightly darker so they don't look washed out against light backgrounds.
+   Background opacities kept similar to provide a soft pastel pill look.
+*/
 .ic-blue {
-    background: #ebf0ff;
+    background: rgba(99, 102, 241, 0.15);
+    color: #4f46e5;
+    /* Darker indigo/blue */
 }
 
 .ic-green {
-    background: #f0fff4;
+    background: rgba(33, 196, 93, 0.15);
+    color: #16a34a;
+    /* Darker green */
 }
 
 .ic-orange {
-    background: #fff7ed;
+    background: rgba(245, 158, 11, 0.15);
+    color: #d97706;
+    /* Darker amber/orange */
 }
 
 .ic-red {
-    background: #fff5f5;
+    background: rgba(239, 68, 68, 0.15);
+    color: #dc2626;
+    /* Darker red */
 }
 
 .ic-indigo {
-    background: #eef2ff;
+    background: rgba(99, 102, 241, 0.15);
+    color: #4f46e5;
+    /* Darker indigo */
 }
 
-/* Stats grid */
+/* ── Stats Grid Layout (Unchanged structurally, works perfectly) ── */
 .stats-grid {
     display: grid;
     gap: 16px;
@@ -1225,7 +1482,7 @@ textarea:focus-visible {
     }
 }
 
-/* Toolbar */
+/* ── TOOLBAR ── */
 .toolbar {
     display: flex;
     align-items: center;
@@ -1234,8 +1491,10 @@ textarea:focus-visible {
     padding: 16px 24px;
     border-bottom: 1px solid var(--erp-border);
     background: var(--erp-surface);
+    /* Light card surface */
 }
 
+/* ── Search Input Area ── */
 .tb-search-wrap {
     position: relative;
     flex: 1;
@@ -1249,44 +1508,54 @@ textarea:focus-visible {
     top: 50%;
     transform: translateY(-50%);
     color: var(--erp-muted);
+    /* Dark muted icon */
 }
 
 .tb-search {
     width: 100%;
     height: 44px;
     padding: 0 16px 0 42px;
-    background: var(--erp-bg);
+    background: var(--erp-input-bg);
+    /* Use specific input bg variable */
     border: 1px solid var(--erp-border);
     border-radius: var(--radius-sm);
     font-size: 0.95rem;
     color: var(--erp-text);
+    /* Dark text */
     outline: none;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .tb-search::placeholder {
     color: var(--erp-muted);
+    /* Dark muted placeholder */
     font-weight: 400;
 }
 
 .tb-search:hover {
-    border-color: #cbd5e1;
+    /* Light mode mein hover par border thodi dark honi chahiye */
+    border-color: rgba(0, 0, 0, 0.2);
 }
 
 .tb-search:focus {
     border-color: var(--erp-accent);
-    background: var(--erp-surface);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    /* Safed theme mein focus par input pure white ho jaye taaki pop kare */
+    background: #ffffff;
+    box-shadow: 0 0 0 3px var(--erp-ring);
+    /* Light theme green ring */
 }
 
+/* ── Select Dropdown ── */
 .tb-select {
     height: 44px;
     padding: 0 16px;
-    background: var(--erp-bg);
+    background: var(--erp-input-bg);
+    /* Match search input background */
     border: 1px solid var(--erp-border);
     border-radius: var(--radius-sm);
     font-size: 0.95rem;
     color: var(--erp-text);
+    /* Dark text */
     outline: none;
     cursor: pointer;
     font-weight: 500;
@@ -1294,15 +1563,19 @@ textarea:focus-visible {
 }
 
 .tb-select:hover {
-    border-color: #cbd5e1;
+    border-color: rgba(0, 0, 0, 0.2);
+    /* Darker border on hover */
 }
 
 .tb-select:focus {
     border-color: var(--erp-accent);
-    background: var(--erp-surface);
+    background: #ffffff;
+    /* Pure white on focus */
+    box-shadow: 0 0 0 3px var(--erp-ring);
+    /* Focus ring match */
 }
 
-/* Buttons */
+/* ── Base Button ── */
 .btn {
     display: inline-flex;
     align-items: center;
@@ -1318,17 +1591,20 @@ textarea:focus-visible {
 
 .btn:focus-visible {
     outline: 2px solid var(--erp-ring);
+    /* Light theme green ring */
     outline-offset: 2px;
 }
 
+/* ── Primary Button ── */
 .btn-primary {
     background: var(--erp-primary);
-    color: #fff;
+    color: #ffffff;
     box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:hover {
-    background: var(--erp-primary-light);
+    /* UPDATE: Light theme mein hover par button dark hona chahiye, light nahi */
+    background: var(--erp-primary-dark);
     transform: translateY(-1px);
     box-shadow: var(--shadow);
 }
@@ -1337,49 +1613,66 @@ textarea:focus-visible {
     transform: translateY(0);
 }
 
+/* ── Outline Button ── */
 .btn-outline {
     background: var(--erp-surface);
+    /* Solid white ya light card background */
     color: var(--erp-text);
+    /* Dark text */
     border-color: var(--erp-border);
+    /* Subtle light border */
     box-shadow: var(--shadow-sm);
 }
 
 .btn-outline:hover {
-    border-color: #cbd5e1;
-    background: var(--erp-bg);
+    /* UPDATE: Hover par white transparent ki jagah dark transparent shadow/bg use kiya hai */
+    border-color: rgba(0, 0, 0, 0.15);
+    background: rgba(0, 0, 0, 0.04);
+    /* Very faint grey on hover */
+    color: var(--erp-text);
 }
 
+/* ── Danger Button ── */
 .btn-danger {
-    background: #fff5f5;
-    color: var(--erp-danger);
-    border: 1.5px solid #fed7d7;
+    background: rgba(239, 68, 68, 0.08);
+    /* Very light red tint */
+    /* UPDATE: Text ko dark red kiya hai taaki white background par padhne mein aaye */
+    color: #dc2626;
+    border: 1.5px solid rgba(239, 68, 68, 0.25);
 }
 
 .btn-danger:hover {
     background: var(--erp-danger);
-    color: #fff;
+    /* Solid red */
+    color: #ffffff;
+    /* White text on solid red */
+    border-color: var(--erp-danger);
 }
 
+/* ── Small Button ── */
 .btn-sm {
     padding: 5px 10px;
     font-size: 0.78rem;
 }
 
+/* ── Success Button ── */
 .btn-success {
     background: var(--erp-success);
-    color: #fff;
+    color: #ffffff;
 }
 
 .btn-success:hover {
-    background: #2f855a;
+    background: #15803d;
+    /* Darker green hover for light theme */
 }
 
-/* Table */
+/* ── TABLE CONTAINER ── */
 .erp-table-wrap {
     overflow-x: auto;
     border: 1px solid var(--erp-border);
     border-radius: var(--radius-sm);
     background: var(--erp-surface);
+    /* Pure white background */
 }
 
 .erp-table {
@@ -1388,11 +1681,14 @@ textarea:focus-visible {
     font-size: 0.9rem;
 }
 
+/* Table Headers */
 .erp-table th {
     text-align: left;
     padding: 14px 20px;
     background: var(--erp-bg);
+    /* Light grey background for header */
     color: var(--erp-muted2);
+    /* Slate color */
     font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -1401,9 +1697,11 @@ textarea:focus-visible {
     white-space: nowrap;
 }
 
+/* Table Data Cells */
 .erp-table td {
     padding: 16px 20px;
     color: var(--erp-text);
+    /* Dark text */
     border-bottom: 1px solid var(--erp-border);
     vertical-align: middle;
     transition: background 0.15s;
@@ -1411,12 +1709,16 @@ textarea:focus-visible {
 
 .erp-table tr:last-child td {
     border-bottom: none;
+    /* Aakhiri row par line nahi aayegi */
 }
 
+/* Table Row Hover */
 .erp-table tr:hover td {
     background: var(--erp-bg);
+    /* Hover karne par faint light-grey highlight */
 }
 
+/* Table Text Utilities */
 .td-bold {
     font-weight: 600;
     color: var(--erp-text);
@@ -1427,7 +1729,8 @@ textarea:focus-visible {
     color: var(--erp-muted2);
 }
 
-/* Badge */
+
+/* ── STATUS BADGES ── */
 .badge {
     display: inline-block;
     padding: 4px 12px;
@@ -1436,44 +1739,44 @@ textarea:focus-visible {
     font-weight: 700;
 }
 
-.badge-paid {
-    background: #f0fff4;
-    color: #276749;
-    border: 1px solid #9ae6b4;
-}
-
-.badge-unpaid {
-    background: #fff7ed;
-    color: #9c4221;
-    border: 1px solid #fbd38d;
-}
-
-.badge-overdue {
-    background: #fff5f5;
-    color: #c53030;
-    border: 1px solid #feb2b2;
-}
-
-.badge-partial {
-    background: #fffaf0;
-    color: #975a16;
-    border: 1px solid #fad089;
-}
-
+/* Success / Paid / Active */
+.badge-paid,
 .badge-active {
-    background: #f0fff4;
-    color: #276749;
-    border: 1px solid #9ae6b4;
+    background: rgba(33, 196, 93, 0.1);
+    /* Very light green background */
+    color: #15803d;
+    /* UPDATE: Dark green text for readability on light bg */
+    border: 1px solid rgba(33, 196, 93, 0.3);
+}
+
+/* Warning / Unpaid / Partial */
+.badge-unpaid,
+.badge-partial {
+    background: rgba(245, 158, 11, 0.1);
+    /* Very light orange background */
+    color: #b45309;
+    /* UPDATE: Dark amber/orange text */
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+/* Danger / Overdue */
+.badge-overdue {
+    background: rgba(239, 68, 68, 0.1);
+    /* Very light red background */
+    color: #b91c1c;
+    /* UPDATE: Dark red text */
+    border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 /* Modal overlay */
+/* ── Modal Overlay (Background Dimmer) ── */
 .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(15, 23, 42, 0.7);
-    /* Slightly darker for better blur contrast */
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    /* Light mode mein dimming effect thoda soft rakha gaya hai */
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1484,23 +1787,28 @@ textarea:focus-visible {
 
 @keyframes fadeIn {
     from {
-        opacity: 0
+        opacity: 0;
     }
 
     to {
-        opacity: 1
+        opacity: 1;
     }
 }
 
+/* ── Modal Box ── */
 .modal {
+    /* Hardcoded dark color ko hata kar surface variable lagaya hai (Pure white/light) */
     background: var(--erp-surface);
     border-radius: 16px;
     width: 100%;
     max-width: 520px;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
+    /* Soft but deep shadow taaki modal float karta hua lage */
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
     animation: modalUp 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     max-height: 90vh;
     overflow-y: auto;
+    /* Light border instead of white transparency */
+    border: 1px solid var(--erp-border);
 }
 
 @keyframes modalUp {
@@ -1515,6 +1823,7 @@ textarea:focus-visible {
     }
 }
 
+/* ── Modal Header ── */
 .modal-hdr {
     display: flex;
     align-items: center;
@@ -1526,26 +1835,32 @@ textarea:focus-visible {
 .modal-hdr h3 {
     font-size: 1.05rem;
     font-weight: 700;
-    color: var(--erp-primary);
+    color: var(--erp-text);
+    /* White se change karke dark text */
 }
 
+/* ── Modal Close Button ── */
 .modal-close {
     width: 30px;
     height: 30px;
     border-radius: 8px;
-    background: var(--erp-bg2);
+    /* Light grey background button ke liye */
+    background: var(--erp-input-bg);
     border: none;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--erp-muted2);
+    color: var(--erp-muted);
+    /* Darker icon color */
     transition: background 0.18s;
 }
 
 .modal-close:hover {
-    background: #fed7d7;
-    color: var(--erp-danger);
+    background: rgba(239, 68, 68, 0.1);
+    /* Halka red background hover par */
+    color: #dc2626;
+    /* Dark red icon on hover */
 }
 
 .modal-body {
@@ -1560,7 +1875,7 @@ textarea:focus-visible {
     gap: 10px;
 }
 
-/* Form field */
+/* ── Modal Form Fields (.mf) ── */
 .mf {
     margin-bottom: 16px;
 }
@@ -1570,6 +1885,7 @@ textarea:focus-visible {
     font-size: 0.78rem;
     font-weight: 600;
     color: var(--erp-text2);
+    /* Slate muted color */
     margin-bottom: 5px;
     letter-spacing: 0.03em;
     text-transform: uppercase;
@@ -1581,13 +1897,16 @@ textarea:focus-visible {
     width: 100%;
     height: 40px;
     padding: 0 12px;
+    /* Base background slightly greyish for light mode */
     background: var(--erp-input-bg);
-    border: 1.5px solid transparent;
+    /* Subtle border instead of fully transparent */
+    border: 1px solid var(--erp-border);
     border-radius: var(--radius-sm);
     font-size: 0.9rem;
     color: var(--erp-text);
+    /* Dark text */
     outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
 }
 
 .mf textarea {
@@ -1596,14 +1915,25 @@ textarea:focus-visible {
     resize: vertical;
 }
 
-.mf input:focus,
-.mf select:focus {
-    border-color: var(--erp-border-focus);
-    background: #fff;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+.mf input:hover,
+.mf select:hover,
+.mf textarea:hover {
+    border-color: rgba(0, 0, 0, 0.2);
 }
 
+.mf input:focus,
+.mf select:focus,
+.mf textarea:focus {
+    border-color: var(--erp-accent);
+    /* Focus par pure white bg taaki highlight ho */
+    background: #ffffff;
+    /* Light theme wali green ring variable */
+    box-shadow: 0 0 0 3px var(--erp-ring);
+}
+
+/* ── Accessibility & Layout (Same for both themes) ── */
 @media (prefers-reduced-motion: reduce) {
+
     *,
     *::before,
     *::after {
@@ -1626,7 +1956,7 @@ textarea:focus-visible {
     }
 }
 
-/* Pagination */
+/* ── Pagination ── */
 .pagination {
     display: flex;
     align-items: center;
@@ -1640,10 +1970,12 @@ textarea:focus-visible {
     height: 34px;
     border-radius: var(--radius-xs);
     border: 1.5px solid var(--erp-border);
-    background: #fff;
+    /* Light theme ke liye button base ko light-grey/white rakha hai */
+    background: var(--erp-input-bg);
     cursor: pointer;
     font-size: 0.85rem;
     color: var(--erp-text2);
+    /* Dark slate text */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1651,45 +1983,60 @@ textarea:focus-visible {
 }
 
 .pg-btn:hover:not(:disabled) {
+    /* Hover karne par brand green color */
     border-color: var(--erp-primary);
-    color: var(--erp-primary);
+    color: var(--erp-primary-dark);
+    /* Thoda dark green text for readability */
+    background: rgba(33, 196, 93, 0.05);
+    /* Halka green tint background */
 }
 
 .pg-btn.active {
     background: var(--erp-primary);
-    color: #fff;
+    color: #ffffff;
+    /* Active button par hamesha white text best lagta hai */
     border-color: var(--erp-primary);
+    box-shadow: 0 4px 10px rgba(33, 196, 93, 0.25);
+    /* Halka shadow active state ke liye */
 }
 
 .pg-btn:disabled {
-    opacity: 0.4;
+    opacity: 0.5;
     cursor: not-allowed;
+    background: rgba(0, 0, 0, 0.02);
+    /* Faint disabled background */
 }
 
 .pg-info {
     font-size: 0.8rem;
     color: var(--erp-muted2);
+    /* Slate gray text */
     padding: 0 8px;
+    font-weight: 500;
 }
 
-/* Empty state */
+/* ── Empty State (Jab data na ho) ── */
 .empty {
     text-align: center;
     padding: 48px 24px;
     color: var(--erp-muted2);
+    /* Slate gray */
 }
 
 .empty-icon {
     font-size: 40px;
     margin-bottom: 12px;
-    opacity: 0.5;
+    opacity: 0.6;
+    /* Thodi zyada visibility for light mode */
+    color: var(--erp-muted);
 }
 
 .empty p {
     font-size: 0.9rem;
+    color: var(--erp-text2);
 }
 
-/* Loader */
+/* ── Loader / Spinner ── */
 .loader-wrap {
     display: flex;
     flex-direction: column;
@@ -1697,14 +2044,18 @@ textarea:focus-visible {
     justify-content: center;
     min-height: 300px;
     gap: 14px;
-    color: var(--erp-muted2);
+    color: var(--erp-text2);
+    /* Dark text */
     font-size: 0.9rem;
+    font-weight: 500;
 }
 
 .spinner {
     width: 36px;
     height: 36px;
-    border: 3px solid var(--erp-border);
+    /* Track ko faint grey rakha gaya hai */
+    border: 3px solid rgba(0, 0, 0, 0.08);
+    /* Spinning part ko brand primary green kiya gaya hai */
     border-top-color: var(--erp-primary);
     border-radius: 50%;
     animation: _spin 0.8s linear infinite;
@@ -1712,15 +2063,16 @@ textarea:focus-visible {
 
 @keyframes _spin {
     to {
-        transform: rotate(360deg)
+        transform: rotate(360deg);
     }
 }
 
-/* Tabs */
+/* ── Tabs ── */
 .tabs {
     display: flex;
     gap: 2px;
-    background: var(--erp-bg2);
+    /* Light grey background tab container ke liye */
+    background: var(--erp-input-bg);
     padding: 4px;
     border-radius: var(--radius-sm);
     width: fit-content;
@@ -1733,18 +2085,22 @@ textarea:focus-visible {
     font-weight: 600;
     cursor: pointer;
     color: var(--erp-muted2);
+    /* Slate color for inactive tabs */
     border: none;
     background: none;
     transition: all 0.18s;
 }
 
 .tab.active {
-    background: #fff;
-    color: var(--erp-primary);
-    box-shadow: var(--shadow-sm);
+    /* Pure white background active tab ke liye */
+    background: #ffffff;
+    color: var(--erp-text);
+    /* Dark text */
+    /* Soft shadow to make the active tab pop out */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
-/* Upload zone */
+/* ── Upload Zone ── */
 .upload-zone {
     border: 2px dashed var(--erp-border);
     border-radius: var(--radius);
@@ -1756,23 +2112,26 @@ textarea:focus-visible {
 
 .upload-zone:hover {
     border-color: var(--erp-primary);
-    background: var(--erp-primary-xlight);
+    /* Light green tint on hover */
+    background: rgba(33, 196, 93, 0.04);
 }
 
 .upload-zone p {
     font-size: 0.875rem;
     color: var(--erp-muted2);
+    /* Slate color */
     margin-top: 8px;
 }
 
-/* Divider */
+/* ── Divider ── */
 .divider {
     border: none;
     border-top: 1px solid var(--erp-border);
+    /* Automatically picks up light border */
     margin: 20px 0;
 }
 
-/* Chips */
+/* ── Chips (Small pill tags) ── */
 .chip {
     display: inline-flex;
     align-items: center;
@@ -1781,13 +2140,12 @@ textarea:focus-visible {
     border-radius: 20px;
     font-size: 0.75rem;
     font-weight: 600;
-    background: var(--erp-primary-xlight);
-    color: var(--erp-primary);
+    /* Light green background with dark green text */
+    background: rgba(33, 196, 93, 0.12);
+    color: #15803d;
 }
 
-/* Utility */
-
-
+/* ── Utility Classes ── */
 .flex-1 {
     flex: 1;
 }
@@ -1821,7 +2179,7 @@ textarea:focus-visible {
     font-size: 0.83rem;
 }
 
-/* Animations */
+/* ── Animations (No color changes needed here) ── */
 @keyframes modalUp {
     from {
         opacity: 0;
@@ -1865,7 +2223,7 @@ textarea:focus-visible {
     animation: shake 0.5s cubic-bezier(.36, .07, .19, .97) both;
 }
 
-/* Custom Scrollbar */
+/* ── Custom Scrollbar (Specifically for inner scrolling divs) ── */
 .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
 }
@@ -1875,38 +2233,41 @@ textarea:focus-visible {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #e2e8f0;
+    /* Light mode mein scrollbar black/grey transparent honi chahiye */
+    background: rgba(0, 0, 0, 0.15);
     border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #cbd5e1;
+    background: rgba(0, 0, 0, 0.25);
+    /* Thoda dark on hover */
 }
 
-/* Stats Grid ko mobile par 1 column aur desktop par 3-5 columns mein dikhayye */
+/* ── Stats Grid ── */
 .stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
 }
 
-/* Card layout for mobile */
+/* ── Card layout for mobile ── */
 @media (max-width: 768px) {
-  .panel-container {
-    grid-template-columns: 1fr !important; /* Force single column on mobile */
-  }
-  
-  .page-hdr h1 {
-    font-size: 1.5rem;
-  }
-  
-  .stat-card {
-    padding: 15px;
-  }
+    .panel-container {
+        grid-template-columns: 1fr !important;
+        /* Force single column on mobile */
+    }
+
+    .page-hdr h1 {
+        font-size: 1.5rem;
+    }
+
+    .stat-card {
+        padding: 15px;
+    }
 }
 
-/* Sidebar logic */
+/* ── Sidebar logic (Mobile) ── */
 .sidebar {
     transition: all 0.3s ease;
     z-index: 1000;
@@ -1915,34 +2276,41 @@ textarea:focus-visible {
 @media (max-width: 768px) {
     .sidebar {
         position: fixed;
-        left: -260px; /* Shuru mein screen se bahar */
+        left: -260px;
+        /* Shuru mein screen se bahar */
         height: 100vh;
         width: 260px;
+        background: var(--erp-surface);
+        /* Light theme background for mobile sidebar */
     }
-    
+
     .sidebar.open {
-        left: 0; /* Mobile toggle hone par andar aaye */
+        left: 0;
+        /* Mobile toggle hone par andar aaye */
     }
 
     .sidebar-overlay {
         position: fixed;
         inset: 0;
-        background: rgba(0,0,0,0.5);
+        background: rgba(0, 0, 0, 0.5);
+        /* Dimming overlay same rahega */
         display: none;
         z-index: 999;
     }
-    
-    .sidebar.open + .sidebar-overlay {
+
+    .sidebar.open+.sidebar-overlay {
         display: block;
     }
 
     /* Topbar adjustments for mobile */
     .tb-name-desktop {
-        display: none; /* Mobile par name hide karein */
+        display: none;
+        /* Mobile par name hide karein */
     }
 
     .logout-text {
-        display: none; /* "Sign out" text hide karke sirf icon dikhayein */
+        display: none;
+        /* "Sign out" text hide karke sirf icon dikhayein */
     }
 
     .logout-icon-mob {
@@ -1955,11 +2323,12 @@ textarea:focus-visible {
     }
 
     .page-content {
-        padding: 15px; /* Thoda space kam karein mobile ke liye */
+        padding: 15px;
+        /* Thoda space kam karein mobile ke liye */
     }
 }
 
-/* UI Helpers */
+/* ── UI Helpers ── */
 .tb-left {
     display: flex;
     align-items: center;
@@ -1977,9 +2346,9 @@ textarea:focus-visible {
     padding: 8px;
 }
 
-/* Mobile Bottom Navigation */
+/* ── Mobile Bottom Navigation (Light Glassmorphism) ── */
 :root {
-    --mobile-nav-h: 64px;
+    --mobile-nav-h: 68px;
 }
 
 .mobile-nav {
@@ -1990,11 +2359,16 @@ textarea:focus-visible {
     bottom: 0;
     height: calc(var(--mobile-nav-h) + env(safe-area-inset-bottom));
     padding-bottom: env(safe-area-inset-bottom);
+    /* UPDATE: Pure white transparent background for light glass effect */
     background: rgba(255, 255, 255, 0.92);
     border-top: 1px solid var(--erp-border);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    /* Light subtle border */
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
     z-index: 150;
+    border-radius: 20px 20px 0 0;
+    /* UPDATE: Softer shadow so it doesn't look too heavy on a white page */
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.06);
 }
 
 .mobile-nav-inner {
@@ -2003,8 +2377,8 @@ textarea:focus-visible {
     grid-template-columns: repeat(5, 1fr);
     align-items: center;
     justify-items: center;
-    padding: 6px 8px 8px;
-    gap: 4px;
+    padding: 8px 6px 6px;
+    gap: 2px;
 }
 
 .mobile-nav-item {
@@ -2012,13 +2386,22 @@ textarea:focus-visible {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 4px;
-    font-size: 12.5px;
+    gap: 5px;
+    font-size: 10px;
     font-weight: 700;
-    color: var(--erp-muted2);
+    /* UPDATE: Slate gray color for unselected items */
+    color: var(--erp-muted);
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.06em;
     min-width: 0;
+    padding: 6px 4px;
+    border-radius: 14px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.mobile-nav-item svg {
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .mobile-nav-item span {
@@ -2028,20 +2411,36 @@ textarea:focus-visible {
     text-overflow: ellipsis;
 }
 
+/* Active Nav Item */
 .mobile-nav-item.active {
-    color: var(--erp-primary);
+    /* UPDATE: Active item ab dark green hoga taaki white bg pe padhne mein aaye */
+    color: var(--erp-primary-dark);
+    /* Soft green pill background */
+    background: rgba(33, 196, 93, 0.1);
 }
 
+.mobile-nav-item.active svg {
+    transform: scale(1.12) translateY(-1px);
+    /* Soften the green glow for light mode */
+    filter: drop-shadow(0 2px 4px rgba(33, 196, 93, 0.3));
+}
+
+/* Nav Dot (Active Indicator) */
 .mobile-nav-item .nav-dot {
     width: 4px;
     height: 4px;
     border-radius: 999px;
-    background: var(--erp-primary);
+    background: linear-gradient(135deg, #4ade80, #21c45d);
     opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Soften the dot shadow */
+    box-shadow: 0 0 6px rgba(33, 196, 93, 0.4);
 }
 
 .mobile-nav-item.active .nav-dot {
     opacity: 1;
+    width: 16px;
+    height: 3px;
 }
 
 @media (max-width: 768px) {
@@ -2051,11 +2450,16 @@ textarea:focus-visible {
 
     .topbar {
         height: 58px;
-        padding: 14px;
+        padding: 0 14px;
+        border-radius: 16px;
     }
 
     .tb-title {
         font-size: 0.95rem;
+    }
+
+    .tb-name-desktop {
+        display: none;
     }
 
     .page-content {

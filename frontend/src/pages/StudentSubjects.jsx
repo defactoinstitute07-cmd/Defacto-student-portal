@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Skeleton from '../components/Skeleton';
-import { BookOpen, User, ArrowRight, GraduationCap, Search, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Bell, Home as HomeIcon, Book as BookIcon, GraduationCap, User as UserIcon } from 'lucide-react';
 import api from '../services/api';
 import StudentLayout from '../components/StudentLayout';
 import { useQuery } from '@tanstack/react-query';
@@ -11,8 +11,8 @@ import { useLanguage } from '../context/LanguageContext';
 const StudentSubjects = () => {
     const navigate = useNavigate();
     const { t } = useLanguage();
-    const [searchTerm, setSearchTerm] = useState('');
     const [error, setError] = useState('');
+    const [activeTab, setActiveTab] = useState('Ongoing');
     const token = localStorage.getItem('studentToken');
 
     useEffect(() => {
@@ -48,225 +48,179 @@ const StudentSubjects = () => {
 
     const subjects = student?.subjectTeachers || [];
 
-    const filteredSubjects = useMemo(() => subjects.filter((subjectRow) => {
-        const subjectName = String(subjectRow?.subject || '').toLowerCase();
-        const teacherName = String(subjectRow?.teacher || '').toLowerCase();
-        const query = searchTerm.toLowerCase();
-
-        return subjectName.includes(query) || teacherName.includes(query);
-    }), [subjects, searchTerm]);
-
-    const getScoreTone = (score) => {
-        if (score >= 75) {
+    // Helper to determine exact styling based on the image's status types
+    const getStatusTheme = (score) => {
+        if (score === 0 || score < 40) {
             return {
-                text: 'text-emerald-600',
-                badge: 'bg-emerald-50 text-emerald-700 border-emerald-100',
-                bar: 'bg-emerald-500',
-                label: t('Strong')
+                badgeBg: 'bg-red-50',
+                badgeText: 'text-red-600',
+                barColor: 'bg-red-500',
+                label: 'NEEDS FOCUS',
+                borderColor: 'border-red-500',
+                showBorder: true
             };
         }
-
-        if (score >= 40) {
+        if (score >= 40 && score < 75) {
             return {
-                text: 'text-amber-600',
-                badge: 'bg-amber-50 text-amber-700 border-amber-100',
-                bar: 'bg-amber-500',
-                label: t('Stable')
+                badgeBg: 'bg-blue-50',
+                badgeText: 'text-blue-600',
+                barColor: 'bg-[#191838]', // Dark Navy
+                label: 'IN PROGRESS',
+                borderColor: 'border-transparent',
+                showBorder: false
             };
         }
-
         return {
-            text: 'text-rose-600',
-            badge: 'bg-rose-50 text-rose-700 border-rose-100',
-            bar: 'bg-rose-500',
-            label: t('Needs Focus')
+            badgeBg: 'bg-indigo-50',
+            badgeText: 'text-indigo-600',
+            barColor: 'bg-[#191838]', // Dark Navy
+            label: 'ON TRACK',
+            borderColor: 'border-transparent',
+            showBorder: false
         };
+    };
+
+    // Helper to generate the large initial for the circle
+    const getSubjectInitial = (name) => {
+        if (!name) return 'S';
+        if (name.toLowerCase().includes('algorithm') || name.toLowerCase().includes('data structure')) return '< >';
+        if (name.toLowerCase().includes('calculus') || name.toLowerCase().includes('math')) return '∑';
+        return name.charAt(0).toUpperCase();
     };
 
     if (isLoading) {
         return (
-            <StudentLayout title="My Subjects">
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6 sm:space-y-8">
-
-                    {/* Header */}
-                    <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 sm:gap-6">
-
-                        <div>
-                            <Skeleton className="h-8 sm:h-10 w-40 sm:w-64 mb-2" />
-                            <Skeleton className="h-3 sm:h-4 w-56 sm:w-80" />
-                        </div>
-
-                        <Skeleton className="h-10 sm:h-12 w-full sm:w-80 rounded-md" />
-
-                    </div>
-
-                    {/* Subjects Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-
-                        {[1, 2, 3, 4, 5, 6].map(i => (
-                            <div
-                                key={i}
-                                className="bg-white rounded-md border border-gray-100 p-4 sm:p-6 space-y-3 sm:space-y-4"
-                            >
-
-                                <Skeleton className="h-10 w-10 sm:h-12 sm:w-12 rounded-md" />
-
-                                <Skeleton className="h-5 sm:h-6 w-3/4" />
-
-                                <Skeleton className="h-3 sm:h-4 w-1/2" />
-
-                                <div className="space-y-2 pt-2 sm:pt-4">
-                                    <Skeleton className="h-2 w-full" />
-                                    <Skeleton className="h-2 w-full" />
-                                </div>
-
-                            </div>
-                        ))}
-
-                    </div>
-
+            <StudentLayout title="Subject Hub">
+                <div className="flex h-64 items-center justify-center">
+                    <Skeleton className="h-12 w-12 rounded-full" />
                 </div>
             </StudentLayout>
         );
     }
 
     return (
-        <StudentLayout title="My Subjects">
-            <div className="max-w-6xl mx-auto space-y-8">
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                    <div>
-                        <h1 className="text-3xl font-black text-gray-900 tracking-tight">{t('Academic Curriculum')}</h1>
-                        <p className="text-gray-500 font-medium mt-1">{t('Review your enrolled subjects, faculty guidance, and current performance in one place.')}</p>
-                    </div>
+        <StudentLayout title="Subject Hub">
+            <div 
+                className="bg-white text-slate-900 pb-24" 
+                style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
+            >
+                {/* Tabs - Now part of the main page content below the layout header */}
+                <div className="flex gap-6 border-b border-slate-100 px-6 pt-2 overflow-x-auto no-scrollbar">
+                    {['Ongoing', 'Completed', 'Upcoming'].map((tab) => (
+                        <button
+                            key={tab}
+                            onClick={() => setActiveTab(tab)}
+                            className={`pb-3 text-[15px] font-semibold transition-colors whitespace-nowrap ${
+                                activeTab === tab 
+                                ? 'border-b-[2.5px] border-[#191838] text-[#191838]' 
+                                : 'text-slate-400 border-transparent hover:text-slate-600'
+                            }`}
+                        >
+                            {t(tab)}
+                        </button>
+                    ))}
+                </div>
 
-                    <div className="flex w-full md:w-auto flex-col sm:flex-row gap-3 sm:items-center">
-                        <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.24em] text-slate-500 shadow-sm">
-                            <BookOpen size={14} className="text-slate-400" />
-                            {filteredSubjects.length} {t('Subjects')}
-                        </div>
-
-                        <div className="relative w-full md:w-80">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                            <input
-                                type="text"
-                                placeholder={t('Search subjects or teachers...')}
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-2xl shadow-sm focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 outline-none transition-all font-medium text-sm"
-                            />
-                        </div>
-                    </div>
+            <main className="px-5 pt-6">
+                <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-[17px] font-bold tracking-tight text-[#191838]">{t('Your Academic Load')}</h2>
+                    <span className="rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-semibold tracking-wide text-slate-500">
+                        {t('Semester 4')}
+                    </span>
                 </div>
 
                 {error && (
-                    <div className="bg-red-50 text-red-600 p-3 rounded-md flex items-center gap-2 text-sm border border-red-100">
-                        <AlertTriangle size={16} />
-                        <span>{error}</span>
+                    <div className="mb-6 rounded-xl bg-red-50 p-4 text-sm font-semibold text-red-600">
+                        {error}
                     </div>
                 )}
 
-                {subjects.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-                        {filteredSubjects.length > 0 ? filteredSubjects.map((s, idx) => {
+                <div className="space-y-4">
+                    {subjects.length > 0 ? (
+                        subjects.map((s, idx) => {
                             const averageMarks = Number.isFinite(Number(s.averageMarks))
                                 ? Math.max(0, Math.min(100, Number(s.averageMarks)))
                                 : 0;
-                            const scoreTone = getScoreTone(averageMarks);
-                            const teacherName = s.teacher === 'Unassigned'
-                                ? t('Unassigned')
-                                : s.teacher;
+                            
+                            const theme = getStatusTheme(averageMarks);
+                            const teacherName = s.teacher === 'Unassigned' ? t('Unassigned') : s.teacher;
+                            const initial = getSubjectInitial(s.subject);
 
                             return (
                                 <button
                                     key={idx}
-                                    type="button"
                                     onClick={() => navigate(`/student/results/subject/${s.subject}`)}
-                                    className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-5 text-left shadow-[0_20px_45px_-28px_rgba(15,23,42,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-slate-300 hover:shadow-[0_30px_60px_-30px_rgba(15,23,42,0.35)] focus:outline-none focus:ring-2 focus:ring-slate-900/10 active:scale-[0.99]"
+                                    className={`relative w-full overflow-hidden rounded-[24px] bg-white p-5 text-left transition-transform active:scale-[0.98] ${
+                                        theme.showBorder 
+                                            ? 'border-[1.5px] border-red-100 shadow-sm' 
+                                            : 'border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.04)]'
+                                    }`}
                                 >
-                                    <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-slate-900 via-slate-700 to-slate-400 opacity-80" />
+                                    {/* Right edge color strip for "Needs Focus" */}
+                                    {theme.showBorder && (
+                                        <div className="absolute bottom-0 right-0 top-0 w-1.5 bg-red-500" />
+                                    )}
 
-                                    <div className="flex items-start justify-between gap-4">
-                                        <div className="min-w-0 flex items-center gap-3">
-                                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-lg shadow-slate-200">
-                                                <BookOpen size={20} />
-                                            </div>
-                                            <div className="min-w-0">
-                                                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-400">{t('Subject')}</p>
-                                                <h3 className="mt-1 line-clamp-2 text-lg font-black leading-tight text-slate-900">
+                                    <div className="flex items-start gap-4">
+                                        {/* Subject Icon Circle (No Serif Font) */}
+                                        <div className="flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-full bg-[#f0f2f5] text-[#191838] text-[22px] font-bold tracking-tighter">
+                                            {initial}
+                                        </div>
+
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex items-start justify-between gap-2">
+                                                <h3 className="line-clamp-2 text-[17px] font-bold leading-snug tracking-tight text-[#191838]">
                                                     {s.subject}
                                                 </h3>
+                                                <div className="flex flex-col items-end gap-1.1 shrink-0">
+                                                    <span className={`rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${theme.badgeBg} ${theme.badgeText}`}>
+                                                        {t(theme.label)}
+                                                    </span>
+                                                    {s.code && (
+                                                        <span className="rounded-md bg-slate-50 px-1.5 py-0.5 text-[9px] font-black text-slate-400 uppercase tracking-tighter border border-slate-100">
+                                                            {s.code}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
+                                            
+                                            <p className="mt-1 text-[13px] text-[#191838]">
+                                                <span className="text-slate-400">{t('Faculty')}: </span>
+                                                <span className="font-medium tracking-tight">{teacherName}</span>
+                                            </p>
 
-                                        <div className={`inline-flex shrink-0 items-center rounded-full border px-3 py-1 text-xs font-black ${scoreTone.badge}`}>
-                                            {averageMarks}%
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-5 space-y-3">
-                                        <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
-                                            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-400">{t('Faculty')}</p>
-                                            <div className="mt-1.5 flex items-center gap-2 text-sm font-semibold text-slate-700">
-                                                <User size={15} className="shrink-0 text-slate-400" />
-                                                <span className="truncate">{teacherName}</span>
-                                            </div>
-                                        </div>
-
-                                        <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
-                                            <div className="flex items-center justify-between gap-3">
-                                                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-400">{t('Average Score')}</p>
-                                                <span className={`text-xs font-black uppercase tracking-[0.18em] ${scoreTone.text}`}>
-                                                    {scoreTone.label}
-                                                </span>
+                                            <div className="mt-5 flex items-center justify-between text-[11px] font-bold tracking-wide">
+                                                <span className="text-slate-500">{t('Overall Progress')}</span>
+                                                <span className="text-[#191838]">{averageMarks}%</span>
                                             </div>
 
-                                            <div className="mt-3 h-2 overflow-hidden rounded-full bg-white ring-1 ring-slate-100">
-                                                <div
-                                                    className={`h-full rounded-full transition-all duration-500 ${scoreTone.bar}`}
+                                            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                                                <div 
+                                                    className={`h-full rounded-full transition-all duration-500 ${theme.barColor}`}
                                                     style={{ width: `${averageMarks}%` }}
                                                 />
                                             </div>
                                         </div>
                                     </div>
-
-                                    <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
-                                        <span className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">
-                                            <GraduationCap size={14} className="shrink-0" />
-                                            {t('Subject Hub')}
-                                        </span>
-
-                                        <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition-all group-hover:border-slate-900 group-hover:text-slate-900">
-                                            <ArrowRight size={17} />
-                                        </span>
-                                    </div>
                                 </button>
                             );
-                        }) : (
-                            <div className="sm:col-span-2 xl:col-span-3 rounded-3xl border border-dashed border-slate-200 bg-white p-12 text-center shadow-sm">
-                                <div className="mx-auto max-w-sm space-y-4">
-                                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 text-slate-300">
-                                        <Search size={30} />
-                                    </div>
-                                    <h3 className="text-lg font-bold text-slate-900">{t('No subjects found')}</h3>
-                                    <p className="text-sm text-slate-500">
-                                        {t('Try a different subject or teacher name to refine your search.')}
-                                    </p>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                ) : (
-                    <div className="bg-white rounded-md border-2 border-dashed border-gray-200 p-12 text-center">
-                        <div className="max-w-sm mx-auto space-y-4">
-                            <div className="w-16 h-16 bg-gray-50 rounded-md flex items-center justify-center mx-auto">
-                                <Search size={32} className="text-gray-300" />
-                            </div>
-                            <h3 className="text-lg font-bold text-gray-900">{t('No subjects found')}</h3>
-                            <p className="text-gray-500 text-sm">{t('We couldn\'t find any subjects assigned to your batch. Please contact the administration if this is an error.')}</p>
+                        })
+                    ) : (
+                        <div className="rounded-[24px] border border-dashed border-slate-200 p-10 text-center">
+                            <p className="font-semibold text-slate-500">{t('No subjects found')}</p>
                         </div>
-                    </div>
-                )}
-            </div>
+                    )}
+                </div>
+            </main>
+
+           
+            {/* Safe area spacer for mobile browsers */}
+            <style dangerouslySetInnerHTML={{ __html: `
+                .pb-safe {
+                    padding-bottom: env(safe-area-inset-bottom);
+                }
+            ` }} />
+        </div>
         </StudentLayout>
     );
 };

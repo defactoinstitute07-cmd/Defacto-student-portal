@@ -30,41 +30,53 @@ const seedFees = async () => {
         console.log(`Found student: ${student.name} (${student.rollNo})`);
 
         const months = [
-            { month: 'January', year: 2026, status: 'paid' },
-            { month: 'February', year: 2026, status: 'partial' },
-            { month: 'March', year: 2026, status: 'pending' }
+            { month: 'September', year: 2025, status: 'paid', tuition: 2500, reg: 1000, books: 500 },
+            { month: 'October', year: 2025, status: 'paid', tuition: 2500, reg: 0, lab: 150 },
+            { month: 'November', year: 2025, status: 'paid', tuition: 2500, reg: 0, activity: 200 },
+            { month: 'December', year: 2025, status: 'paid', tuition: 2500, reg: 0, books: 300 },
+            { month: 'January', year: 2026, status: 'paid', tuition: 2600, reg: 0, lab: 150 },
+            { month: 'February', year: 2026, status: 'partial', tuition: 2600, reg: 0, paid: 1500 },
+            { month: 'March', year: 2026, status: 'pending', tuition: 2600, reg: 0 }
         ];
 
         for (const m of months) {
+            const otherExpenses = [];
+            if (m.books) otherExpenses.push({ title: 'Books', amount: m.books });
+            if (m.lab) otherExpenses.push({ title: 'Lab Fee', amount: m.lab });
+            if (m.activity) otherExpenses.push({ title: 'Activity Fee', amount: m.activity });
+
             const feeData = {
                 studentId: student._id,
-                monthlyTuitionFee: 2500,
-                registrationFee: m.month === 'January' ? 1000 : 0,
-                otherExpenses: [
-                    { title: 'Books', amount: 500 }
-                ],
+                monthlyTuitionFee: m.tuition,
+                registrationFee: m.reg || 0,
+                otherExpenses: otherExpenses,
                 month: m.month,
                 year: m.year,
                 status: m.status,
                 fine: m.status === 'overdue' ? 200 : 0
             };
 
+            // Calculate total totalFee for the specific month
+            const total = (m.tuition || 0) + (m.reg || 0) + otherExpenses.reduce((sum, e) => sum + e.amount, 0) + (feeData.fine || 0);
+
             if (m.status === 'paid') {
-                feeData.amountPaid = 4000; // 2500 + 1000 + 500
+                feeData.amountPaid = total;
+                feeData.paidDate = new Date(`${m.month} 05, ${m.year}`);
                 feeData.paymentHistory = [{
-                    paidAmount: 4000,
+                    paidAmount: total,
                     paymentMethod: 'UPI',
-                    transactionId: 'TXN123456789',
-                    receiptNo: `REC-${m.month.slice(0,3).toUpperCase()}-001`,
-                    date: new Date()
+                    transactionId: `TXN₹{Math.random().toString(36).slice(2, 11).toUpperCase()}`,
+                    receiptNo: `REC-${m.month.slice(0,3).toUpperCase()}-${m.year}-001`,
+                    date: feeData.paidDate
                 }];
             } else if (m.status === 'partial') {
-                feeData.amountPaid = 1500;
+                feeData.amountPaid = m.paid || 1500;
+                feeData.paidDate = new Date(`${m.month} 10, ${m.year}`);
                 feeData.paymentHistory = [{
-                    paidAmount: 1500,
+                    paidAmount: feeData.amountPaid,
                     paymentMethod: 'Cash',
-                    receiptNo: `REC-${m.month.slice(0,3).toUpperCase()}-002`,
-                    date: new Date()
+                    receiptNo: `REC-${m.month.slice(0,3).toUpperCase()}-${m.year}-002`,
+                    date: feeData.paidDate
                 }];
             }
 

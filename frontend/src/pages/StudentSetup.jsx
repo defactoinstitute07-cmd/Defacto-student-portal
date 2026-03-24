@@ -101,7 +101,7 @@ const StudentSetup = () => {
             </div>
             <div className="max-w-md w-full bg-white rounded-md shadow-2xl border border-gray-100 overflow-hidden">
                 {/* Header */}
-                <div className="p-10 bg-gray-900 text-white text-center">
+                <div className="p-10 bg-gray-900 text-gray-900 text-center">
                     <div className="flex items-center justify-center gap-3 mb-4">
                         <ShieldCheck className="text-blue-400" size={28} />
                         <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-400">{t('Security Activation')}</span>
@@ -112,7 +112,7 @@ const StudentSetup = () => {
 
                 <div className="p-10">
                     {error && (
-                        <div className="p-4 bg-rose-50 text-rose-600 rounded-md flex items-center gap-3 mb-8 animate-in slide-in-from-top-2">
+                        <div className="p-4 bg-rose-50 text-rose-700 rounded-md flex items-center gap-3 mb-8 animate-in slide-in-from-top-2">
                             <AlertTriangle size={18} className="shrink-0" />
                             <span className="text-xs font-bold leading-tight">{error}</span>
                         </div>
@@ -129,7 +129,7 @@ const StudentSetup = () => {
                                             <Camera className="text-gray-300 group-hover:text-blue-500 transition-colors" size={48} />
                                         )}
                                     </div>
-                                    <label className="absolute -bottom-2 -right-2 h-12 w-12 bg-blue-600 text-white rounded-md shadow-xl flex items-center justify-center cursor-pointer hover:bg-blue-700 transition-all active:scale-95 border-4 border-white">
+                                    <label className="absolute -bottom-2 -right-2 h-12 w-12 bg-blue-600 text-gray-900 rounded-md shadow-xl flex items-center justify-center cursor-pointer hover:bg-blue-700 transition-all active:scale-95 border-4 border-white">
                                         <Camera size={20} />
                                         <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
                                     </label>
@@ -144,7 +144,7 @@ const StudentSetup = () => {
 
                             <button
                                 onClick={() => image ? setStep(2) : setError(t('Please upload your photo to continue'))}
-                                className="w-full py-5 bg-gray-900 text-white text-[10px] font-black uppercase tracking-widest rounded-md hover:bg-gray-800 transition-all shadow-2xl shadow-gray-200 active:scale-[0.98]"
+                                className="w-full py-5 bg-gray-900 text-gray-900 text-[10px] font-black uppercase tracking-widest rounded-md hover:bg-gray-800 transition-all shadow-2xl shadow-gray-200 active:scale-[0.98]"
                             >
                                 {t('Secure My Account')}
                             </button>
@@ -191,7 +191,7 @@ const StudentSetup = () => {
                                 </button>
                                 <button
                                     type="submit" disabled={loading}
-                                    className="flex-[2] py-5 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-md hover:bg-blue-700 transition-all shadow-2xl shadow-blue-100 disabled:opacity-50 active:scale-[0.98]"
+                                    className="flex-[2] py-5 bg-blue-600 text-gray-900 text-[10px] font-black uppercase tracking-widest rounded-md hover:bg-blue-700 transition-all shadow-2xl shadow-blue-100 disabled:opacity-50 active:scale-[0.98]"
                                 >
                                     {loading ? t('Processing...') : t('Activate Portal')}
                                 </button>
@@ -201,7 +201,7 @@ const StudentSetup = () => {
 
                     {step === 3 && (
                         <div className="py-16 text-center space-y-6 animate-in zoom-in-95 duration-700">
-                            <div className="h-24 w-24 bg-emerald-50 text-emerald-500 rounded-md flex items-center justify-center mx-auto mb-6 shadow-xl shadow-emerald-50">
+                            <div className="h-24 w-24 bg-indigo-50 text-indigo-500 rounded-md flex items-center justify-center mx-auto mb-6 shadow-xl shadow-indigo-50">
                                 <CheckCircle2 size={48} />
                             </div>
                             <div className="space-y-2">

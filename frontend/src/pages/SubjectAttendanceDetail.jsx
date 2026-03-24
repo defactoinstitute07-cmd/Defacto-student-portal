@@ -92,24 +92,15 @@ const SubjectAttendanceDetail = () => {
     };
 
     return (
-        <StudentLayout title="Attendance Detail">
-            <div className="max-w-4xl mx-auto">
-                {/* Header / Back Button */}
-                <div className="flex items-center gap-4 mb-8">
-                    <button
-                        onClick={() => navigate('/student/attendance')}
-                        className="p-2 bg-white border border-gray-100 rounded-md shadow-sm hover:bg-gray-50 transition-colors text-gray-600"
-                    >
-                        <ArrowLeft size={20} />
-                    </button>
-                    <div>
-                        <h1 className="text-2xl font-black text-gray-900">
-                            {subjectInfo ? subjectInfo.subjectName : 'Subject Attendance'}
-                        </h1>
-                        <p className="text-gray-500 font-medium text-sm">
-                            Detailed day-wise presence records {subjectInfo?.subjectCode ? `(${subjectInfo.subjectCode})` : ''}
-                        </p>
-                    </div>
+        <StudentLayout 
+            title={subjectInfo ? subjectInfo.subjectName : 'Attendance Detail'} 
+            backUrl="/student/attendance"
+        >
+            <div className="max-w-4xl mx-auto pb-12 px-4 sm:px-0">
+                <div className="mb-8">
+                    <p className="text-gray-500 font-medium text-sm">
+                        Detailed day-wise presence records {subjectInfo?.subjectCode ? `(${subjectInfo.subjectCode})` : ''}
+                    </p>
                 </div>
 
                 {loading ? (
@@ -118,7 +109,7 @@ const SubjectAttendanceDetail = () => {
                         <Skeleton className="h-64 w-full rounded-md" />
                     </div>
                 ) : error ? (
-                    <div className="p-8 bg-rose-50 border border-rose-100 rounded-md text-rose-600 text-center font-bold">
+                    <div className="p-8 bg-rose-50 border border-rose-200 rounded-md text-rose-700 text-center font-bold">
                         {error}
                     </div>
                 ) : (
@@ -128,7 +119,7 @@ const SubjectAttendanceDetail = () => {
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div className="bg-white p-4 rounded-md border border-gray-100 shadow-sm text-center">
                                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Percentage</p>
-                                    <p className={`text-xl font-black ${subjectInfo.percentage >= 75 ? 'text-emerald-600' : subjectInfo.percentage >= 60 ? 'text-amber-600' : 'text-rose-600'}`}>
+                                    <p className={`text-xl font-black ${subjectInfo.percentage >= 75 ? 'text-indigo-700' : subjectInfo.percentage >= 60 ? 'text-amber-700' : 'text-rose-700'}`}>
                                         {subjectInfo.percentage}%
                                     </p>
                                 </div>
@@ -138,11 +129,11 @@ const SubjectAttendanceDetail = () => {
                                 </div>
                                 <div className="bg-white p-4 rounded-md border border-gray-100 shadow-sm text-center">
                                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Present</p>
-                                    <p className="text-xl font-black text-emerald-600">{subjectInfo.present}</p>
+                                    <p className="text-xl font-black text-indigo-700">{subjectInfo.present}</p>
                                 </div>
                                 <div className="bg-white p-4 rounded-md border border-gray-100 shadow-sm text-center">
                                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Missed</p>
-                                    <p className="text-xl font-black text-rose-600">{subjectInfo.absent + subjectInfo.late}</p>
+                                    <p className="text-xl font-black text-rose-700">{subjectInfo.absent + subjectInfo.late}</p>
                                 </div>
                             </div>
                         )}
@@ -172,7 +163,7 @@ const SubjectAttendanceDetail = () => {
                                     >
                                         <ArrowLeft size={16} />
                                     </button>
-                                    <span className="text-[10px] font-black text-gray-900 uppercase tracking-widest bg-indigo-50 px-3 py-1.5 rounded-md border border-indigo-100 min-w-[140px] text-center">
+                                    <span className="text-[10px] font-black text-gray-900 uppercase tracking-widest bg-white px-3 py-1.5 rounded-md border border-gray-200 min-w-[140px] text-center">
                                         {formatWeekRange()}
                                     </span>
                                     <button
@@ -237,10 +228,10 @@ const SubjectAttendanceDetail = () => {
                                                     <td className="px-3 sm:px-6 py-3 sm:py-4">
                                                         <span
                                                             className={`inline-flex items-center gap-1 px-2 sm:px-3 py-1 text-[9px] sm:text-[10px] font-black uppercase tracking-widest rounded-md border ${item.status === 'Present'
-                                                                    ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                                                    ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
                                                                     : item.status === 'Late'
-                                                                        ? 'bg-amber-50 text-amber-600 border-amber-100'
-                                                                        : 'bg-rose-50 text-rose-600 border-rose-100'
+                                                                        ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                                                        : 'bg-rose-50 text-rose-700 border-rose-200'
                                                                 }`}
                                                         >
                                                             {item.status === 'Present' ? (

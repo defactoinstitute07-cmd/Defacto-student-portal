@@ -20,23 +20,23 @@ const FeeInfoModal = ({ isOpen, onClose, fee, student }) => {
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
-               <div className="bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 px-6 py-5 flex items-center justify-between text-white shadow-md sticky top-0 z-20 border-b border-indigo-400/30">
+               <div className="bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 px-6 py-5 flex items-center justify-between text-gray-900 shadow-md sticky top-0 z-20 border-b border-indigo-400/30">
     <div className="flex items-center gap-4">
         {/* Glassmorphism Icon Container */}
         <div className="bg-white/15 backdrop-blur-md p-2.5 rounded-2xl border border-white/20 shadow-sm shrink-0">
-            <IndianRupee size={22} className="text-white drop-shadow-sm" />
+            <IndianRupee size={22} className="text-gray-900 drop-shadow-sm" />
         </div>
         
         <div className="flex flex-col justify-center">
-            <h2 className="text-xl font-bold tracking-tight text-white mb-1.5 leading-none">
+            <h2 className="text-xl font-bold tracking-tight text-gray-900 mb-1.5 leading-none">
                 {t('Fee Details')}
             </h2>
             
             {/* Upgraded Info Pill */}
             <div className="flex items-center">
-                <p className="text-indigo-50 text-[11px] font-semibold tracking-wide bg-black/15 px-3 py-1 rounded-full border border-white/10 flex items-center gap-1.5 shadow-inner">
+                <p className="text-indigo-50 text-[11px] font-semibold tracking-wide bg-black/15 px-3 py-1 rounded-full border border-gray-200 flex items-center gap-1.5 shadow-inner">
                     {/* Optional indicator dot - makes the status pop */}
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-400 shadow-[0_0_5px_rgba(74,222,128,0.5)]"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shadow-[0_0_5px_rgba(74,222,128,0.5)]"></span>
                     <span>{fee.month} {fee.year}</span>
                     <span className="opacity-40 font-normal px-0.5">|</span>
                     <span className="uppercase tracking-wider">{t(fee.status)}</span>
@@ -48,15 +48,15 @@ const FeeInfoModal = ({ isOpen, onClose, fee, student }) => {
     {/* Refined Close Button */}
     <button 
         onClick={onClose}
-        className="p-2.5 bg-black/5 hover:bg-black/20 rounded-full transition-all duration-200 active:scale-90 border border-transparent hover:border-white/10 group"
+        className="p-2.5 bg-black/5 hover:bg-black/20 rounded-full transition-all duration-200 active:scale-90 border border-transparent hover:border-gray-200 group"
         aria-label="Close"
     >
-        <X size={20} className="text-indigo-100 group-hover:text-white transition-colors" />
+        <X size={20} className="text-indigo-100 group-hover:text-gray-900 transition-colors" />
     </button>
 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto bg-slate-50">
+                <div className="flex-1 overflow-y-auto bg-white">
                     {/* Student Mini Profile */}
                     <div className="p-5 bg-white border-b border-slate-100">
                         <div className="flex items-start gap-4">
@@ -64,15 +64,15 @@ const FeeInfoModal = ({ isOpen, onClose, fee, student }) => {
                                 {currentStudent.name?.[0]?.toUpperCase() || 'S'}
                             </div>
                             <div className="flex-1">
-                                <h3 className="text-xl font-bold text-slate-900">{currentStudent.name}</h3>
+                                <h3 className="text-xl font-bold text-gray-900">{currentStudent.name}</h3>
                                 <div className="grid grid-cols-2 gap-y-1.5 gap-x-4 mt-2">
-                                    <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium whitespace-nowrap">
+                                    <div className="flex items-center gap-1.5 text-xs text-gray-900/50 font-medium whitespace-nowrap">
                                         <BadgeInfo size={14} className="text-indigo-400" />
-                                        <span>{t('ID')}: <span className="text-slate-900">{currentStudent.rollNo}</span></span>
+                                        <span>{t('ID')}: <span className="text-gray-900">{currentStudent.rollNo}</span></span>
                                     </div>
-                                    <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium whitespace-nowrap">
+                                    <div className="flex items-center gap-1.5 text-xs text-gray-900/50 font-medium whitespace-nowrap">
                                         <div className="w-1 h-1 bg-slate-300 rounded-full" />
-                                        <span>{t('Course')}: <span className="text-slate-900">{(currentStudent.className || 'N/A').toUpperCase()}</span></span>
+                                        <span>{t('Course')}: <span className="text-gray-900">{(currentStudent.className || 'N/A').toUpperCase()}</span></span>
                                     </div>
                                 </div>
                             </div>
@@ -82,34 +82,34 @@ const FeeInfoModal = ({ isOpen, onClose, fee, student }) => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 pt-5 border-t border-slate-50">
                             <div className="space-y-3">
                                 <div className="flex items-center gap-3 text-sm">
-                                    <div className="p-1.5 bg-slate-100 rounded-lg text-slate-500"><User size={14} /></div>
+                                    <div className="p-1.5 bg-slate-100 rounded-lg text-gray-900/50"><User size={14} /></div>
                                     <div className="flex flex-col">
                                         <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400 leading-none mb-1">{t('Parent Details')}</span>
-                                        <span className="text-slate-700 font-medium text-xs leading-tight">F: {currentStudent.fatherName || 'N/A'}</span>
-                                        <span className="text-slate-700 font-medium text-xs leading-tight">M: {currentStudent.motherName || 'N/A'}</span>
+                                        <span className="text-gray-900/70 font-medium text-xs leading-tight">F: {currentStudent.fatherName || 'N/A'}</span>
+                                        <span className="text-gray-900/70 font-medium text-xs leading-tight">M: {currentStudent.motherName || 'N/A'}</span>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3 text-sm">
-                                    <div className="p-1.5 bg-slate-100 rounded-lg text-slate-500"><Phone size={14} /></div>
+                                    <div className="p-1.5 bg-slate-100 rounded-lg text-gray-900/50"><Phone size={14} /></div>
                                     <div className="flex flex-col">
                                         <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400 leading-none mb-1">{t('Contact')}</span>
-                                        <span className="text-slate-700 font-medium text-xs">{currentStudent.contact || 'N/A'}</span>
+                                        <span className="text-gray-900/70 font-medium text-xs">{currentStudent.contact || 'N/A'}</span>
                                     </div>
                                 </div>
                             </div>
                             <div className="space-y-3">
                                 <div className="flex items-center gap-3 text-sm">
-                                    <div className="p-1.5 bg-slate-100 rounded-lg text-slate-500"><Calendar size={14} /></div>
+                                    <div className="p-1.5 bg-slate-100 rounded-lg text-gray-900/50"><Calendar size={14} /></div>
                                     <div className="flex flex-col">
                                         <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400 leading-none mb-1">{t('Date of Birth')}</span>
-                                        <span className="text-slate-700 font-medium text-xs">{currentStudent.dob ? new Date(currentStudent.dob).toLocaleDateString('en-GB') : 'N/A'}</span>
+                                        <span className="text-gray-900/70 font-medium text-xs">{currentStudent.dob ? new Date(currentStudent.dob).toLocaleDateString('en-GB') : 'N/A'}</span>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3 text-sm">
-                                    <div className="p-1.5 bg-slate-100 rounded-lg text-slate-500"><MapPin size={14} /></div>
+                                    <div className="p-1.5 bg-slate-100 rounded-lg text-gray-900/50"><MapPin size={14} /></div>
                                     <div className="flex flex-col">
                                         <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400 leading-none mb-1">{t('Address')}</span>
-                                        <span className="text-slate-700 font-medium text-xs line-clamp-1">{currentStudent.address || 'N/A'}</span>
+                                        <span className="text-gray-900/70 font-medium text-xs line-clamp-1">{currentStudent.address || 'N/A'}</span>
                                     </div>
                                 </div>
                             </div>
@@ -130,13 +130,13 @@ const FeeInfoModal = ({ isOpen, onClose, fee, student }) => {
                                     <span className="text-xs text-slate-400">{t('Amount')}</span>
                                 </div>
                                 <div className="flex justify-between items-center text-sm">
-                                    <span className="text-slate-600 font-medium">{t('Tuition Fee')}</span>
-                                    <span className="text-slate-900 font-bold">₹{fmt(fee.monthlyTuitionFee)}</span>
+                                    <span className="text-gray-900/60 font-medium">{t('Tuition Fee')}</span>
+                                    <span className="text-gray-900 font-bold">₹{fmt(fee.monthlyTuitionFee)}</span>
                                 </div>
                                 {fee.registrationFee > 0 && (
                                     <div className="flex justify-between items-center text-sm">
-                                        <span className="text-slate-600 font-medium">{t('Registration Fee')}</span>
-                                        <span className="text-slate-900 font-bold">₹{fmt(fee.registrationFee)}</span>
+                                        <span className="text-gray-900/60 font-medium">{t('Registration Fee')}</span>
+                                        <span className="text-gray-900 font-bold">₹{fmt(fee.registrationFee)}</span>
                                     </div>
                                 )}
                                 {fee.fine > 0 && (
@@ -147,8 +147,8 @@ const FeeInfoModal = ({ isOpen, onClose, fee, student }) => {
                                 )}
                                 {fee.otherExpenses?.map((exp, i) => (
                                     <div key={i} className="flex justify-between items-center text-sm">
-                                        <span className="text-slate-600 font-medium font-bold">{exp.title}</span>
-                                        <span className="text-slate-900 font-bold font-bold">₹{fmt(exp.amount)}</span>
+                                        <span className="text-gray-900/60 font-medium font-bold">{exp.title}</span>
+                                        <span className="text-gray-900 font-bold font-bold">₹{fmt(exp.amount)}</span>
                                     </div>
                                 ))}
                             </div>
@@ -158,13 +158,13 @@ const FeeInfoModal = ({ isOpen, onClose, fee, student }) => {
                                     <span>{t('Total Payable')}</span>
                                     <span>₹{fmt(fee.totalFee)}</span>
                                 </div>
-                                <div className="flex justify-between items-center text-xs font-bold text-emerald-500 uppercase tracking-widest leading-none">
+                                <div className="flex justify-between items-center text-xs font-bold text-indigo-500 uppercase tracking-widest leading-none">
                                     <span>{t('Amount Paid')}</span>
                                     <span>₹{fmt(totalReceived)}</span>
                                 </div>
                                 <div className="pt-2 border-t border-indigo-100 flex justify-between items-center text-sm font-black text-indigo-900 uppercase tracking-wide">
                                     <span>{t('Net Balance')}</span>
-                                    <span className={balance > 0 ? 'text-rose-600' : 'text-emerald-600'}>
+                                    <span className={balance > 0 ? 'text-rose-600' : 'text-indigo-600'}>
                                         ₹{fmt(balance)}
                                     </span>
                                 </div>
@@ -183,31 +183,31 @@ const FeeInfoModal = ({ isOpen, onClose, fee, student }) => {
                             <div className="space-y-3">
                                 {fee.paymentHistory.map((p, i) => (
                                     <div key={i} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden">
-                                        <div className="absolute right-0 top-0 h-full w-1 bg-emerald-500 opacity-20" />
+                                        <div className="absolute right-0 top-0 h-full w-1 bg-indigo-500 opacity-20" />
                                         <div className="flex justify-between items-start">
                                             <div>
                                                 <div className="flex items-center gap-1.5 leading-none">
                                                     <CreditCard size={12} className="text-indigo-400" />
                                                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{p.paymentMethod}</span>
                                                 </div>
-                                                <div className="text-base font-black text-slate-900 mt-1">₹{fmt(p.paidAmount)}</div>
+                                                <div className="text-base font-black text-gray-900 mt-1">₹{fmt(p.paidAmount)}</div>
                                             </div>
                                             <div className="text-right">
-                                                <div className="text-xs font-bold text-slate-900">{new Date(p.date).toLocaleDateString('en-GB')}</div>
+                                                <div className="text-xs font-bold text-gray-900">{new Date(p.date).toLocaleDateString('en-GB')}</div>
                                                 <div className="text-[10px] font-medium text-slate-400 mt-0.5">{p.receiptNo || 'N/A'}</div>
                                             </div>
                                         </div>
                                         {p.transactionId && (
                                             <div className="mt-3 pt-3 border-t border-slate-50 flex items-center justify-between">
                                                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">TXN ID:</span>
-                                                <span className="text-[10px] font-mono font-medium text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded">{p.transactionId}</span>
+                                                <span className="text-[10px] font-mono font-medium text-gray-900/60 bg-white px-1.5 py-0.5 rounded">{p.transactionId}</span>
                                             </div>
                                         )}
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <div className="text-center p-8 bg-white rounded-2xl border border-dashed border-slate-200 text-slate-400">
+                            <div className="text-center p-8 bg-white rounded-2xl border border-dashed border-white/8 text-slate-400">
                                 <p className="text-sm italic">{t('No transaction records found.')}</p>
                             </div>
                         )}
@@ -218,12 +218,12 @@ const FeeInfoModal = ({ isOpen, onClose, fee, student }) => {
                 <div className="p-5 bg-white border-t border-slate-100 flex gap-3">
                     <button 
                         onClick={onClose}
-                        className="flex-1 py-3 px-4 rounded-xl border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 active:scale-95 transition-all outline-none"
+                        className="flex-1 py-3 px-4 rounded-xl border border-white/8 text-gray-900/60 font-bold text-sm hover:bg-white active:scale-95 transition-all outline-none"
                     >
                         {t('Close')}
                     </button>
                     {balance <= 0 && (
-                        <div className="flex-[1.5] flex items-center justify-center gap-2 bg-emerald-50 text-emerald-600 rounded-xl px-4 py-3 border border-emerald-100 font-bold text-sm">
+                        <div className="flex-[1.5] flex items-center justify-center gap-2 bg-indigo-50 text-indigo-600 rounded-xl px-4 py-3 border border-indigo-100 font-bold text-sm">
                             <CheckCircle2 size={18} />
                             {t('Full Paid Receipt')}
                         </div>

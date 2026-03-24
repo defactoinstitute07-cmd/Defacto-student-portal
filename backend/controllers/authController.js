@@ -4,7 +4,8 @@ const Teacher = require('../models/Teacher');
 const Exam = require('../models/Exam');
 const ExamResult = require('../models/ExamResult');
 const Attendance = require('../models/Attendance');
-require('../models/Subject');
+const Subject = require('../models/Subject');
+const Syllabus = require('../models/Syllabus');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { invalidateUserCache } = require('../middleware/cache');
@@ -323,9 +324,13 @@ exports.getStudentProfile = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Student not found' });
         }
 
-        // ── Extract teachers and room ───────────────────────────────────────
+        // ── Extract teachers, room, code, and timing ───────────────────────
         let roomAllocation = student.roomAllocation || 'N/A';
         const teachersMap = new Map();
+        
+        // Fetch all subjects to get their codes
+        const allSubjects = await Subject.find({ isActive: true }).select('name code').lean();
+        const subjectCodeMap = new Map(allSubjects.map(s => [s.name, s.code]));
 
         // 1. First, populate from Student's own subjectTeachers (individual override)
         if (student.subjectTeachers && student.subjectTeachers.length > 0) {
@@ -337,6 +342,8 @@ exports.getStudentProfile = async (req, res) => {
         }
 
         // 2. Query Teacher assignments for this batch (Source of truth for Admin)
+        const subjectSchedules = new Map(); // subjectName -> { timings: Set, rooms: Set }
+
         if (student.batchId) {
             const batchIdStr = student.batchId._id.toString();
             const teachers = await Teacher.find({ 'assignments.batchId': student.batchId._id })
@@ -380,28 +387,78 @@ exports.getStudentProfile = async (req, res) => {
                                 teachersMap.set(slot.subject, 'Unassigned');
                             }
                         }
+
+                        // Collect schedule info (timings and rooms)
+                        if (!subjectSchedules.has(slot.subject)) {
+                            subjectSchedules.set(slot.subject, { timings: new Set(), rooms: new Set() });
+                        }
+                        const sched = subjectSchedules.get(slot.subject);
+                        if (slot.time && slot.day) sched.timings.add(`${slot.day} ${slot.time}`);
+                        if (slot.room) sched.rooms.add(slot.room);
                     }
                 });
             }
         }
 
-        // 3. Calculate Subject Averages ──────────────────────────────────
+        // 4. Fetch Syllabus Completion ──────────────────────────────────
+        let syllabusMap = new Map();
+        if (student.batchId) {
+            const syllabuses = await Syllabus.find({ batchId: student.batchId._id }).lean();
+            syllabuses.forEach(s => {
+                const totalChapters = s.chapters?.length || 0;
+                const completedChapters = s.chapters?.filter(c => c.isCompleted).length || 0;
+                const percentage = totalChapters > 0 ? Math.round((completedChapters / totalChapters) * 100) : 0;
+                
+                syllabusMap.set(s.subject, {
+                    chapters: s.chapters || [],
+                    completionPercentage: percentage,
+                    totalChapters,
+                    completedChapters
+                });
+            });
+        }
+
+        // 5. Fetch Detailed Exams & Results ──────────────────────────────
+        let examDetailsMap = new Map();
         let subjectStatsMap = new Map();
         if (student.batchId) {
-            const results = await ExamResult.find({ studentId: student._id })
-                .populate('examId')
+            const allExams = await Exam.find({ batchId: student.batchId._id, status: { $ne: 'cancelled' } })
+                .sort({ date: -1 })
                 .lean();
+                
+            const allResults = await ExamResult.find({ studentId: student._id })
+                .lean();
+            
+            const resultMap = new Map(allResults.map(r => [r.examId.toString(), r]));
 
-            results.forEach(r => {
-                if (r.examId && r.examId.subject) {
-                    const sub = r.examId.subject;
-                    if (!subjectStatsMap.has(sub)) {
-                        subjectStatsMap.set(sub, { totalObtained: 0, totalPossible: 0 });
-                    }
-                    const stats = subjectStatsMap.get(sub);
-                    stats.totalObtained += r.marksObtained || 0;
-                    stats.totalPossible += r.examId.totalMarks || 100;
+            allExams.forEach(e => {
+                if (!examDetailsMap.has(e.subject)) {
+                    examDetailsMap.set(e.subject, []);
                 }
+                const result = resultMap.get(e._id.toString());
+
+                if (result && result.isPresent) {
+                    if (!subjectStatsMap.has(e.subject)) {
+                        subjectStatsMap.set(e.subject, { totalObtained: 0, totalPossible: 0 });
+                    }
+                    const stats = subjectStatsMap.get(e.subject);
+                    stats.totalObtained += result.marksObtained;
+                    stats.totalPossible += e.totalMarks;
+                }
+
+                examDetailsMap.get(e.subject).push({
+                    _id: e._id,
+                    name: e.name,
+                    chapter: e.chapter,
+                    date: e.date,
+                    totalMarks: e.totalMarks,
+                    passingMarks: e.passingMarks,
+                    type: e.type || 'Exam',
+                    status: e.status,
+                    marksObtained: result ? result.marksObtained : null,
+                    isPresent: result ? result.isPresent : true,
+                    percentage: result ? Math.round((result.marksObtained / e.totalMarks) * 100) : null
+                });
             });
         }
 
@@ -411,10 +468,20 @@ exports.getStudentProfile = async (req, res) => {
                 const stats = subjectStatsMap.get(subject);
                 averageMarks = Math.round((stats.totalObtained / stats.totalPossible) * 100);
             }
+
+            const schedule = subjectSchedules.get(subject);
+            const syllabus = syllabusMap.get(subject) || { chapters: [], completionPercentage: 0 };
+            const exams = examDetailsMap.get(subject) || [];
+
             return {
                 subject,
                 teacher,
-                averageMarks
+                averageMarks,
+                code: subjectCodeMap.get(subject) || null,
+                rooms: schedule ? Array.from(schedule.rooms) : [],
+                timings: schedule ? Array.from(schedule.timings) : [],
+                syllabus,
+                exams
             };
         });
 

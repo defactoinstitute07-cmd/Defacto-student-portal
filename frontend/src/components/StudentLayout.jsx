@@ -1,52 +1,52 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard, User, Trophy, BookOpen,
     FileText, Wallet, Award, Bell, BadgeCheck,
     LogOut, Menu, X, GraduationCap, ShieldAlert,
-    Settings
+    Settings, ArrowLeft
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageToggleButton from './LanguageToggleButton';
 import { isNativeShell, triggerNativeLogout } from '../services/nativeAuth';
-
 const NAV_ITEMS = [
     {
         section: 'MAIN',
         items: [
-            { to: '/student/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-            { to: '/student/profile', icon: User, label: 'My Profile' },
-            
+            { to: '/student/dashboard?tab=home', match: 'home', icon: LayoutDashboard, label: 'Dashboard' },
+            { to: '/student/profile', match: 'profile', icon: User, label: 'My Profile' },
+
         ]
     },
     {
         section: 'ACADEMICS',
         items: [
-            { to: '/student/subjects', icon: BookOpen, label: 'Subjects' },
-            { to: '/student/attendance', icon: BadgeCheck, label: 'Attendance' },
-            { to: '/student/results', icon: Award, label: 'Results' },
-            { to: '/student/leaderboard', icon: Trophy, label: 'Leaderboard' },
+            { to: '/student/dashboard?tab=subjects', match: 'subjects', icon: BookOpen, label: 'Subjects' },
+            { to: '/student/dashboard?tab=attendance', match: 'attendance', icon: BadgeCheck, label: 'Attendance' },
+            { to: '/student/dashboard?tab=results', match: 'results', icon: Award, label: 'Results' },
+            { to: '/student/leaderboard', match: '/student/leaderboard', icon: Trophy, label: 'Leaderboard' },
         ]
     },
     {
         section: 'INFO',
         items: [
-            { to: '/student/fees', icon: Wallet, label: 'Fees' },
-            { to: '/student/support', icon: ShieldAlert, label: 'Contact & Support' },
-            { to: '/student/settings', icon: Settings, label: 'Settings' },
+            { to: '/student/dashboard?tab=fees', match: 'fees', icon: Wallet, label: 'Fees' },
+            { to: '/student/support', match: '/student/support', icon: ShieldAlert, label: 'Contact & Support' },
+            { to: '/student/settings', match: '/student/settings', icon: Settings, label: 'Settings' },
         ]
     }
 ];
 
 const MOBILE_NAV_ITEMS = [
-    { to: '/student/dashboard', match: '/student/dashboard', icon: LayoutDashboard, label: 'Home' },
-    { to: '/student/subjects', match: '/student/subjects', icon: BookOpen, label: 'Subjects' },
-    { to: '/student/attendance', match: '/student/attendance', icon: BadgeCheck, label: 'Attend' },
-    { to: '/student/results', match: '/student/results', icon: Award, label: 'Results' },
-    { to: '/student/fees', match: '/student/fees', icon: Wallet, label: 'Fees' }
+    { to: '/student/dashboard?tab=home', match: 'home', icon: LayoutDashboard, label: 'Home' },
+    { to: '/student/dashboard?tab=subjects', match: 'subjects', icon: BookOpen, label: 'Subjects' },
+    { to: '/student/dashboard?tab=attendance', match: 'attendance', icon: BadgeCheck, label: 'Attend' },
+    { to: '/student/dashboard?tab=results', match: 'results', icon: Award, label: 'Results' },
+    { to: '/student/dashboard?tab=fees', match: 'fees', icon: Wallet, label: 'Fees' }
 ];
 
-const StudentLayout = ({ children, title }) => {
+const StudentLayout = ({ children, title, backUrl }) => {
     const location = useLocation();
     const navigate = useNavigate();
     const { t } = useLanguage();
@@ -76,7 +76,16 @@ const StudentLayout = ({ children, title }) => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const isActiveRoute = (match) => location.pathname === match || location.pathname.startsWith(`${match}/`);
+    const searchParams = new URLSearchParams(location.search);
+    const currentTab = searchParams.get('tab') || 'home';
+
+    const isActiveRoute = (match) => {
+        if (!match) return false;
+        if (match.startsWith('/')) {
+            return location.pathname === match || location.pathname.startsWith(`${match}/`);
+        }
+        return location.pathname === '/student/dashboard' && currentTab === match;
+    };
 
     return (
         <div className={`erp-shell ${mini ? 'sidebar-mini' : ''}`}>
@@ -91,7 +100,7 @@ const StudentLayout = ({ children, title }) => {
             {/* Sidebar */}
             <nav className={`sidebar ${mini ? 'mini' : ''} ${mobileOpen ? 'open' : ''}`}>
                 <div className="sb-brand">
-                   
+
                     {(!mini || mobileOpen) && (
                         <div className="sb-brand-text">
                             <div className="sb-name">{t('Institute')}</div>
@@ -105,14 +114,14 @@ const StudentLayout = ({ children, title }) => {
                     {NAV_ITEMS.map(group => (
                         <div key={group.section} className="sb-group">
                             {(!mini || mobileOpen) && <div className="sb-section-label">{t(group.section)}</div>}
-                            {group.items.map(({ to, icon: Icon, label }) => (
+                            {group.items.map((item) => (
                                 <Link
-                                    key={to} to={to}
-                                    className={`sb-item ${location.pathname === to ? 'active' : ''}`}
+                                    key={item.to} to={item.to}
+                                    className={`sb-item ${isActiveRoute(item.match) ? 'active' : ''}`}
                                     onClick={() => setMobileOpen(false)}
                                 >
-                                    <span className="sb-item-icon"><Icon size={18} /></span>
-                                    {(!mini || mobileOpen) && <span className="sb-item-label">{t(label)}</span>}
+                                    <span className="sb-item-icon"><item.icon size={18} /></span>
+                                    {(!mini || mobileOpen) && <span className="sb-item-label">{t(item.label)}</span>}
                                 </Link>
                             ))}
                         </div>
@@ -121,14 +130,14 @@ const StudentLayout = ({ children, title }) => {
 
                 <div className="sb-footer">
                     <div
-                        className="sb-item logout-btn text-rose-500 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                        className="sb-item logout-btn text-rose-600 hover:text-rose-700 hover:bg-rose-50 transition-colors"
                         onClick={logout}
                     >
-                        <span className="sb-item-icon text-rose-500">
+                        <span className="sb-item-icon text-rose-600">
                             <LogOut size={18} />
                         </span>
                         {(!mini || mobileOpen) && (
-                            <span className="sb-item-label text-rose-500 font-bold">{t('Logout')}</span>
+                            <span className="sb-item-label text-rose-600 font-bold">{t('Logout')}</span>
                         )}
                     </div>
                 </div>
@@ -138,29 +147,39 @@ const StudentLayout = ({ children, title }) => {
                 {/* Topbar */}
                 <header className="topbar">
                     <div className="tb-left">
-                        <button
-                            className="tb-hamburger"
-                            onClick={() => {
-                                if (window.innerWidth <= 768) setMobileOpen(!mobileOpen);
-                                else setMini(!mini);
-                            }}
-                        >
-                            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-                        </button>
+                        {backUrl ? (
+                            <button
+                                className="tb-hamburger"
+                                onClick={() => navigate(backUrl)}
+                            >
+                                <ArrowLeft size={20} />
+                            </button>
+                        ) : (
+                            <button
+                                className="tb-hamburger"
+                                onClick={() => {
+                                    if (window.innerWidth <= 768) setMobileOpen(!mobileOpen);
+                                    else setMini(!mini);
+                                }}
+                            >
+                                {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+                            </button>
+                        )}
                         <div className="tb-title">{t(title)}</div>
                     </div>
 
                     <div className="tb-right">
                         <LanguageToggleButton variant="topbar" />
-                        {/* Mobile par name hide karke sirf avatar dikhayenge space bachane ke liye */}
-                        <span className="tb-name-desktop">{student.name}</span>
-                        <div className="tb-avatar">
-                            {(student.name?.[0] || 'S').toUpperCase()}
+                        <span className="tb-name-desktop tb-greeting">
+                            {t('Hi')}, <strong>{student.name?.split(' ')[0] || 'Student'}</strong>
+                        </span>
+                        <div className="tb-avatar" onClick={() => navigate('/student/profile')}>
+                            {student.profileImage ? (
+                                <img src={student.profileImage} alt={student.name || 'Student'} />
+                            ) : (
+                                (student.name?.[0] || 'S').toUpperCase()
+                            )}
                         </div>
-                        {/* <button className="btn-tb-logout" onClick={logout}>
-                            <span className="logout-text">Sign out</span>
-                            <LogOut size={16} className="logout-icon-mob" />
-                        </button> */}
                     </div>
                 </header>
 
@@ -172,19 +191,55 @@ const StudentLayout = ({ children, title }) => {
             </div>
 
             {/* Mobile Bottom Navigation */}
-            <nav className="mobile-nav" aria-label="Primary">
-                <div className="mobile-nav-inner">
-                    {MOBILE_NAV_ITEMS.map(({ to, match, icon: Icon, label }) => (
-                        <Link
-                            key={to}
-                            to={to}
-                            className={`mobile-nav-item ${isActiveRoute(match) ? 'active' : ''}`}
-                        >
-                            <Icon size={18} />
-                            <span>{t(label)}</span>
-                            <span className="nav-dot" />
-                        </Link>
-                    ))}
+            <nav
+                className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[94%] max-w-lg z-[150] md:hidden"
+                aria-label="Primary"
+            >
+                <div className="relative bg-white/80 backdrop-blur-2xl border border-white/40 shadow-[0_12px_40px_rgba(0,0,0,0.12)] rounded-[28px] px-2 py-2 flex items-center justify-around overflow-hidden">
+                    {MOBILE_NAV_ITEMS.map(({ to, match, icon: Icon, label }) => {
+                        const active = isActiveRoute(match);
+
+                        return (
+                            <Link
+                                key={to}
+                                to={to}
+                                className={`relative flex flex-col items-center justify-center py-2 px-1 min-w-[60px] transition-colors duration-300 z-10 no-underline ${active ? 'text-emerald-600' : 'text-slate-400'
+                                    }`}
+                            >
+                                {/* Active Magic Background */}
+                                {active && (
+                                    <motion.div
+                                        layoutId="activePill"
+                                        className="absolute inset-0 bg-emerald-50 rounded-[20px] -z-10"
+                                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                                    />
+                                )}
+
+                                {/* Icon Animation */}
+                                <motion.div
+                                    animate={{ scale: active ? 1.15 : 1, y: active ? -2 : 0 }}
+                                    transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                                >
+                                    <Icon size={19} strokeWidth={active ? 2.5 : 2} />
+                                </motion.div>
+
+                                {/* Label */}
+                                <span className={`text-[10px] font-bold mt-1 uppercase tracking-wider transition-opacity duration-300 ${active ? 'opacity-100' : 'opacity-60'
+                                    }`}>
+                                    {t(label)}
+                                </span>
+
+                                {/* Bottom Dot Indicator */}
+                                {active && (
+                                    <motion.div
+                                        layoutId="activeDot"
+                                        className="absolute -bottom-1 w-4 h-1 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]"
+                                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                                    />
+                                )}
+                            </Link>
+                        );
+                    })}
                 </div>
             </nav>
         </div>

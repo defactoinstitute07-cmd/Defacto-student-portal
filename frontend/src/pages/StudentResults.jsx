@@ -42,14 +42,14 @@ const TestDetailModal = ({ test, onClose }) => {
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-0 bg-gray-900/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={onClose}>
             <div
-                className="bg-white rounded-md w-full max-w-xl overflow-hidden shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300"
+                className="bg-white rounded-md w-full max-w-xl m-5 overflow-hidden shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className={`p-6 sm:p-8 flex items-center justify-between text-white ${test.hasPassed ? 'bg-gradient-to-br from-emerald-500 to-teal-600' : 'bg-gradient-to-br from-rose-500 to-orange-600'}`}>
+                <div className={`p-6 sm:p-8 flex items-center justify-between text-white ${test.hasPassed ? 'bg-gradient-to-br from-indigo-500 to-teal-600' : 'bg-gradient-to-br from-rose-500 to-orange-600'}`}>
                     <div className="space-y-1">
                         <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">{test.subject} • {t('Assessment')}</span>
-                        <h3 className="text-xl sm:text-2xl font-black tracking-tight">{test.examName}</h3>
+                        <p className="text-xl sm:text-2xl font-bold text-white tracking-tight">{test.examName}</p>
                     </div>
                     <button
                         onClick={onClose}
@@ -74,8 +74,8 @@ const TestDetailModal = ({ test, onClose }) => {
                         <div className="p-4 rounded-md bg-gray-50 border border-gray-100 space-y-1">
                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('Percentage')}</p>
                             <div className="flex items-center gap-2">
-                                <span className={`text-2xl font-black ${test.hasPassed ? 'text-emerald-600' : 'text-rose-600'}`}>{test.percentage}%</span>
-                                {test.hasPassed ? <Award size={20} className="text-emerald-500" /> : <TrendingDown size={20} className="text-rose-500" />}
+                                <span className={`text-2xl font-black ${test.hasPassed ? 'text-indigo-700' : 'text-rose-700'}`}>{test.percentage}%</span>
+                                {test.hasPassed ? <Award size={20} className="text-indigo-500" /> : <TrendingDown size={20} className="text-rose-500" />}
                             </div>
                         </div>
                     </div>
@@ -94,7 +94,7 @@ const TestDetailModal = ({ test, onClose }) => {
                             </div>
                             <div className="flex items-center justify-between py-2 border-b border-gray-50">
                                 <span className="text-sm font-bold text-gray-500">{t('Status')}</span>
-                                <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-lg ${test.hasPassed ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-rose-50 text-rose-700 border border-rose-100'}`}>
+                                <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-lg ${test.hasPassed ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}>
                                     {test.hasPassed ? t('Pass / Excellent') : t('Needs Re-revision')}
                                 </span>
                             </div>
@@ -124,6 +124,7 @@ const TestDetailModal = ({ test, onClose }) => {
                 </div>
             </div>
         </div>
+
     );
 };
 
@@ -328,7 +329,7 @@ const StudentResults = () => {
                 </div>
 
                 {error && (
-                    <div className="bg-red-50 text-red-600 p-3 sm:p-4 rounded-lg flex items-center gap-2 sm:gap-3 text-sm sm:text-base">
+                    <div className="bg-red-50 text-red-700 p-3 sm:p-4 rounded-lg flex items-center gap-2 sm:gap-3 text-sm sm:text-base">
                         <AlertTriangle size={18} className="shrink-0" />
                         <span>{error}</span>
                     </div>
@@ -348,7 +349,7 @@ const StudentResults = () => {
                     </div>
 
                     <div className="bg-white rounded-md shadow-sm border border-gray-100 p-4 sm:p-6 flex items-center gap-3 sm:gap-4">
-                        <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-md bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+                        <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-md bg-indigo-100 text-[#191838] flex items-center justify-center shrink-0">
                             <Award size={20} className="sm:hidden" />
                             <Award size={24} className="hidden sm:block" />
                         </div>
@@ -359,7 +360,7 @@ const StudentResults = () => {
                     </div>
 
                     <div className="bg-white rounded-md shadow-sm border border-gray-100 p-4 sm:p-6 flex items-center gap-3 sm:gap-4 sm:col-span-2 lg:col-span-1">
-                        <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-md flex items-center justify-center shrink-0 ${weakSubjects.length > 0 ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'}`}>
+                        <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-md flex items-center justify-center shrink-0 ${weakSubjects.length > 0 ? 'bg-orange-100 text-orange-600' : 'bg-indigo-100 text-indigo-600'}`}>
                             {weakSubjects.length > 0 ? (
                                 <>
                                     <TrendingDown size={20} className="sm:hidden" />
@@ -443,7 +444,7 @@ const StudentResults = () => {
                                                     <TrendingDown size={12} className="sm:w-[14px] sm:h-[14px] text-orange-500" />
                                                 </div>
 
-                                                
+
 
                                             </button>
                                         ))}
@@ -566,8 +567,8 @@ const StudentResults = () => {
 
                                                 <span
                                                     className={`px-2 py-1 rounded-md text-xs font-medium border shrink-0 ${r.hasPassed
-                                                            ? 'bg-green-50 text-green-700 border-green-200'
-                                                            : 'bg-red-50 text-red-700 border-red-200'
+                                                        ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                                                        : 'bg-red-50 text-red-700 border-red-200'
                                                         }`}
                                                 >
                                                     {r.hasPassed ? t('Passed') : t('Needs Work')}
@@ -641,7 +642,7 @@ const StudentResults = () => {
                                     <button
                                         onClick={() => fetchNextPage()}
                                         disabled={isFetchingNextPage}
-                                        className="px-6 py-3 rounded-md bg-gray-900 text-white text-xs font-black uppercase tracking-widest hover:bg-gray-800 disabled:opacity-60 disabled:cursor-not-allowed"
+                                        className="px-6 py-3 rounded-md bg-gray-900 text-gray-900 text-xs font-black uppercase tracking-widest hover:bg-gray-800 disabled:opacity-60 disabled:cursor-not-allowed"
                                     >
                                         {isFetchingNextPage ? t('Loading more...') : t('Load more results')}
                                     </button>

@@ -26,7 +26,7 @@ class ErrorBoundary extends Component {
             }
 
             return (
-                <div style={{ padding: '20px', color: 'red', background: '#fee', border: '2px solid red', borderRadius: '8px', margin: '20px', fontFamily: 'sans-serif' }}>
+                <div style={{ padding: '20px', color: 'red', background: '#fee', border: '2px solid red', borderRadius: '8px', margin: '20px', fontFamily: "'Inter', system-ui, sans-serif" }}>
                     <h2 style={{ margin: '0 0 10px 0' }}>App Load Error</h2>
                     <p>The application encountered a problem. This is often caused by an outdated server cache (Vite 504 error).</p>
                     
@@ -60,6 +60,7 @@ const StudentSubjects = lazy(() => import('./pages/StudentSubjects'));
 const ContactSupport = lazy(() => import('./pages/ContactSupport'));
 const Leaderboard = lazy(() => import('./pages/Leaderboard'));
 const StudentSettings = lazy(() => import('./pages/StudentSettings'));
+const StudentTabController = lazy(() => import('./pages/StudentTabController'));
 
 const StudentAttendance = lazy(() => import('./pages/StudentAttendance'));
 const SubjectAttendanceDetail = lazy(() => import('./pages/SubjectAttendanceDetail'));
@@ -111,13 +112,13 @@ function App() {
                                 : <StudentLogin />
                         } />
                         <Route path="/student/setup" element={<StudentSetup />} />
-                        <Route path="/student/dashboard" element={<StudentDashboard />} />
-                        <Route path="/student/profile" element={<StudentProfile />} />
-                        <Route path="/student/subjects" element={<StudentSubjects />} />
-                        <Route path="/student/attendance" element={<StudentAttendance />} />
+                        <Route path="/student/dashboard" element={<StudentTabController />} />
+                        <Route path="/student/profile" element={<Navigate to="/student/dashboard?tab=profile" replace />} />
+                        <Route path="/student/subjects" element={<Navigate to="/student/dashboard?tab=subjects" replace />} />
+                        <Route path="/student/attendance" element={<Navigate to="/student/dashboard?tab=attendance" replace />} />
                         <Route path="/student/attendance/:subjectId" element={<SubjectAttendanceDetail />} />
-                        <Route path="/student/fees" element={<StudentFees />} />
-                        <Route path="/student/results" element={<StudentResults />} />
+                        <Route path="/student/fees" element={<Navigate to="/student/dashboard?tab=fees" replace />} />
+                        <Route path="/student/results" element={<Navigate to="/student/dashboard?tab=results" replace />} />
                         <Route path="/student/results/subject/:subjectName" element={<SubjectDetail />} />
                         <Route path="/student/support" element={<ContactSupport />} />
                         <Route path="/student/leaderboard" element={<Leaderboard />} />
