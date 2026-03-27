@@ -81,6 +81,20 @@ class AuthApi {
         return StudentSession.fromJson(json.getJSONObject("student"))
     }
 
+    suspend fun registerDeviceForPush(accessToken: String, fcmToken: String, devicePayload: DevicePayload) {
+        val body = devicePayload.toJson()
+            .put("fcmToken", fcmToken)
+
+        executeJson(
+            Request.Builder()
+                .url(baseUrl + "student/device")
+                .header("Authorization", "Bearer $accessToken")
+                .header("Content-Type", "application/json")
+                .post(body.toString().toRequestBody(jsonMediaType))
+                .build()
+        )
+    }
+
     private suspend fun postJson(path: String, body: JSONObject): JSONObject = executeJson(
         Request.Builder()
             .url(baseUrl + path)

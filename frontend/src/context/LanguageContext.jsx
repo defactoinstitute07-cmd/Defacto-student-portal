@@ -8,7 +8,7 @@ const translations = {
         'English': 'English',
         'Hindi': 'हिंदी',
         'Switch language': 'भाषा बदलें',
-        'De Facto': 'स्टूडेंट पोर्टल',
+        'Institute': 'स्टूडेंट पोर्टल',
         'Roll': 'रोल',
         'MAIN': 'मुख्य',
         'ACADEMICS': 'शैक्षणिक',

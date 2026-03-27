@@ -7,6 +7,7 @@ const rateLimit = require('express-rate-limit');
 const authRoutes = require('./routes/authRoutes');
 const feeRoutes = require('./routes/feeRoutes');
 const resultRoutes = require('./routes/resultRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 const { redis } = require('./middleware/cache');
 const { connectToDatabase, getDatabaseHealth } = require('./config/database');
 const { sendApiError } = require('./utils/apiError');
@@ -95,6 +96,7 @@ app.get('/api/health', async (req, res) => {
 // Routes
 // app.use('/api', ensureDatabase); // Remove ensureDatabase if it's Postgres specific or redundant with connectToDatabase
 app.use('/api', authRoutes);
+app.use('/api', notificationRoutes);
 app.use('/api/student/fees', feeRoutes);
 app.use('/api/student/results', resultRoutes);
 

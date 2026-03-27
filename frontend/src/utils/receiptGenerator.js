@@ -54,7 +54,7 @@ export const generateFeeReceipt = (fee) => {
     doc.text('DF', logoX + 17.5, logoY + 24, { align: 'center' });
 
     // ------------------------------------------------------------------------
-    // 2. De Facto & STUDENT INFO
+    // 2. INSTITUTE & STUDENT INFO
     // ------------------------------------------------------------------------
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
@@ -65,7 +65,7 @@ export const generateFeeReceipt = (fee) => {
 
     doc.text('De Facto', marginX, infoY);
     infoY += lineHeight;
-    doc.text('Target De Facto', marginX, infoY);
+    doc.text('Target institute', marginX, infoY);
     infoY += lineHeight;
     doc.text(`Student: ${student.name || 'N/A'} | Roll No: ${student.rollNo || 'N/A'}`, marginX, infoY);
     infoY += lineHeight;

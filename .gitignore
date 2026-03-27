@@ -12,3 +12,4 @@ frontend/android/build_log*.txt
 frontend/vite.config.js.timestamp-*.mjs
 
 .vercel
+backend/config/*.json
