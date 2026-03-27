@@ -34,6 +34,7 @@ const FeeInfoModal = ({ isOpen, onClose, fee, student }) => {
     // Calculations
     const totalReceived = (fee.amountPaid || 0);
     const balance = (fee.totalFee || 0) - totalReceived;
+    const isFullyPaid = balance <= 0 || String(fee.status).toLowerCase() === 'paid';
 
     return (
         <div className="fixed inset-0 z-[1200] flex items-center justify-center p-0 md:p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -46,13 +47,13 @@ const FeeInfoModal = ({ isOpen, onClose, fee, student }) => {
     <div className="flex items-center gap-4">
         {/* Glassmorphism Icon Container */}
         <div className="bg-white/15 backdrop-blur-md p-2.5 rounded-2xl border border-white/20 shadow-sm shrink-0">
-            <IndianRupee size={22} className="text-gray-900 drop-shadow-sm" />
+            <IndianRupee size={22} className="text-white drop-shadow-sm" />
         </div>
         
         <div className="flex flex-col justify-center">
-            <h2 className="text-xl font-bold tracking-tight text-gray-900 mb-1.5 leading-none">
+            <p className="text-xl font-bold tracking-tight text-white mb-1.5 leading-none">
                 {t('Fee Details')}
-            </h2>
+            </p>
             
             {/* Upgraded Info Pill */}
             <div className="flex items-center">
@@ -78,7 +79,7 @@ const FeeInfoModal = ({ isOpen, onClose, fee, student }) => {
 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto bg-white">
+                <div className="flex-1 overflow-y-auto bg-slate-50">
                   
 
                     {/* Breakdown Section */}
@@ -145,29 +146,37 @@ const FeeInfoModal = ({ isOpen, onClose, fee, student }) => {
                         </h4>
                         
                         {paymentRows.length > 0 ? (
-                            <div className="space-y-3">
+                            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                                <div className="px-4 py-3 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
+                                    <CreditCard size={14} className="text-indigo-500" />
+                                    <div className="grid grid-cols-[minmax(0,1.3fr)_minmax(0,1.7fr)_minmax(0,0.9fr)_minmax(0,1.5fr)] gap-2 w-full text-[10px] font-semibold text-slate-400 uppercase tracking-[0.16em]">
+                                        <span>{t('Method')}</span>
+                                        <span>{t('Date & Time')}</span>
+                                        <span>{t('Amount')}</span>
+                                     
+                                    </div>
+                                </div>
                                 {paymentRows.map((p, i) => (
-                                    <div key={i} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden">
-                                        <div className="absolute right-0 top-0 h-full w-1 bg-indigo-500 opacity-20" />
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <div className="flex items-center gap-1.5 leading-none">
-                                                    <CreditCard size={12} className="text-indigo-400" />
-                                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{p.method}</span>
-                                                </div>
-                                                <div className="text-base font-black text-gray-900 mt-1">₹{fmt(p.amount)}</div>
-                                            </div>
-                                            <div className="text-right">
-                                                <div className="text-xs font-bold text-gray-900">{formatTxnDate(p.date)}</div>
-                                                <div className="text-[10px] font-medium text-slate-400 mt-0.5">{p.receiptNo || 'N/A'}</div>
+                                    <div key={i} className="px-4 py-3 border-t border-slate-50 text-sm bg-white">
+                                        <div className="grid grid-cols-[minmax(0,1.3fr)_minmax(0,1.7fr)_minmax(0,0.9fr)_minmax(0,1.5fr)] gap-2 items-center">
+                                            <div className="font-medium text-slate-800 truncate">{p.method}</div>
+                                            <div className="text-xs text-slate-500 leading-snug">{formatTxnDate(p.date)}</div>
+                                            <div className="font-semibold text-slate-900 tabular-nums">₹{fmt(p.amount)}</div>
+                                            <div className="flex items-center justify-between gap-2 text-xs text-slate-500 truncate">
+                                               
+                                                {isFullyPaid && (
+                                                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-600">
+                                                        {t('Paid')}
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
-                                        {p.transactionId && (
-                                            <div className="mt-3 pt-3 border-t border-slate-50 flex items-center justify-between">
-                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">TXN ID:</span>
-                                                <span className="text-[10px] font-mono font-medium text-gray-900/60 bg-white px-1.5 py-0.5 rounded">{p.transactionId}</span>
-                                            </div>
-                                        )}
+                                        <div className="mt-2 flex items-center justify-between text-[11px] text-slate-400">
+                                            <span className="font-semibold tracking-[0.18em] uppercase">{t('Reference Number')}</span>
+                                            <span className="font-mono text-[11px] text-slate-600 truncate max-w-[60%] text-right">
+                                               {p.receiptNo || 'N/A'}
+                                            </span>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -183,15 +192,18 @@ const FeeInfoModal = ({ isOpen, onClose, fee, student }) => {
                 <div className="p-5 bg-white border-t border-slate-100 flex gap-3">
                     <button 
                         onClick={onClose}
-                        className="flex-1 py-3 px-4 rounded-xl border border-white/8 text-gray-900/60 font-bold text-sm hover:bg-white active:scale-95 transition-all outline-none"
+                        className="flex-1 py-3 px-4 rounded-xl border border-slate-200 bg-white text-gray-900 font-semibold text-sm shadow-[0_1px_0_rgba(15,23,42,0.03)] hover:bg-slate-50 active:scale-[0.98] transition-all outline-none"
                     >
                         {t('Close')}
                     </button>
                     {balance <= 0 && (
-                        <div className="flex-[1.5] flex items-center justify-center gap-2 bg-indigo-50 text-indigo-600 rounded-xl px-4 py-3 border border-indigo-100 font-bold text-sm">
-                            <CheckCircle2 size={18} />
-                            {t('Full Paid Receipt')}
-                        </div>
+                        <button
+                            type="button"
+                            className="flex-[1.5] inline-flex items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#4f46e5_0%,#7c3aed_50%,#6366f1_100%)] text-white px-4 py-3 font-semibold text-sm shadow-[0_12px_30px_rgba(79,70,229,0.45)] active:scale-[0.98]"
+                        >
+                            <CheckCircle2 size={18} className="text-white" />
+                            {t('Download Receipt')}
+                        </button>
                     )}
                 </div>
             </div>

@@ -119,7 +119,7 @@ const StudentLayout = ({ children, title, backUrl, useHistoryBack = false, hideM
 
                     {(!mini || mobileOpen) && (
                         <div className="sb-brand-text">
-                            <div className="sb-name">{t('Institute')}</div>
+                            <div className="sb-name">{t('De Facto')}</div>
                             <div className="sb-code">Student ERP System</div>
                             <div className="sb-code">{t('Roll')}: {student.rollNo || 'N/A'}</div>
                         </div>
@@ -213,64 +213,48 @@ const StudentLayout = ({ children, title, backUrl, useHistoryBack = false, hideM
 
             {/* Mobile Bottom Navigation */}
             {!hideMobileNav && (
-                <nav
-                    className="fixed bottom-[max(0.5rem,env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 w-[95%] max-w-lg z-[150] md:hidden"
-                    aria-label="Primary"
-                >
-                    <div className="relative overflow-hidden rounded-[28px] border border-blue-200/70 bg-white/90 px-2 py-1.5 backdrop-blur-2xl shadow-[0_16px_42px_rgba(30,64,175,0.22)]">
-                        <div className="pointer-events-none absolute inset-x-10 -top-10 h-16 rounded-full bg-gradient-to-r from-blue-200/70 via-blue-300/65 to-indigo-300/65 blur-2xl" />
-                        <div
-                            className="relative grid items-center gap-1"
-                            style={{ gridTemplateColumns: `repeat(${MOBILE_NAV_ITEMS.length}, minmax(0, 1fr))` }}
-                        >
-                        {MOBILE_NAV_ITEMS.map(({ to, match, icon: Icon, label }) => {
-                            const active = isActiveRoute(match);
+              <nav
+  className="fixed bottom-2 left-1/2 -translate-x-1/2 w-[95%] max-w-md z-[150] md:hidden"
+  aria-label="Primary"
+>
+  <div className="rounded-2xl border border-gray-200 bg-white shadow-md px-2 py-1">
+    <div
+      className="grid items-center"
+      style={{ gridTemplateColumns: `repeat(${MOBILE_NAV_ITEMS.length}, minmax(0, 1fr))` }}
+    >
+      {MOBILE_NAV_ITEMS.map(({ to, match, icon: Icon, label }) => {
+        const active = isActiveRoute(match);
 
-                            return (
-                                <Link
-                                    key={to}
-                                    to={to}
-                                    className={`relative flex flex-col items-center justify-center py-1 px-1 min-w-[56px] transition-colors duration-300 z-10 no-underline rounded-2xl ${active ? 'text-blue-700' : 'text-slate-400 hover:text-blue-600'
-                                        }`}
-                                >
-                                    {/* Active Magic Background */}
-                                    {active && (
-                                        <motion.div
-                                            layoutId="activePill"
-                                            className="absolute inset-0 rounded-2xl bg-gradient-to-b from-blue-50 to-blue-100/70 -z-10"
-                                            transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                                        />
-                                    )}
+        return (
+          <Link
+            key={to}
+            to={to}
+            className={`flex flex-col items-center justify-center py-2 text-xs transition-colors duration-200 ${
+              active
+                ? 'text-blue-600'
+                : 'text-gray-500 hover:text-blue-500'
+            }`}
+          >
+            {/* Icon */}
+            <div className="mb-0.5">
+              <Icon size={18} strokeWidth={active ? 2.5 : 2} />
+            </div>
 
-                                    {/* Icon Animation */}
-                                    <motion.div
-                                        className={`flex h-7 w-7 items-center justify-center rounded-xl ${active ? 'bg-white shadow-sm shadow-blue-100' : ''}`}
-                                        animate={{ scale: active ? 1.08 : 1, y: active ? -1 : 0 }}
-                                        transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                                    >
-                                        <Icon size={18} strokeWidth={active ? 2.5 : 2} />
-                                    </motion.div>
+            {/* Label */}
+            <span className="font-medium">
+              {t(label)}
+            </span>
 
-                                    {/* Label */}
-                                    <span className={`text-[9px] font-bold mt-0.5 tracking-wide transition-opacity duration-300 ${active ? 'opacity-100' : 'opacity-75'
-                                        }`}>
-                                        {t(label)}
-                                    </span>
-
-                                    {/* Bottom Dot Indicator */}
-                                    {active && (
-                                        <motion.div
-                                            layoutId="activeDot"
-                                            className="absolute -bottom-1 h-1 w-5 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.55)]"
-                                            transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                                        />
-                                    )}
-                                </Link>
-                            );
-                        })}
-                        </div>
-                    </div>
-                </nav>
+            {/* Active Indicator */}
+            {active && (
+              <div className="mt-1 h-1 w-5 rounded-full bg-blue-600" />
+            )}
+          </Link>
+        );
+      })}
+    </div>
+  </div>
+</nav>
             )}
         </div>
     );

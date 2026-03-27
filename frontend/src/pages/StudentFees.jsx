@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
     AlertCircle,
     BadgeIndianRupee,
@@ -6,12 +6,23 @@ import {
     CheckCircle2,
     Wallet
 } from 'lucide-react';
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Tooltip,
+    Legend
+} from 'chart.js';
+import { Bar } from 'react-chartjs-2';
 import api from '../services/api';
 import { useQuery } from '@tanstack/react-query';
 import { getCached, setCached } from '../utils/offlineCache';
 import { useLanguage } from '../context/LanguageContext';
 import Skeleton from '../components/Skeleton';
 import FeeInfoModal from '../components/FeeInfoModal';
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
 const StudentFees = () => {
     const { t } = useLanguage();
@@ -42,8 +53,8 @@ const StudentFees = () => {
         refetchOnWindowFocus: false
     });
 
-    const fees = React.useMemo(() => feesData || [], [feesData]);
-    const stats = React.useMemo(() => {
+    const fees = useMemo(() => feesData || [], [feesData]);
+    const stats = useMemo(() => {
         let paid = 0;
         let pending = 0;
         fees.forEach(f => {
@@ -54,6 +65,64 @@ const StudentFees = () => {
         const paidRatio = totalAmount > 0 ? Math.min((paid / totalAmount) * 100, 100) : 0;
         return { totalPaid: paid, pendingDues: pending, totalAmount, paidRatio };
     }, [fees]);
+
+    const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    const monthlyChartData = useMemo(() => {
+        const monthlyTotals = monthLabels.map((label) => {
+            const lower = label.toLowerCase();
+            return fees.reduce((sum, fee) => {
+                const feeMonth = String(fee.month || '').toLowerCase();
+                if (!feeMonth.startsWith(lower)) return sum;
+                const paidAmount = Number(fee.amountPaid || 0);
+                const pendingAmount = fee.pendingAmount > 0 ? Number(fee.pendingAmount) : 0;
+                return sum + paidAmount + pendingAmount;
+            }, 0);
+        });
+
+        return {
+            labels: monthLabels,
+            datasets: [
+                {
+                    label: t('Total billed'),
+                    data: monthlyTotals,
+                    backgroundColor: 'rgba(148, 163, 184, 0.85)',
+                    borderRadius: 6,
+                    maxBarThickness: 24
+                }
+            ]
+        };
+    }, [fees, t]);
+
+    const monthlyChartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: (ctx) => `₹${fmt(ctx.parsed.y)}`
+                }
+            }
+        },
+        scales: {
+            x: {
+                grid: { display: false },
+                ticks: {
+                    font: { size: 10 }
+                }
+            },
+            y: {
+                grid: {
+                    color: 'rgba(148, 163, 184, 0.2)'
+                },
+                ticks: {
+                    callback: (value) => `₹${value}`,
+                    font: { size: 10 }
+                }
+            }
+        }
+    };
 
     const fmt = n => (n || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     
@@ -114,7 +183,7 @@ const StudentFees = () => {
                             </div>
                             <div className="h-2.5 rounded-full bg-white/20 overflow-hidden">
                                 <div
-                                    className="h-full rounded-full bg-[linear-gradient(90deg,#60a5fa_0%,#22d3ee_100%)] transition-all duration-700"
+                                    className="h-full rounded-full bg-[linear-gradient(90deg,#22c55e_0%,#4ade80_100%)] transition-all duration-700"
                                     style={{ width: `${stats.paidRatio}%` }}
                                 />
                             </div>
@@ -125,7 +194,7 @@ const StudentFees = () => {
 
             <div className="max-w-5xl mx-auto p0 sm:p0 mt-5 space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="bg-white border border-rose-100 rounded-2xl p-5 shadow-sm">
+                    <div className="bg-rose-50 border border-rose-400 rounded-2xl p-5 shadow-sm">
                         <div className="flex items-center justify-between mb-3">
                             <span className="text-[11px] font-black tracking-[0.16em] uppercase text-rose-500">{t('Pending Dues')}</span>
                             <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center">
@@ -136,25 +205,25 @@ const StudentFees = () => {
                         <p className="text-xs text-slate-500 mt-2">{stats.pendingDues > 0 ? t('Action required this cycle') : t('No outstanding dues')}</p>
                     </div>
 
-                    <div className="bg-white border border-sky-100 rounded-2xl p-5 shadow-sm">
+                    <div className="bg-green-50 border text-green-500 rounded-2xl p-5 shadow-sm">
                         <div className="flex items-center justify-between mb-3">
-                            <span className="text-[11px] font-black tracking-[0.16em] uppercase text-sky-600">{t('Total Paid')}</span>
-                            <div className="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
+                            <span className="text-[11px] font-black tracking-[0.16em] uppercase text-green-700">{t('Total Paid')}</span>
+                            <div className="w-8 h-8 rounded-xl bg-green-50 text-green-500 flex items-center justify-center">
                                 <CheckCircle2 size={16} strokeWidth={2.5} />
                             </div>
                         </div>
-                        <p className="text-2xl font-black text-sky-700 tracking-tight tabular-nums">₹{fmt(stats.totalPaid)}</p>
+                        <p className="text-2xl font-black text-green-600 tracking-tight tabular-nums">₹{fmt(stats.totalPaid)}</p>
                         <p className="text-xs text-slate-500 mt-2">{t('Session')}: {fees[0]?.studentId?.session || 'N/A'}</p>
                     </div>
 
-                    <div className="bg-white border border-sky-100 rounded-2xl p-5 shadow-sm">
+                    <div className="bg-green-50 border text-green-500 rounded-2xl p-5 shadow-sm">
                         <div className="flex items-center justify-between mb-3">
-                            <span className="text-[11px] font-black tracking-[0.16em] uppercase text-sky-600">{t('Total Billed')}</span>
-                            <div className="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
+                            <span className="text-[11px] font-black tracking-[0.16em] uppercase text-green-700">{t('Total Billed')}</span>
+                            <div className="w-8 h-8 rounded-xl bg-sky-50 text-green-500 flex items-center justify-center">
                                 <BadgeIndianRupee size={16} strokeWidth={2.4} />
                             </div>
                         </div>
-                        <p className="text-2xl font-black text-sky-700 tracking-tight tabular-nums">₹{fmt(stats.totalAmount)}</p>
+                        <p className="text-2xl font-black text-green-500 tracking-tight tabular-nums">₹{fmt(stats.totalAmount)}</p>
                         <p className="text-xs text-slate-500 mt-2">{t('Across all records')}</p>
                     </div>
                 </div>
@@ -168,42 +237,49 @@ const StudentFees = () => {
                             {t('Monthly Breakdown')}
                         </h2>
                     </div>
-
-                    <div className="p-4 sm:p-5 space-y-3">
+                    <div className="p-4 sm:p-5">
                         {fees.length > 0 ? (
-                            fees.map((fee) => {
-                                const isPaid = fee.status === 'paid';
-
-                                return (
-                                    <div 
-                                        key={fee._id} 
-                                        className={`rounded-2xl border overflow-hidden cursor-pointer hover:shadow-sm transition-all ${isPaid ? 'border-emerald-200 bg-emerald-50/30' : 'border-rose-200 bg-rose-50/30'}`}
-                                        onClick={() => setSelectedFee(fee)}
-                                    >
-                                        <div className="p-4 sm:p-5 flex items-center justify-between select-none bg-slate-50/40">
-                                            <div className="flex items-center gap-3 min-w-0">
-                                                <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${isPaid ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-                                                <h4 className="font-extrabold text-slate-900 text-[15px] sm:text-[16px] tracking-tight leading-tight truncate">
-                                                    {fee.month} {fee.year}
-                                                </h4>
-                                            </div>
-
-                                            <div className="flex items-center gap-3 pl-3 shrink-0">
-                                                <span className={`text-[10px] font-black uppercase tracking-wider ${isPaid ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            <>
+                                <div className="space-y-3 mb-4">
+                                    {fees.map((fee) => {
+                                        const isPaid = fee.status === 'paid';
+                                        return (
+                                            <button
+                                                key={fee._id}
+                                                type="button"
+                                                onClick={() => setSelectedFee(fee)}
+                                                className={`w-full rounded-[999px] border px-4 py-3 flex items-center justify-between text-sm shadow-sm transition-all active:scale-[0.99] ${
+                                                    isPaid
+                                                        ? 'bg-emerald-50 border-emerald-100 text-emerald-800'
+                                                        : 'bg-rose-50 border-rose-100 text-rose-800'
+                                                }`}
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <span className={`w-2.5 h-2.5 rounded-full ${isPaid ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                                                    <span className="font-semibold text-slate-900">
+                                                        {fee.month} {fee.year}
+                                                    </span>
+                                                </div>
+                                                <span className={`text-[11px] font-bold uppercase tracking-[0.18em] ${
+                                                    isPaid ? 'text-emerald-600' : 'text-rose-600'
+                                                }`}>
                                                     {isPaid ? t('Paid') : t('Unpaid')}
                                                 </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                <div className="h-52 sm:h-64 w-full">
+                                    <Bar data={monthlyChartData} options={monthlyChartOptions} />
+                                </div>
+                            </>
                         ) : (
-                            <div className="text-center py-20 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center justify-center">
+                            <div className="text-center py-16 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center justify-center">
                                 <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-500 mb-4">
                                     <Wallet size={32} strokeWidth={1.5} />
                                 </div>
                                 <h3 className="text-lg font-black text-slate-800 mb-1">{t('No Fees Found')}</h3>
-                                <p className="text-sm font-medium text-slate-400 max-w-[200px]">{t('You do not have any fee records for this session yet.')}</p>
+                                <p className="text-sm font-medium text-slate-400 max-w-[220px] mx-auto">{t('You do not have any fee records for this session yet.')}</p>
                             </div>
                         )}
                     </div>

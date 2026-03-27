@@ -50,7 +50,7 @@
                 android:layout_height="match_parent"
                 android:padding="12dp"
                 android:src="@mipmap/ic_launcher"
-                android:contentDescription="Institute Logo" />
+                android:contentDescription="De Facto Logo" />
         </com.google.android.material.card.MaterialCardView>
 
         <!-- Title -->
@@ -58,7 +58,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:text="De Facto Institute Erp"
+            android:text="De Facto De Facto Erp"
             android:textColor="#FFFFFF"
             android:textSize="24sp"
             android:textStyle="bold" />

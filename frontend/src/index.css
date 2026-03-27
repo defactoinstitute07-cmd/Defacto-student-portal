@@ -967,7 +967,6 @@ textarea:focus-visible {
     align-items: center;
     gap: 12px;
     padding: 16px 12px 14px;
-    margin: 10px 10px 0;
     border-radius: 18px;
     border: 1px solid #dbe8ff;
     background: linear-gradient(135deg, #ffffff 0%, #edf4ff 100%);

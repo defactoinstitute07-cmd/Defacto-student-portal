@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Suspense, lazy, useEffect, useState } from 'react';
+import { Suspense, lazy } from 'react';
 import { useAppPresence } from './hooks/useAppPresence';
-import { isNativeShell } from './services/nativeAuth';
 
 import { Component } from 'react';
 
@@ -82,20 +81,6 @@ const getStoredStudentRoute = () => {
 
 function App() {
     useAppPresence();
-
-    useEffect(() => {
-        const webUrl = import.meta.env.VITE_STUDENT_WEB_URL;
-        if (isNativeShell() && localStorage.getItem('studentToken') && webUrl) {
-            try {
-                const targetOrigin = new URL(webUrl).origin;
-                if (window.location.origin !== targetOrigin) {
-                    window.location.assign(webUrl);
-                }
-            } catch (e) {
-                console.error('Invalid VITE_STUDENT_WEB_URL:', webUrl);
-            }
-        }
-    }, []);
 
     return (
         <Router>

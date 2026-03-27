@@ -6,6 +6,7 @@ import instituteLogo from '../assets/icon.png';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageToggleButton from '../components/LanguageToggleButton';
 import { isNativeShell } from '../services/nativeAuth';
+import { App as CapacitorApp } from '@capacitor/app';
 
 
 const StudentLogin = () => {
@@ -23,33 +24,36 @@ const StudentLogin = () => {
     useEffect(() => {
         const token = localStorage.getItem('studentToken');
         if (!token) return;
-
-        if (isNativeShell()) {
-            const webUrl = import.meta.env.VITE_STUDENT_WEB_URL;
-            if (webUrl) {
-                try {
-                    const targetOrigin = new URL(webUrl).origin;
-                    if (window.location.origin !== targetOrigin) {
-                        window.location.assign(webUrl);
-                        return;
-                    }
-                } catch (e) {
-                    console.error('Invalid VITE_STUDENT_WEB_URL:', webUrl);
-                }
-            }
-        }
-
         try {
             const student = JSON.parse(localStorage.getItem('studentInfo') || '{}');
             const needsSetup = student?.needsSetup !== undefined
                 ? student.needsSetup
                 : (student?.isFirstLogin || !student?.profileImage);
 
+            if (isNativeShell() && needsSetup) {
+                const webUrl = import.meta.env.VITE_STUDENT_WEB_URL;
+                if (webUrl) {
+                    const base = webUrl.replace(/\/$/, '');
+                    const setupUrl = `${base}/student/setup?from=app`;
+                    try {
+                        CapacitorApp.openUrl({ url: setupUrl });
+                    } catch (e) {
+                        try {
+                            window.open(setupUrl, '_blank', 'noopener,noreferrer');
+                        } catch {
+                            window.location.assign(setupUrl);
+                        }
+                    }
+                    setFormError(t('Setup opened in your browser. After completing it, relogin with your app.'));
+                    return;
+                }
+            }
+
             navigate(needsSetup ? '/student/setup' : '/student/dashboard', { replace: true });
         } catch {
             navigate('/student/dashboard', { replace: true });
         }
-    }, [navigate]);
+    }, [navigate, t]);
 
     const validate = (nextRollNo = rollNo, nextPassword = password) => {
         const errors = { rollNo: '', password: '' };
@@ -93,22 +97,30 @@ const StudentLogin = () => {
                 localStorage.setItem('studentToken', response.data.token);
                 localStorage.setItem('studentInfo', JSON.stringify(response.data.student));
 
-                if (isNativeShell()) {
+                const needsSetup = response.data.student?.needsSetup !== undefined
+                    ? response.data.student.needsSetup
+                    : (response.data.student?.isFirstLogin || !response.data.student?.profileImage);
+
+                if (isNativeShell() && needsSetup) {
                     const webUrl = import.meta.env.VITE_STUDENT_WEB_URL;
                     if (webUrl) {
+                        const base = webUrl.replace(/\/$/, '');
+                        const setupUrl = `${base}/student/setup?from=app`;
                         try {
-                            const targetOrigin = new URL(webUrl).origin;
-                            if (window.location.origin !== targetOrigin) {
-                                window.location.assign(webUrl);
-                            }
+                            CapacitorApp.openUrl({ url: setupUrl });
                         } catch (e) {
-                            console.error('Invalid VITE_STUDENT_WEB_URL:', webUrl);
-                            navigate('/student/dashboard');
+                            try {
+                                window.open(setupUrl, '_blank', 'noopener,noreferrer');
+                            } catch {
+                                window.location.assign(setupUrl);
+                            }
                         }
-                    } else {
-                        navigate('/student/dashboard');
+                        setFormError(t('Setup opened in your browser. After completing it, relogin with your app.'));
+                        return;
                     }
-                } else if (response.data.student.isFirstLogin) {
+                }
+
+                if (needsSetup) {
                     navigate('/student/setup');
                 } else {
                     navigate('/student/dashboard');

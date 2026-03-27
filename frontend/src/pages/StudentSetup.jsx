@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import { Camera, Lock, CheckCircle2, AlertTriangle, RefreshCcw, ShieldCheck, Eye, EyeOff, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
@@ -8,6 +8,8 @@ import LanguageToggleButton from '../components/LanguageToggleButton';
 const StudentSetup = () => {
     const navigate = useNavigate();
     const { t } = useLanguage();
+    const location = useLocation();
+    const fromApp = new URLSearchParams(location.search).get('from') === 'app';
     const [step, setStep] = useState(1);
     const [image, setImage] = useState(null);
     const [preview, setPreview] = useState(null);
@@ -16,6 +18,7 @@ const StudentSetup = () => {
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
+    const fileInputRef = useRef(null);
 
     useEffect(() => {
         const student = JSON.parse(localStorage.getItem('studentInfo') || '{}');
@@ -30,7 +33,7 @@ const StudentSetup = () => {
             ? student.needsSetup
             : (student.isFirstLogin || !student.profileImage);
 
-        if (!needsSetup) {
+                if (!needsSetup) {
             navigate('/student/dashboard');
         }
     }, [navigate]);
@@ -86,7 +89,9 @@ const StudentSetup = () => {
                 localStorage.setItem('studentInfo', JSON.stringify(studentInfo));
 
                 setStep(3);
-                setTimeout(() => navigate('/student/dashboard'), 2000);
+                if (!fromApp) {
+                    setTimeout(() => navigate('/student/dashboard'), 2000);
+                }
             }
         } catch (err) {
             setError(err.response?.data?.message || t('Failed to complete setup'));
@@ -151,7 +156,7 @@ const StudentSetup = () => {
                     {step === 1 && (
                         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div className="flex flex-col items-center space-y-5">
-                                <div className="relative">
+                                <div className="relative flex flex-col items-center gap-3">
                                     <div className="h-32 w-32 sm:h-36 sm:w-36 rounded-full bg-gray-50 border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden transition-all hover:border-[#191838]/30 group">
                                         {preview ? (
                                             <img src={preview} alt="Preview" className="h-full w-full object-cover rounded-full" />
@@ -159,15 +164,21 @@ const StudentSetup = () => {
                                             <Camera className="text-gray-300 group-hover:text-[#191838] transition-colors" size={40} />
                                         )}
                                     </div>
-                                    <label className="absolute -bottom-1 -right-1 h-10 w-10 bg-[#191838] text-white rounded-full shadow-lg shadow-gray-300/60 flex items-center justify-center cursor-pointer hover:bg-[#12112a] transition-all active:scale-95 border-3 border-white overflow-hidden">
-                                        <Camera size={16} />
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={handleImageChange}
-                                            className="absolute inset-0 opacity-0 cursor-pointer"
-                                        />
-                                    </label>
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageChange}
+                                        className="hidden"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                                        className="inline-flex items-center gap-2 px-4 py-2 bg-[#191838] text-white text-xs font-bold rounded-full shadow-lg shadow-gray-300/60 hover:bg-[#12112a] transition-all active:scale-95"
+                                    >
+                                        <Camera size={14} />
+                                        <span>{t('Select Photo')}</span>
+                                    </button>
                                 </div>
                                 <div className="text-center space-y-1.5">
                                     <h3 className="text-lg font-black text-gray-900 tracking-tight">{t('Professional Photo')}</h3>
@@ -293,6 +304,9 @@ const StudentSetup = () => {
                             <div className="space-y-2">
                                 <h3 className="text-2xl font-black text-gray-900 tracking-tight">{t('Identity Verified')}</h3>
                                 <p className="text-sm text-emerald-600 font-bold uppercase tracking-widest">{t('Entry Granted')}</p>
+                                {fromApp && (
+                                    <p className="text-sm text-gray-700 font-bold mt-2">{t('Now relogin with your app.')}</p>
+                                )}
                             </div>
                             <div className="flex flex-col items-center gap-3 pt-3">
                                 <RefreshCcw className="animate-spin text-[#191838]" size={20} />
