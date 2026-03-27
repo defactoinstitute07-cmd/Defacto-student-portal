@@ -159,9 +159,14 @@ const StudentSetup = () => {
                                             <Camera className="text-gray-300 group-hover:text-[#191838] transition-colors" size={40} />
                                         )}
                                     </div>
-                                    <label className="absolute -bottom-1 -right-1 h-10 w-10 bg-[#191838] text-white rounded-full shadow-lg shadow-gray-300/60 flex items-center justify-center cursor-pointer hover:bg-[#12112a] transition-all active:scale-95 border-3 border-white">
+                                    <label className="absolute -bottom-1 -right-1 h-10 w-10 bg-[#191838] text-white rounded-full shadow-lg shadow-gray-300/60 flex items-center justify-center cursor-pointer hover:bg-[#12112a] transition-all active:scale-95 border-3 border-white overflow-hidden">
                                         <Camera size={16} />
-                                        <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleImageChange}
+                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                        />
                                     </label>
                                 </div>
                                 <div className="text-center space-y-1.5">
