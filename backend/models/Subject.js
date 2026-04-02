@@ -12,6 +12,17 @@ const subjectSchema = new mongoose.Schema({
         uppercase: true,
         default: null
     },
+    batchId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Batch',
+        index: true,
+        default: null
+    },
+    totalChapters: {
+        type: Number,
+        default: null,
+        min: 0
+    },
     description: {
         type: String,
         trim: true,
@@ -44,7 +55,7 @@ subjectSchema.pre('save', function () {
     }
 });
 
-subjectSchema.index({ name: 1 }, { unique: true });
-subjectSchema.index({ code: 1 }, { unique: true, sparse: true });
+subjectSchema.index({ batchId: 1, name: 1 }, { unique: true });
+subjectSchema.index({ batchId: 1, code: 1 }, { unique: true, sparse: true });
 
 module.exports = mongoose.model('Subject', subjectSchema);

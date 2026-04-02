@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Skeleton from '../components/Skeleton';
 import api from '../services/api';
 import { useQuery } from '@tanstack/react-query';
 import { getCached, setCached } from '../utils/offlineCache';
 import { useLanguage } from '../context/LanguageContext';
+import { CheckCircle2, BookOpen } from 'lucide-react';
 
 const StudentSubjects = () => {
     const navigate = useNavigate();
@@ -164,19 +165,28 @@ const StudentSubjects = () => {
 
                 {/* Tabs */}
                 <div className="mt-5 flex gap-2 overflow-x-auto no-scrollbar">
-                    {['Ongoing'].map((tab) => (
-                        <button
-                            key={tab}
-                            onClick={() => setActiveTab(tab)}
-                            className={`px-4 py-2 rounded-full text-[12px] font-black uppercase tracking-wider transition-colors whitespace-nowrap border ${
-                                activeTab === tab
-                                    ? 'bg-[#191838] text-white border-[#191838]'
-                                    : 'bg-white text-slate-500 border-slate-200 hover:text-slate-700 hover:border-slate-300'
-                            }`}
-                        >
-                            {t(tab)}
-                        </button>
-                    ))}
+                    {['Ongoing', 'Completed'].map((tab) => {
+                        const count = tab === 'Completed'
+                            ? subjects.filter(s => (s.syllabus?.completionPercentage || 0) === 100).length
+                            : subjects.filter(s => (s.syllabus?.completionPercentage || 0) < 100).length;
+                        return (
+                            <button
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
+                                className={`px-4 py-2 rounded-full text-[12px] font-black uppercase tracking-wider transition-colors whitespace-nowrap border flex items-center gap-1.5 ${
+                                    activeTab === tab
+                                        ? 'bg-[#191838] text-white border-[#191838]'
+                                        : 'bg-white text-slate-500 border-slate-200 hover:text-slate-700 hover:border-slate-300'
+                                }`}
+                            >
+                                {tab === 'Completed' && <CheckCircle2 size={13} />}
+                                {t(tab)}
+                                <span className={`ml-0.5 text-[10px] rounded-full px-1.5 py-0.5 font-black ${
+                                    activeTab === tab ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-400'
+                                }`}>{count}</span>
+                            </button>
+                        );
+                    })}
                 </div>
 
                 {error && (
@@ -186,8 +196,35 @@ const StudentSubjects = () => {
                 )}
 
                 <div className="space-y-4 mt-5">
-                    {subjects.length > 0 ? (
-                        subjects.map((s, idx) => {
+                    {(() => {
+                        const filteredSubjects = activeTab === 'Completed'
+                            ? subjects.filter(s => (s.syllabus?.completionPercentage || 0) === 100)
+                            : subjects.filter(s => (s.syllabus?.completionPercentage || 0) < 100);
+
+                        if (filteredSubjects.length === 0) {
+                            return (
+                                <div className="rounded-[24px] border border-dashed border-slate-300 bg-white/70 p-10 text-center">
+                                    <div className="flex justify-center mb-3">
+                                        {activeTab === 'Completed'
+                                            ? <CheckCircle2 size={32} className="text-slate-300" />
+                                            : <BookOpen size={32} className="text-slate-300" />
+                                        }
+                                    </div>
+                                    <p className="font-semibold text-slate-500">
+                                        {activeTab === 'Completed'
+                                            ? t('No subjects with completed syllabus yet')
+                                            : t('No subjects found')}
+                                    </p>
+                                    {activeTab === 'Completed' && (
+                                        <p className="mt-2 text-xs text-slate-400">
+                                            {t('Subjects will appear here when all chapters are marked as completed.')}
+                                        </p>
+                                    )}
+                                </div>
+                            );
+                        }
+
+                        return filteredSubjects.map((s, idx) => {
                             const averageMarks = Number.isFinite(Number(s.averageMarks))
                                 ? Math.max(0, Math.min(100, Number(s.averageMarks)))
                                 : 0;
@@ -196,29 +233,44 @@ const StudentSubjects = () => {
                             const teacherName = s.teacher === 'Unassigned' ? t('Unassigned') : s.teacher;
                             const initial = getSubjectInitial(s.subject);
 
+                            // Syllabus progress
+                            const syllabusData = s.syllabus || {};
+                            const totalCh = syllabusData.totalChapters || syllabusData.chapters?.length || 0;
+                            const completedCh = syllabusData.completedChapters || syllabusData.chapters?.filter(c => c.isCompleted).length || 0;
+                            const syllPct = syllabusData.completionPercentage ?? (totalCh > 0 ? Math.round((completedCh / totalCh) * 100) : 0);
+                            const isFullyCompleted = syllPct === 100;
+
                             return (
                                 <button
                                     key={idx}
                                     onClick={() => navigate(`/student/results/subject/${s.subject}`)}
                                     className={`group relative w-full overflow-hidden rounded-[26px] bg-white p-5 text-left transition-all duration-300 active:scale-[0.98] hover:-translate-y-0.5 ${
-                                        theme.showBorder 
-                                            ? 'border-[1.5px] border-red-100 shadow-sm hover:shadow-[0_16px_30px_rgba(239,68,68,0.14)]' 
-                                            : 'border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:shadow-[0_16px_32px_rgba(15,23,42,0.12)]'
+                                        isFullyCompleted
+                                            ? 'border border-emerald-200 shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:shadow-[0_16px_32px_rgba(16,185,129,0.12)]'
+                                            : theme.showBorder 
+                                                ? 'border-[1.5px] border-red-100 shadow-sm hover:shadow-[0_16px_30px_rgba(239,68,68,0.14)]' 
+                                                : 'border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:shadow-[0_16px_32px_rgba(15,23,42,0.12)]'
                                     }`}
                                 >
                                     {/* Right edge color strip for "Needs Focus" */}
-                                    {theme.showBorder && (
+                                    {!isFullyCompleted && theme.showBorder && (
                                         <div className="absolute bottom-0 right-0 top-0 w-1.5 bg-red-500" />
                                     )}
 
-                                    {!theme.showBorder && (
+                                    {isFullyCompleted ? (
+                                        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-400 to-emerald-600 opacity-90" />
+                                    ) : !theme.showBorder && (
                                         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-blue-500 to-emerald-500 opacity-80" />
                                     )}
 
                                     <div className="flex items-start gap-4">
-                                        {/* Subject Icon Circle (No Serif Font) */}
-                                        <div className="flex h-[56px] w-[56px] shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-[#191838] text-[22px] font-bold tracking-tighter border border-slate-200 group-hover:bg-slate-200 transition-colors">
-                                            {initial}
+                                        {/* Subject Icon Circle */}
+                                        <div className={`flex h-[56px] w-[56px] shrink-0 items-center justify-center rounded-2xl text-[22px] font-bold tracking-tighter border transition-colors ${
+                                            isFullyCompleted
+                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 group-hover:bg-emerald-100'
+                                                : 'bg-slate-100 text-[#191838] border-slate-200 group-hover:bg-slate-200'
+                                        }`}>
+                                            {isFullyCompleted ? <CheckCircle2 size={24} /> : initial}
                                         </div>
 
                                         <div className="min-w-0 flex-1">
@@ -227,9 +279,15 @@ const StudentSubjects = () => {
                                                     {s.subject}
                                                 </h3>
                                                 <div className="flex flex-col items-end gap-1.5 shrink-0">
-                                                    <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border ${theme.badgeBg} ${theme.badgeText} ${theme.showBorder ? 'border-red-200' : 'border-transparent'}`}>
-                                                        {t(theme.label)}
-                                                    </span>
+                                                    {isFullyCompleted ? (
+                                                        <span className="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border bg-emerald-50 text-emerald-600 border-emerald-200">
+                                                            {t('Syllabus Done')}
+                                                        </span>
+                                                    ) : (
+                                                        <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border ${theme.badgeBg} ${theme.badgeText} ${theme.showBorder ? 'border-red-200' : 'border-transparent'}`}>
+                                                            {t(theme.label)}
+                                                        </span>
+                                                    )}
                                                     {s.code && (
                                                         <span className="rounded-md bg-slate-50 px-2 py-0.5 text-[9px] font-black text-slate-400 uppercase tracking-tighter border border-slate-100">
                                                             {s.code}
@@ -243,7 +301,27 @@ const StudentSubjects = () => {
                                                 <span className="font-medium tracking-tight">{teacherName}</span>
                                             </p>
 
-                                            <div className="mt-5 flex items-center justify-between text-[11px] font-bold tracking-wide">
+                                            {/* Syllabus Chapter Progress */}
+                                            {totalCh > 0 && (
+                                                <div className="mt-3 flex items-center gap-2">
+                                                    <div className="flex-1 h-1.5 overflow-hidden rounded-full bg-slate-100">
+                                                        <div
+                                                            className={`h-full rounded-full transition-all duration-700 ${
+                                                                isFullyCompleted ? 'bg-emerald-500' :
+                                                                syllPct >= 50 ? 'bg-amber-500' : 'bg-indigo-500'
+                                                            }`}
+                                                            style={{ width: `${syllPct}%` }}
+                                                        />
+                                                    </div>
+                                                    <span className={`text-[10px] font-black whitespace-nowrap ${
+                                                        isFullyCompleted ? 'text-emerald-600' : 'text-slate-400'
+                                                    }`}>
+                                                        {completedCh}/{totalCh} {t('Ch')}
+                                                    </span>
+                                                </div>
+                                            )}
+
+                                            <div className="mt-3 flex items-center justify-between text-[11px] font-bold tracking-wide">
                                                 <span className="text-slate-500">{t('Overall Progress')}</span>
                                                 <span className={averageMarks >= 75 ? 'text-emerald-700' : 'text-[#191838]'}>{averageMarks}%</span>
                                             </div>
@@ -258,12 +336,8 @@ const StudentSubjects = () => {
                                     </div>
                                 </button>
                             );
-                        })
-                    ) : (
-                        <div className="rounded-[24px] border border-dashed border-slate-300 bg-white/70 p-10 text-center">
-                            <p className="font-semibold text-slate-500">{t('No subjects found')}</p>
-                        </div>
-                    )}
+                        });
+                    })()}
                 </div>
             </main>
 

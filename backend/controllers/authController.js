@@ -168,11 +168,12 @@ exports.studentLogin = async (req, res) => {
     try {
         let { rollNo, password } = req.body;
 
+        rollNo = String(rollNo || '').trim();
+        password = String(password || '');
+
         if (!rollNo || !password) {
             return res.status(400).json({ success: false, message: 'Please provide roll number and password' });
         }
-
-        rollNo = rollNo.trim();
 
         if (!process.env.JWT_SECRET) {
             return res.status(500).json({ success: false, message: 'Server auth configuration missing' });
@@ -186,6 +187,10 @@ exports.studentLogin = async (req, res) => {
         }
 
         // Verify password
+        if (!student.password) {
+            return res.status(401).json({ success: false, message: 'Invalid credentials' });
+        }
+
         const isMatch = await bcrypt.compare(password, student.password);
         if (!isMatch) {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });

@@ -119,7 +119,7 @@ const StudentLayout = ({ children, title, backUrl, useHistoryBack = false, hideM
 
                     {(!mini || mobileOpen) && (
                         <div className="sb-brand-text">
-                            <div className="sb-name">{t('De Facto')}</div>
+                            <div className="sb-name">{t('Institute')}</div>
                             <div className="sb-code">Student ERP System</div>
                             <div className="sb-code">{t('Roll')}: {student.rollNo || 'N/A'}</div>
                         </div>

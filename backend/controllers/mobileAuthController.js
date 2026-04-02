@@ -38,6 +38,9 @@ exports.mobileLogin = async (req, res) => {
     try {
         let { rollNo, password } = req.body || {};
 
+        rollNo = String(rollNo || '').trim();
+        password = String(password || '');
+
         if (!rollNo || !password) {
             return res.status(400).json({
                 success: false,
@@ -46,7 +49,6 @@ exports.mobileLogin = async (req, res) => {
             });
         }
 
-        rollNo = String(rollNo).trim();
         const student = await Student.findOne({
             rollNo: { $regex: new RegExp(`^${rollNo}$`, 'i') }
         }).populate('batchId');
@@ -55,7 +57,11 @@ exports.mobileLogin = async (req, res) => {
             return sendAuthFailure(res, 401, 'invalid_credentials', 'Invalid credentials.');
         }
 
-        const passwordMatches = await bcrypt.compare(String(password), student.password || '');
+        if (!student.password) {
+            return sendAuthFailure(res, 401, 'invalid_credentials', 'Invalid credentials.');
+        }
+
+        const passwordMatches = await bcrypt.compare(password, student.password || '');
         if (!passwordMatches) {
             return sendAuthFailure(res, 401, 'invalid_credentials', 'Invalid credentials.');
         }

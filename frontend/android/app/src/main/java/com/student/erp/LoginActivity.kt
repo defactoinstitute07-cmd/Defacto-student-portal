@@ -1,13 +1,18 @@
 package com.student.erp
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
@@ -20,6 +25,7 @@ import java.io.IOException
 
 class LoginActivity : AppCompatActivity() {
     private val authRepository by lazy { AppContainer.authRepository(applicationContext) }
+    private val notificationPermissionRequestCode = 2001
 
     private lateinit var rollNumberLayout: TextInputLayout
     private lateinit var passwordLayout: TextInputLayout
@@ -33,6 +39,7 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         setContentView(R.layout.activity_login)
+        requestNotificationsPermissionIfNeeded()
 
         rollNumberLayout = findViewById(R.id.rollNumberLayout)
         passwordLayout = findViewById(R.id.passwordLayout)
@@ -55,6 +62,19 @@ class LoginActivity : AppCompatActivity() {
         intent.getStringExtra(EXTRA_MESSAGE)?.takeIf { it.isNotBlank() }?.let {
             showError(resolveMessage(it))
         }
+    }
+
+    private fun requestNotificationsPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            return
+        }
+
+        val permission = Manifest.permission.POST_NOTIFICATIONS
+        if (ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED) {
+            return
+        }
+
+        ActivityCompat.requestPermissions(this, arrayOf(permission), notificationPermissionRequestCode)
     }
 
     private fun submit() {

@@ -1,7 +1,12 @@
 package com.student.erp
 
 import android.content.Context
+import android.util.Log
+import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.IOException
@@ -17,6 +22,7 @@ class AuthRepository(
     suspend fun login(rollNo: String, password: String): AuthState {
         val session = api.login(rollNo, password, DevicePayload.fromContext(appContext))
         secureTokenStore.write(session)
+        registerCurrentFcmToken(session)
         return session
     }
 
@@ -124,5 +130,27 @@ class AuthRepository(
             ?.lowercase()
             ?.replace('-', '_')
             ?.takeIf { it.isNotBlank() }
+    }
+
+    private fun registerCurrentFcmToken(session: AuthState) {
+        FirebaseMessaging.getInstance().token
+            .addOnSuccessListener { token ->
+                if (token.isNullOrBlank()) return@addOnSuccessListener
+
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        api.registerDeviceForPush(
+                            session.accessToken,
+                            token,
+                            DevicePayload.fromContext(appContext)
+                        )
+                    } catch (error: Exception) {
+                        Log.e("AuthRepository", "Failed to register existing FCM token", error)
+                    }
+                }
+            }
+            .addOnFailureListener { error ->
+                Log.e("AuthRepository", "Failed to fetch FCM token after login", error)
+            }
     }
 }

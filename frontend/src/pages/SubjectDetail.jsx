@@ -17,7 +17,7 @@ const SubjectDetail = () => {
     const { subjectName } = useParams();
     const navigate = useNavigate();
     const { t, language } = useLanguage();
-    const [activeTab, setActiveTab] = useState('Results'); 
+    const [activeTab, setActiveTab] = useState('Results');
     const [resultViewTab, setResultViewTab] = useState('Completed');
     const [selectedTest, setSelectedTest] = useState(null);
     const token = localStorage.getItem('studentToken');
@@ -41,7 +41,7 @@ const SubjectDetail = () => {
 
     const subjectData = useMemo(() => student?.subjectTeachers?.find(s => s.subject === subjectName), [student, subjectName]);
     const faculty = subjectData?.teacher || t('Unassigned');
-    
+
     const attendanceInfo = useMemo(() => {
         return student?.attendanceSubjects?.find(s => s.subjectName === subjectName) || {
             percentage: 0,
@@ -125,301 +125,441 @@ const SubjectDetail = () => {
             <div className="min-h-screen bg-[radial-gradient(circle_at_top_right,#dbeafe_0%,#f8fafc_35%,#fafbfc_100%)] pb-24 font-sans selection:bg-indigo-100">
 
 
-            <main className="mx-auto max-w-md px-4 pt-4 space-y-5">
-                {/* Subject Hero */}
-                <section className="relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-white p-5 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
-                    <div className="absolute -top-14 -right-14 h-40 w-40 rounded-full bg-indigo-100/70" />
-                    <div className="absolute -bottom-20 -left-20 h-48 w-48 rounded-full bg-emerald-100/50" />
+                <main className="mx-auto max-w-md px-4 pt-4 space-y-5">
+                    {/* Subject Hero */}
+                    <section className="relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-white p-5 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
+                        <div className="absolute -top-14 -right-14 h-40 w-40 rounded-full bg-indigo-100/70" />
+                        <div className="absolute -bottom-20 -left-20 h-48 w-48 rounded-full bg-emerald-100/50" />
 
-                    <div className="relative">
-                        <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">{t('Subject Detail')}</p>
-                        <h2 className="mt-2 text-2xl font-black tracking-tight text-[#191838] break-words">{subjectName}</h2>
-                        <p className="mt-2 text-sm text-slate-600 leading-relaxed">{t('Track results, attendance, and faculty updates in one place.')}</p>
+                        <div className="relative">
+                            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">{t('Subject Detail')}</p>
+                            <h2 className="mt-2 text-2xl font-black tracking-tight text-[#191838] break-words">{subjectName}</h2>
+                            <p className="mt-2 text-sm text-slate-600 leading-relaxed">{t('Track results, attendance, and faculty updates in one place.')}</p>
 
-                        <div className="mt-4 flex flex-wrap gap-2">
-                            <span className="inline-flex items-center rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-indigo-700">
-                                {faculty}
-                            </span>
-                            <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-600">
-                                {subjectData?.code || 'TBD'}
-                            </span>
-                        </div>
-                    </div>
-                </section>
-
-                {/* Attendance Summary Section - Always Visible at Top as requested */}
-                <div className="animate-in fade-in slide-in-from-top-4 duration-500">
-                    <div className="bg-white rounded-[32px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-[13px] font-black text-[#191838] uppercase tracking-wider flex items-center gap-2">
-                                <GraduationCap size={16} className="text-indigo-500" />
-                                {t('Attendance Overview')}
-                            </h3>
-                            <span className={`px-3 py-1 rounded-full text-[11px] font-black ${
-                                attendanceProgress >= 75 ? 'bg-emerald-50 text-emerald-600' :
-                                attendanceProgress >= 60 ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600'
-                            }`}>
-                                {attendanceProgress}%
-                            </span>
-                        </div>
-                        
-                        <div className="grid grid-cols-3 gap-3">
-                            <div className="bg-slate-50 rounded-2xl p-3 text-center">
-                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Present')}</p>
-                                <p className="text-sm font-bold text-emerald-600">{attendanceInfo.present}</p>
-                            </div>
-                            <div className="bg-slate-50 rounded-2xl p-3 text-center">
-                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Absent')}</p>
-                                <p className="text-sm font-bold text-rose-600">{attendanceInfo.absent + attendanceInfo.late}</p>
-                            </div>
-                            <div className="bg-slate-50 rounded-2xl p-3 text-center">
-                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Total')}</p>
-                                <p className="text-sm font-bold text-[#191838]">{attendanceInfo.total}</p>
+                            <div className="mt-4 flex flex-wrap gap-2">
+                                <span className="inline-flex items-center rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-indigo-700">
+                                    {faculty}
+                                </span>
+                                <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-600">
+                                    {subjectData?.code || 'TBD'}
+                                </span>
                             </div>
                         </div>
+                    </section>
 
-                        <div className="mt-4 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                            <div 
-                                className={`h-full rounded-full transition-all duration-1000 ${
-                                    attendanceProgress >= 75 ? 'bg-emerald-500' :
-                                    attendanceProgress >= 60 ? 'bg-amber-500' : 'bg-rose-500'
-                                }`}
-                                style={{ width: `${attendanceProgress}%` }}
-                            />
+                    {/* Attendance Summary Section - Always Visible at Top as requested */}
+                    <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+                        <div className="bg-white rounded-[32px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-[13px] font-black text-[#191838] uppercase tracking-wider flex items-center gap-2">
+                                    <GraduationCap size={16} className="text-indigo-500" />
+                                    {t('Attendance Overview')}
+                                </h3>
+                                <span className={`px-3 py-1 rounded-full text-[11px] font-black ${attendanceProgress >= 75 ? 'bg-emerald-50 text-emerald-600' :
+                                        attendanceProgress >= 60 ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600'
+                                    }`}>
+                                    {attendanceProgress}%
+                                </span>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-3">
+                                <div className="bg-slate-50 rounded-2xl p-3 text-center">
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Present')}</p>
+                                    <p className="text-sm font-bold text-emerald-600">{attendanceInfo.present}</p>
+                                </div>
+                                <div className="bg-slate-50 rounded-2xl p-3 text-center">
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Absent')}</p>
+                                    <p className="text-sm font-bold text-rose-600">{attendanceInfo.absent + attendanceInfo.late}</p>
+                                </div>
+                                <div className="bg-slate-50 rounded-2xl p-3 text-center">
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Total')}</p>
+                                    <p className="text-sm font-bold text-[#191838]">{attendanceInfo.total}</p>
+                                </div>
+                            </div>
+
+                            <div className="mt-4 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                <div
+                                    className={`h-full rounded-full transition-all duration-1000 ${attendanceProgress >= 75 ? 'bg-emerald-500' :
+                                            attendanceProgress >= 60 ? 'bg-amber-500' : 'bg-rose-500'
+                                        }`}
+                                    style={{ width: `${attendanceProgress}%` }}
+                                />
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Custom Tab Bar (iOS Segmented Control Style) Moved Below Attendance */}
-                <div className="sticky top-16 z-40 py-2">
-                    <div className="flex bg-white/90 backdrop-blur-sm border border-slate-200 p-1 rounded-2xl shadow-sm">
-                        {tabs.map(tab => {
-                            const Icon = tab.icon;
-                            return (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => setActiveTab(tab.id)}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                                        activeTab === tab.id 
-                                        ? 'bg-[#191838] text-white shadow-sm' 
-                                        : 'text-slate-500 hover:text-slate-700'
-                                    }`}
-                                >
-                                    <Icon size={14} />
-                                    <span>{tab.label}</span>
-                                </button>
-                            );
-                        })}
+                    {/* Custom Tab Bar (iOS Segmented Control Style) Moved Below Attendance */}
+                    <div className="sticky top-16 z-40 py-2">
+                        <div className="flex bg-white/90 backdrop-blur-sm border border-slate-200 p-1 rounded-2xl shadow-sm">
+                            {tabs.map(tab => {
+                                const Icon = tab.icon;
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setActiveTab(tab.id)}
+                                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === tab.id
+                                                ? 'bg-[#191838] text-white shadow-sm'
+                                                : 'text-slate-500 hover:text-slate-700'
+                                            }`}
+                                    >
+                                        <Icon size={14} />
+                                        <span>{tab.label}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
-                </div>
 
-                {/* Tab Content Section */}
-                {/* 1. SYLLABUS TAB CONTENT */}
+                    {/* Tab Content Section */}
+                    {/* 1. SYLLABUS TAB CONTENT */}
                 {activeTab === 'Syllabus' && (
-                    <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in slide-in-from-bottom-4">
-                        <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-slate-50 text-slate-300">
-                            <ClipboardList size={40} />
-                        </div>
-                        <h4 className="text-xl font-bold text-[#191838]">{t('Syllabus Coming Soon')}</h4>
-                        <p className="mt-3 text-sm font-medium text-slate-400 leading-relaxed max-w-[240px]">
-                            {t('We are currently updating the chapter-wise syllabus for this subject. Please check back later.')}
-                        </p>
+                    <div className="animate-in fade-in slide-in-from-bottom-4 space-y-5">
+                        {(() => {
+                            const syllabus = subjectData?.syllabus;
+                            const chapters = syllabus?.chapters || [];
+                            const totalChapters = syllabus?.totalChapters || chapters.length;
+                            const completedChapters = syllabus?.completedChapters || chapters.filter(c => c.isCompleted).length;
+                            const completionPct = syllabus?.completionPercentage ?? (totalChapters > 0 ? Math.round((completedChapters / totalChapters) * 100) : 0);
+                            const trackedChapters = syllabus?.tracking?.trackedChapters ?? chapters.filter(c => c.isCompletionTracked).length;
+                            const untrackedChapters = syllabus?.tracking?.untrackedChapters ?? Math.max(totalChapters - trackedChapters, 0);
+
+                            if (chapters.length === 0) {
+                                return (
+                                    <div className="flex flex-col items-center justify-center py-20 text-center">
+                                        <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-slate-50 text-slate-300">
+                                            <ClipboardList size={40} />
+                                        </div>
+                                        <h4 className="text-xl font-bold text-[#191838]">{t('No Syllabus Data')}</h4>
+                                        <p className="mt-3 text-sm font-medium text-slate-400 leading-relaxed max-w-[240px]">
+                                            {t('The syllabus for this subject has not been added yet. Please check back later.')}
+                                        </p>
+                                    </div>
+                                );
+                            }
+
+                            return (
+                                <>
+                                    {/* Progress Header */}
+                                    <div className="bg-white rounded-[32px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h3 className="text-[13px] font-black text-[#191838] uppercase tracking-wider flex items-center gap-2">
+                                                <Target size={16} className="text-indigo-500" />
+                                                {t('Syllabus Progress')}
+                                            </h3>
+                                            <span className={`px-3 py-1 rounded-full text-[11px] font-black ${
+                                                completionPct === 100 ? 'bg-emerald-50 text-emerald-600' :
+                                                completionPct >= 50 ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-500'
+                                            }`}>
+                                                {completionPct}%
+                                            </span>
+                                        </div>
+
+                                        <div className="flex items-center gap-4">
+                                            {/* Circular Progress */}
+                                            <div className="relative flex-shrink-0">
+                                                <svg width="72" height="72" viewBox="0 0 72 72">
+                                                    <circle cx="36" cy="36" r="30" fill="none" stroke="#f1f5f9" strokeWidth="6" />
+                                                    <circle
+                                                        cx="36" cy="36" r="30" fill="none"
+                                                        stroke={completionPct === 100 ? '#22c55e' : completionPct >= 50 ? '#f59e0b' : '#6366f1'}
+                                                        strokeWidth="6"
+                                                        strokeLinecap="round"
+                                                        strokeDasharray={`${(completionPct / 100) * 188.5} 188.5`}
+                                                        transform="rotate(-90 36 36)"
+                                                        className="transition-all duration-1000"
+                                                    />
+                                                </svg>
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <span className="text-sm font-black text-[#191838]">{completedChapters}/{totalChapters}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-bold text-[#191838]">
+                                                    {completedChapters} {t('of')} {totalChapters} {t('chapters completed')}
+                                                </p>
+                                                <p className="mt-1 text-xs text-slate-400">
+                                                    {completionPct === 100
+                                                        ? t('Entire syllabus has been covered!')
+                                                        : `${totalChapters - completedChapters} ${t('chapters remaining')}`
+                                                    }
+                                                </p>
+                                                <p className="mt-1 text-[11px] font-semibold text-slate-500">
+                                                    {trackedChapters} {t('tracked')} {t('of')} {totalChapters}
+                                                    {untrackedChapters > 0 ? ` (${untrackedChapters} ${t('pending tracking')})` : ''}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-4 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                            <div
+                                                className={`h-full rounded-full transition-all duration-1000 ${
+                                                    completionPct === 100 ? 'bg-emerald-500' :
+                                                    completionPct >= 50 ? 'bg-amber-500' : 'bg-indigo-500'
+                                                }`}
+                                                style={{ width: `${completionPct}%` }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Chapter List */}
+                                    <div className="space-y-3">
+                                        {chapters.map((chapter, idx) => (
+                                            <div
+                                                key={chapter._id || idx}
+                                                className={`p-4 rounded-[24px] border transition-all ${
+                                                    chapter.isCompleted
+                                                        ? 'bg-emerald-50/40 border-emerald-200 shadow-sm'
+                                                        : 'bg-white border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)]'
+                                                }`}
+                                            >
+                                                <div className="flex items-center gap-3.5">
+                                                    {/* Status Circle */}
+                                                    <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border ${
+                                                        chapter.isCompleted
+                                                            ? 'bg-emerald-100 border-emerald-200 text-emerald-600'
+                                                            : 'bg-slate-50 border-slate-200 text-slate-300'
+                                                    }`}>
+                                                        {chapter.isCompleted
+                                                            ? <CheckCircle size={20} />
+                                                            : <span className="text-sm font-black text-slate-400">{idx + 1}</span>
+                                                        }
+                                                    </div>
+
+                                                    {/* Chapter Info */}
+                                                    <div className="min-w-0 flex-1">
+                                                        <h4 className={`text-sm font-bold ${
+                                                            chapter.isCompleted ? 'text-emerald-800' : 'text-[#191838]'
+                                                        }`}>
+                                                            {chapter.name}
+                                                        </h4>
+                                                        <p className={`mt-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                                                            chapter.isCompleted ? 'text-emerald-500' : 'text-slate-400'
+                                                        }`}>
+                                                            {chapter.isCompleted
+                                                                ? `${t('Completed')} ${chapter.completedAt
+                                                                    ? new Date(chapter.completedAt).toLocaleDateString(language === 'hi' ? 'hi-IN' : 'en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+                                                                    : ''}`
+                                                                : t('Pending')
+                                                            }
+                                                        </p>
+                                                    </div>
+
+                                                    {/* Status Badge */}
+                                                    <span className={`flex-shrink-0 rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-wider border ${
+                                                        chapter.isCompleted
+                                                            ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                                                            : 'bg-slate-50 text-slate-400 border-slate-200'
+                                                    }`}>
+                                                        {chapter.isCompleted ? t('Done') : t('Pending')}
+                                                    </span>
+
+                                                    <span className={`flex-shrink-0 rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-wider border ${
+                                                        chapter.isCompletionTracked
+                                                            ? 'bg-indigo-50 text-indigo-600 border-indigo-200'
+                                                            : 'bg-white text-slate-400 border-slate-200'
+                                                    }`}>
+                                                        {chapter.isCompletionTracked ? t('Tracked') : t('Not tracked')}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            );
+                        })()}
                     </div>
                 )}
 
-                {/* 2. RESULTS TAB CONTENT */}
-                {activeTab === 'Results' && (
-                    <div className="animate-in fade-in slide-in-from-bottom-4">
-                        {/* Result visibility tabs */}
-                        <div className="flex gap-2 mb-6 rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
-                            <button
-                                type="button"
-                                onClick={() => setResultViewTab('Completed')}
-                                className={`flex-1 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-wider transition-all ${
-                                    resultViewTab === 'Completed'
-                                        ? 'bg-[#191838] text-white shadow-lg shadow-indigo-100'
-                                        : 'text-slate-500'
-                                }`}
-                            >
-                                {t('Completed')}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setResultViewTab('Scheduled')}
-                                className={`flex-1 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-wider transition-all ${
-                                    resultViewTab === 'Scheduled'
-                                        ? 'bg-[#191838] text-white shadow-lg shadow-indigo-100'
-                                        : 'text-slate-500'
-                                }`}
-                            >
-                                {t('Scheduled')}
-                            </button>
-                        </div>
-
-                        {resultViewTab === 'Scheduled' && visibleResults.length > 0 && (
-                            <div className="mb-4 rounded-2xl border border-blue-200 bg-blue-50/70 p-4">
-                                <div className="flex items-center gap-2 text-blue-700">
-                                    <Clock size={16} />
-                                    <p className="text-xs font-black uppercase tracking-[0.18em]">{t('Upcoming Schedule')}</p>
-                                </div>
-                                <p className="mt-1.5 text-xs font-medium text-blue-600">
-                                    {t('These are scheduled tests. Scores and percentages will appear after results are declared.')}
-                                </p>
-                            </div>
-                        )}
-
-                        <div className="space-y-4">
-                            {visibleResults.length > 0 ? (
-                                visibleResults.map((e, idx) => (
-                                    (() => {
-                                        const isScheduled = !hasDeclaredResult(e) && isScheduledTest(e);
-                                        const hasPassed = hasPassedTest(e);
-                                        return (
-                                    <div 
-                                        key={idx} 
-                                        onClick={() => setSelectedTest(e)}
-                                        className={`p-5 rounded-[28px] border shadow-sm flex items-center justify-between group cursor-pointer transition-all active:scale-[0.98] ${
-                                            isScheduled
-                                                ? 'bg-blue-50/60 border-blue-300 ring-1 ring-blue-200 hover:shadow-[0_15px_30px_rgba(37,99,235,0.18)]'
-                                                : hasPassed
-                                                    ? 'bg-emerald-50/40 border-emerald-200 hover:shadow-[0_15px_30px_rgba(16,185,129,0.15)]'
-                                                    : 'bg-rose-50/35 border-rose-200 hover:shadow-[0_15px_30px_rgba(244,63,94,0.14)]'
+                    {/* 2. RESULTS TAB CONTENT */}
+                    {activeTab === 'Results' && (
+                        <div className="animate-in fade-in slide-in-from-bottom-4">
+                            {/* Result visibility tabs */}
+                            <div className="flex gap-2 mb-6 rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
+                                <button
+                                    type="button"
+                                    onClick={() => setResultViewTab('Completed')}
+                                    className={`flex-1 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-wider transition-all ${resultViewTab === 'Completed'
+                                            ? 'bg-[#191838] text-white shadow-lg shadow-indigo-100'
+                                            : 'text-slate-500'
                                         }`}
-                                    >
-                                        <div className="flex items-center gap-4">
-                                            <div className={`p-3 rounded-2xl border ${
-                                                isScheduled
-                                                    ? 'bg-blue-100 text-blue-700 border-blue-200'
-                                                    : hasPassed
-                                                        ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
-                                                        : 'bg-rose-100 text-rose-700 border-rose-200'
-                                            }`}>
-                                                {isScheduled ? <Clock size={20} /> : <Award size={20} />}
-                                            </div>
-                                            <div>
-                                                <h4 className="text-sm font-bold text-[#191838]">{e.name}</h4>
-                                                <p className={`text-[10px] font-medium uppercase tracking-tight ${isScheduled ? 'text-blue-600' : 'text-slate-400'}`}>
-                                                    {isScheduled ? t('Scheduled on') : ''}{isScheduled ? ' ' : ''}
-                                                    {new Date(e.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })} • {e.chapter}
-                                                </p>
-                                                {isScheduled && (
-                                                    <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-white/80 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-blue-700">
-                                                        <Calendar size={11} />
-                                                        {t('Result Pending')}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <div className="text-right">
-                                            {isScheduled ? (
-                                                <>
-                                                    <p className="text-[11px] font-black uppercase tracking-wider text-blue-700">{t('Scheduled')}</p>
-                                                    <p className="text-[10px] font-bold text-blue-500">{t('Upcoming')}</p>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <p className="text-sm font-black text-[#191838]">{e.marksObtained}/{e.totalMarks}</p>
-                                                    <p className={`text-[10px] font-bold uppercase ${hasPassed ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                                        {e.percentage}% • {hasPassed ? t('Passed') : t('Failed')}
-                                                    </p>
-                                                </>
-                                            )}
-                                        </div>
+                                >
+                                    {t('Completed')}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setResultViewTab('Scheduled')}
+                                    className={`flex-1 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-wider transition-all ${resultViewTab === 'Scheduled'
+                                            ? 'bg-[#191838] text-white shadow-lg shadow-indigo-100'
+                                            : 'text-slate-500'
+                                        }`}
+                                >
+                                    {t('Scheduled')}
+                                </button>
+                            </div>
+
+                            {resultViewTab === 'Scheduled' && visibleResults.length > 0 && (
+                                <div className="mb-4 rounded-2xl border border-blue-200 bg-blue-50/70 p-4">
+                                    <div className="flex items-center gap-2 text-blue-700">
+                                        <Clock size={16} />
+                                        <p className="text-xs font-black uppercase tracking-[0.18em]">{t('Upcoming Schedule')}</p>
                                     </div>
-                                        );
-                                    })()
-                                ))
-                            ) : (
-                                <div className="flex flex-col items-center justify-center rounded-[40px] border-2 border-dashed border-slate-200 bg-white/70 p-12 text-center shadow-sm">
-                                    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-400">
-                                        <FileText size={28} />
-                                    </div>
-                                    <h4 className="text-lg font-bold text-[#191838]">
-                                        {resultViewTab === 'Scheduled' ? t('No Scheduled Tests') : t('No Declared Results')}
-                                    </h4>
-                                    <p className="mt-2 text-sm font-medium text-slate-400 leading-relaxed max-w-[200px]">
-                                        {resultViewTab === 'Scheduled'
-                                            ? t('Upcoming tests will appear here once they are scheduled.')
-                                            : t('Declared exam results will appear here once published by faculty.')}
+                                    <p className="mt-1.5 text-xs font-medium text-blue-600">
+                                        {t('These are scheduled tests. Scores and percentages will appear after results are declared.')}
                                     </p>
                                 </div>
                             )}
-                        </div>
-                    </div>
-                )}
 
-                {/* 3. INFORMATION TAB CONTENT */}
-                {activeTab === 'Info' && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-                        {/* Faculty Profile Card */}
-                        <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#1e2a58] via-[#1f356f] to-[#191838] p-6 text-white shadow-xl">
-                            <div className="flex items-center gap-5">
-                                <div className="h-20 w-20 overflow-hidden rounded-[24px] border-2 border-white/20 bg-white/10">
-                                    <img 
-                                        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${faculty}`}
-                                        alt="Faculty" 
-                                        className="h-full w-full object-cover"
-                                    />
-                                </div>
-                                <div>
-                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">{t('Lead Faculty')}</p>
-                                    <h3 className="text-xl font-bold">{faculty}</h3>
-                                    <div className="mt-2 flex items-center gap-3">
-                                        <div className="flex items-center gap-1.5 py-1 px-3 bg-white/10 rounded-full border border-white/5">
-                                            <MapPin size={10} className="text-white/60" />
-                                            <span className="text-[10px] font-bold">{subjectData?.rooms?.[0] || 'TBD'}</span>
+                            <div className="space-y-4">
+                                {visibleResults.length > 0 ? (
+                                    visibleResults.map((e, idx) => (
+                                        (() => {
+                                            const isScheduled = !hasDeclaredResult(e) && isScheduledTest(e);
+                                            const hasPassed = hasPassedTest(e);
+                                            return (
+                                                <div
+                                                    key={idx}
+                                                    onClick={() => setSelectedTest(e)}
+                                                    className={`p-5 rounded-[28px] border shadow-sm flex items-center justify-between group cursor-pointer transition-all active:scale-[0.98] ${isScheduled
+                                                            ? 'bg-blue-50/60 border-blue-300 ring-1 ring-blue-200 hover:shadow-[0_15px_30px_rgba(37,99,235,0.18)]'
+                                                            : hasPassed
+                                                                ? 'bg-emerald-50/40 border-emerald-200 hover:shadow-[0_15px_30px_rgba(16,185,129,0.15)]'
+                                                                : 'bg-rose-50/35 border-rose-200 hover:shadow-[0_15px_30px_rgba(244,63,94,0.14)]'
+                                                        }`}
+                                                >
+                                                    <div className="flex items-center gap-4">
+                                                        <div className={`p-3 rounded-2xl border ${isScheduled
+                                                                ? 'bg-blue-100 text-blue-700 border-blue-200'
+                                                                : hasPassed
+                                                                    ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
+                                                                    : 'bg-rose-100 text-rose-700 border-rose-200'
+                                                            }`}>
+                                                            {isScheduled ? <Clock size={20} /> : <Award size={20} />}
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="text-sm font-bold text-[#191838]">{e.name}</h4>
+                                                            <p className={`text-[10px] font-medium uppercase tracking-tight ${isScheduled ? 'text-blue-600' : 'text-slate-400'}`}>
+                                                                {isScheduled ? t('Scheduled on') : ''}{isScheduled ? ' ' : ''}
+                                                                {new Date(e.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })} • {e.chapter}
+                                                            </p>
+                                                            {isScheduled && (
+                                                                <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-white/80 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-blue-700">
+                                                                    <Calendar size={11} />
+                                                                    {t('Result Pending')}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        {isScheduled ? (
+                                                            <>
+                                                                <p className="text-[11px] font-black uppercase tracking-wider text-blue-700">{t('Scheduled')}</p>
+                                                                <p className="text-[10px] font-bold text-blue-500">{t('Upcoming')}</p>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <p className="text-sm font-black text-[#191838]">{e.marksObtained}/{e.totalMarks}</p>
+                                                                <p className={`text-[10px] font-bold uppercase ${hasPassed ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                                                    {e.percentage}% • {hasPassed ? t('Passed') : t('Failed')}
+                                                                </p>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()
+                                    ))
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center rounded-[40px] border-2 border-dashed border-slate-200 bg-white/70 p-12 text-center shadow-sm">
+                                        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                                            <FileText size={28} />
                                         </div>
-                                        <div className="flex items-center gap-1.5 py-1 px-3 bg-white/10 rounded-full border border-white/5">
-                                            <Clock size={10} className="text-white/60" />
-                                            <span className="text-[10px] font-bold">{subjectData?.timings?.[0] || 'TBD'}</span>
+                                        <h4 className="text-lg font-bold text-[#191838]">
+                                            {resultViewTab === 'Scheduled' ? t('No Scheduled Tests') : t('No Declared Results')}
+                                        </h4>
+                                        <p className="mt-2 text-sm font-medium text-slate-400 leading-relaxed max-w-[200px]">
+                                            {resultViewTab === 'Scheduled'
+                                                ? t('Upcoming tests will appear here once they are scheduled.')
+                                                : t('Declared exam results will appear here once published by faculty.')}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 3. INFORMATION TAB CONTENT */}
+                    {activeTab === 'Info' && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+                            {/* Faculty Profile Card */}
+                            <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#1e2a58] via-[#1f356f] to-[#191838] p-6 text-white shadow-xl">
+                                <div className="flex items-center gap-5">
+                                    <div className="h-20 w-20 overflow-hidden rounded-[24px] border-2 border-white/20 bg-white/10">
+                                        <img
+                                            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${faculty}`}
+                                            alt="Faculty"
+                                            className="h-full w-full object-cover"
+                                        />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">{t('Lead Faculty')}</p>
+                                        <p className="text-xl font-bold">{faculty}</p>
+                                        <div className="mt-2 flex items-center gap-3">
+                                            <div className="flex items-center gap-1.5 py-1 px-3 bg-white/10 rounded-full border border-white/5">
+                                                <MapPin size={10} className="text-white/60" />
+                                                <span className="text-[10px] font-bold">{subjectData?.rooms?.[0] || 'TBD'}</span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5 py-1 px-3 bg-white/10 rounded-full border border-white/5">
+                                                <Clock size={10} className="text-white/60" />
+                                                <span className="text-[10px] font-bold">{subjectData?.timings?.[0] || 'TBD'}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Schedule & Attendance Group */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="p-5 rounded-[28px] bg-white border border-slate-100 shadow-sm text-center">
-                                <div className="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-indigo-100">
-                                    <Hash size={20} />
+                            {/* Schedule & Attendance Group */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="p-5 rounded-[28px] bg-white border border-slate-100 shadow-sm text-center">
+                                    <div className="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-indigo-100">
+                                        <Hash size={20} />
+                                    </div>
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Subject Code')}</p>
+                                    <p className="text-sm font-bold text-[#191838]">{subjectData?.code || '---'}</p>
                                 </div>
-                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Subject Code')}</p>
-                                <p className="text-sm font-bold text-[#191838]">{subjectData?.code || '---'}</p>
-                            </div>
-                            <div className="p-5 rounded-[28px] bg-white border border-slate-100 shadow-sm text-center">
-                                <div className="h-10 w-10 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-emerald-100">
-                                    <GraduationCap size={20} />
+                                <div className="p-5 rounded-[28px] bg-white border border-slate-100 shadow-sm text-center">
+                                    <div className="h-10 w-10 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-emerald-100">
+                                        <GraduationCap size={20} />
+                                    </div>
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Attendance')}</p>
+                                    <p className="text-sm font-bold text-emerald-600">{attendanceProgress}%</p>
                                 </div>
-                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Attendance')}</p>
-                                <p className="text-sm font-bold text-emerald-600">{attendanceProgress}%</p>
+                            </div>
+
+                            {/* Attendance Detail (Simplified Calendar) */}
+                            <div className="p-6 rounded-[32px] bg-white border border-slate-100 shadow-sm">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <Calendar size={18} className="text-slate-400" />
+                                    <h4 className="text-sm font-bold text-[#191838]">{t('Detailed Logs')}</h4>
+                                </div>
+                                {attendanceLoading ? (
+                                    <div className="flex h-40 items-center justify-center"><RefreshCcw className="animate-spin text-slate-100" /></div>
+                                ) : (
+                                    <CalendarView records={attendanceData?.records || []} t={t} language={language} />
+                                )}
                             </div>
                         </div>
+                    )}
+                </main>
 
-                        {/* Attendance Detail (Simplified Calendar) */}
-                        <div className="p-6 rounded-[32px] bg-white border border-slate-100 shadow-sm">
-                            <div className="flex items-center gap-2 mb-4">
-                                <Calendar size={18} className="text-slate-400" />
-                                <h4 className="text-sm font-bold text-[#191838]">{t('Detailed Logs')}</h4>
-                            </div>
-                            {attendanceLoading ? (
-                                <div className="flex h-40 items-center justify-center"><RefreshCcw className="animate-spin text-slate-100" /></div>
-                            ) : (
-                                <CalendarView records={attendanceData?.records || []} t={t} language={language} />
-                            )}
-                        </div>
-                    </div>
-                )}
-            </main>
-
-            {/* Test Detail Modal */}
-            <TestDetailModal 
-                test={selectedTest} 
-                onClose={() => setSelectedTest(null)} 
-                t={t} 
-                language={language} 
-            />
-        </div>
+                {/* Test Detail Modal */}
+                <TestDetailModal
+                    test={selectedTest}
+                    onClose={() => setSelectedTest(null)}
+                    t={t}
+                    language={language}
+                />
+            </div>
         </StudentLayout>
     );
 };
@@ -551,16 +691,16 @@ const CalendarView = ({ records = [], t, language }) => {
     };
 
     const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-    
+
     // Generate dates for the grid
     const prevMonthDays = new Date(year, month, 0).getDate();
     const calendarDates = [];
-    
+
     // Padding from previous month
     for (let i = firstDay - 1; i >= 0; i--) {
         calendarDates.push({ day: prevMonthDays - i, isCurrentMonth: false });
     }
-    
+
     // Current month days
     for (let i = 1; i <= daysInMonth; i++) {
         calendarDates.push({ day: i, isCurrentMonth: true });
