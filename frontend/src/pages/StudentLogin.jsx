@@ -14,6 +14,7 @@ const StudentLogin = () => {
     const [rollNo, setRollNo] = useState('');
     const [password, setPassword] = useState('');
     const [formError, setFormError] = useState('');
+    const [formErrorHint, setFormErrorHint] = useState('');
     const [fieldErrors, setFieldErrors] = useState({ rollNo: '', password: '' });
     const [touched, setTouched] = useState({ rollNo: false, password: false });
     const [submitAttempted, setSubmitAttempted] = useState(false);
@@ -74,6 +75,7 @@ const StudentLogin = () => {
             setPassword(value);
         }
         setFormError('');
+        setFormErrorHint('');
         if (submitAttempted || touched[field]) {
             validate(field === 'rollNo' ? value : rollNo, field === 'password' ? value : password);
         }
@@ -85,6 +87,7 @@ const StudentLogin = () => {
         e.preventDefault();
         if (loading) return;
         setFormError('');
+        setFormErrorHint('');
         setSubmitAttempted(true);
         const normalizedRollNo = rollNo.trim();
         const isValid = validate(normalizedRollNo, password);
@@ -129,12 +132,16 @@ const StudentLogin = () => {
         } catch (err) {
             if (err.response?.status === 401) {
                 setFormError(t('Invalid ID or password. Please try again.'));
+                setFormErrorHint(t('Please check your credentials and try again.'));
             } else if (err.response?.status === 429) {
                 setFormError(t('Too many attempts. Please wait a minute and try again.'));
+                setFormErrorHint(t('Wait a minute before your next login attempt.'));
             } else if (!err.response) {
                 setFormError(t('Unable to reach the server. Check your internet connection.'));
+                setFormErrorHint(t('If you are online, the server may be temporarily unavailable. Please try again shortly.'));
             } else {
                 setFormError(err.response?.data?.message || t('Login failed. Please try again.'));
+                setFormErrorHint(t('Please try again in a moment.'));
             }
         } finally {
             setLoading(false);
@@ -548,7 +555,7 @@ const StudentLogin = () => {
                         <AlertCircle size={18} className="sl-error-icon" />
                         <div>
                             <p className="sl-error-title">{formError}</p>
-                            <p className="sl-error-hint">{t('Please check your credentials and try again.')}</p>
+                            {formErrorHint && <p className="sl-error-hint">{formErrorHint}</p>}
                         </div>
                     </div>
                 )}

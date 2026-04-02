@@ -4,6 +4,50 @@ import { isNativeShell, refreshNativeSession, syncNativeSession, triggerNativeLo
 const LEGACY_API_ORIGIN = 'https://student-erp-server-api.vercel.app';
 const PRIMARY_API_ORIGIN = 'https://student-erp-6w9m.onrender.com';
 
+const isPrivateOrLocalHost = (hostname = '') => {
+    const host = String(hostname || '').trim().toLowerCase();
+    if (!host) return false;
+
+    if (host === 'localhost' || host === '0.0.0.0' || host.endsWith('.local')) {
+        return true;
+    }
+
+    if (/^127\./.test(host) || /^10\./.test(host) || /^192\.168\./.test(host)) {
+        return true;
+    }
+
+    const match172 = host.match(/^172\.(\d{1,3})\./);
+    if (match172) {
+        const secondOctet = Number(match172[1]);
+        if (secondOctet >= 16 && secondOctet <= 31) {
+            return true;
+        }
+    }
+
+    return false;
+};
+
+const shouldForcePublicApiOrigin = (rawBase) => {
+    const value = String(rawBase || '').trim();
+    if (!value.startsWith('http')) return false;
+
+    try {
+        const url = new URL(value);
+        if (!isPrivateOrLocalHost(url.hostname)) {
+            return false;
+        }
+
+        if (isNativeShell()) {
+            return false;
+        }
+
+        const appHost = typeof window !== 'undefined' ? window.location.hostname : '';
+        return !isPrivateOrLocalHost(appHost);
+    } catch {
+        return false;
+    }
+};
+
 const normalizeBaseURL = (rawBase) => {
     const value = String(rawBase || '').trim();
     if (!value) return '/api';
@@ -34,6 +78,10 @@ const normalizeBaseURL = (rawBase) => {
 
 const getBaseURL = () => {
     const envBase = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
+    if (shouldForcePublicApiOrigin(envBase)) {
+        return normalizeBaseURL(PRIMARY_API_ORIGIN);
+    }
+
     return normalizeBaseURL(envBase);
 };
 
