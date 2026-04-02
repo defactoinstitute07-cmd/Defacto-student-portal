@@ -10,7 +10,7 @@ const resultRoutes = require('./routes/resultRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const { redis } = require('./middleware/cache');
 const { connectToDatabase, getDatabaseHealth } = require('./config/database');
-const { sendApiError } = require('./utils/apiError');
+const { sendApiError, sendDatabaseUnavailable } = require('./utils/apiError');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -89,6 +89,20 @@ app.get('/api/health', async (req, res) => {
             NODE_ENV: process.env.NODE_ENV
         }
     });
+});
+
+// Ensure DB is connected before route handlers (important for serverless runtime)
+app.use('/api', async (req, res, next) => {
+    try {
+        const health = getDatabaseHealth();
+        if (!health.isHealthy) {
+            await connectToDatabase();
+        }
+        return next();
+    } catch (error) {
+        console.error('Mongo connect middleware error:', error.message || error);
+        return sendDatabaseUnavailable(res);
+    }
 });
 
 
