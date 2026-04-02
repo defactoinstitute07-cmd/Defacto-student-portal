@@ -11,6 +11,12 @@ router.post('/students/add', authController.addStudent);
 
 // Student Login
 router.post('/student/login', authController.studentLogin);
+router.get('/student/login', (req, res) => {
+	res.status(405).json({
+		success: false,
+		message: 'Use POST /api/student/login for authentication.'
+	});
+});
 router.post('/student/mobile/login', mobileAuthController.mobileLogin);
 router.post('/student/mobile/refresh', mobileAuthController.mobileRefresh);
 router.post('/student/mobile/logout', mobileAuthController.mobileLogout);

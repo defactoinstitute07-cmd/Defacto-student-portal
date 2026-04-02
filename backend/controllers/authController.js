@@ -6,10 +6,13 @@ const ExamResult = require('../models/ExamResult');
 const Attendance = require('../models/Attendance');
 const Subject = require('../models/Subject');
 const Syllabus = require('../models/Syllabus');
+const ChapterCompletion = require('../models/ChapterCompletion');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { invalidateUserCache } = require('../middleware/cache');
 const { sendApiError } = require('../utils/apiError');
+
+const escapeRegex = (value = '') => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const normalizeDeviceInfo = (payload = {}) => ({
     platform: String(payload.platform || '').trim(),
@@ -171,8 +174,13 @@ exports.studentLogin = async (req, res) => {
 
         rollNo = rollNo.trim();
 
+        if (!process.env.JWT_SECRET) {
+            return res.status(500).json({ success: false, message: 'Server auth configuration missing' });
+        }
+
         // Check if student exists (case-insensitive) and populate batch
-        const student = await Student.findOne({ rollNo: { $regex: new RegExp(`^${rollNo}$`, 'i') } }).populate('batchId');
+        const safeRollNoPattern = new RegExp(`^${escapeRegex(rollNo)}$`, 'i');
+        const student = await Student.findOne({ rollNo: { $regex: safeRollNoPattern } }).populate('batchId');
         if (!student) {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
@@ -221,7 +229,12 @@ exports.studentLogin = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Error in studentLogin:', error);
+        console.error('Error in studentLogin:', {
+            name: error?.name,
+            message: error?.message,
+            stack: error?.stack,
+            code: error?.code
+        });
         sendApiError(res, error, 'Login failed. Please try again.');
     }
 };
@@ -400,20 +413,137 @@ exports.getStudentProfile = async (req, res) => {
             }
         }
 
-        // 4. Fetch Syllabus Completion ──────────────────────────────────
+        // 4. Fetch Syllabus Completion (from ChapterCompletion collection) ──────
         let syllabusMap = new Map();
         if (student.batchId) {
-            const syllabuses = await Syllabus.find({ batchId: student.batchId._id }).lean();
-            syllabuses.forEach(s => {
-                const totalChapters = s.chapters?.length || 0;
-                const completedChapters = s.chapters?.filter(c => c.isCompleted).length || 0;
-                const percentage = totalChapters > 0 ? Math.round((completedChapters / totalChapters) * 100) : 0;
-                
-                syllabusMap.set(s.subject, {
-                    chapters: s.chapters || [],
-                    completionPercentage: percentage,
+            const batchObjId = student.batchId._id;
+            const normalizeKey = (value) => String(value || '').trim().toLowerCase();
+
+            // Primary: ChapterCompletion docs (created by admin/teacher panel)
+            const [completionDocs, batchSubjectDocs, syllabusDocs] = await Promise.all([
+                ChapterCompletion.find({ batchId: batchObjId })
+                    .sort({ updatedAt: -1, createdAt: -1 })
+                    .lean(),
+                Subject.find({ batchId: batchObjId, isActive: true }).select('name totalChapters').lean(),
+                Syllabus.find({ batchId: batchObjId }).lean()
+            ]);
+
+            // Build a map: normalized subject -> total chapters from Subject collection
+            const subjectTotalMap = new Map();
+            batchSubjectDocs.forEach((subjectDoc) => {
+                const key = normalizeKey(subjectDoc.name);
+                if (!key) return;
+                subjectTotalMap.set(key, subjectDoc.totalChapters);
+            });
+
+            // Group latest ChapterCompletion status by subject + chapter.
+            const completionBySubject = new Map();
+            completionDocs.forEach(doc => {
+                const subjectKey = normalizeKey(doc.subject);
+                const chapterKey = normalizeKey(doc.chapterName);
+                if (!subjectKey || !chapterKey) return;
+
+                if (!completionBySubject.has(subjectKey)) {
+                    completionBySubject.set(subjectKey, new Map());
+                }
+
+                const chapterMap = completionBySubject.get(subjectKey);
+
+                // Keep only the latest record per chapter (query is sorted latest first).
+                if (!chapterMap.has(chapterKey)) {
+                    chapterMap.set(chapterKey, {
+                        name: String(doc.chapterName || '').trim(),
+                        isCompleted: Boolean(doc.isCompleted),
+                        completedAt: doc.isCompleted ? (doc.completedAt || doc.updatedAt || null) : null,
+                        isCompletionTracked: true,
+                        trackingSource: 'chapterCompletion'
+                    });
+                }
+            });
+
+            // Build syllabus chapter map (used for ordered chapter list and fallback metadata).
+            const syllabusDataMap = new Map();
+            syllabusDocs.forEach(s => {
+                const subjectKey = normalizeKey(s.subject);
+                if (!subjectKey) return;
+                syllabusDataMap.set(subjectKey, (s.chapters || []).map((chapter) => ({
+                    name: String(chapter?.name || '').trim(),
+                    isCompleted: Boolean(chapter?.isCompleted),
+                    completedAt: chapter?.completedAt || null
+                })));
+            });
+
+            // Merge chapter tracking and syllabus definitions for every known subject.
+            const allSubjectKeys = new Set([
+                ...completionBySubject.keys(),
+                ...syllabusDataMap.keys(),
+                ...Array.from(teachersMap.keys()).map((subject) => normalizeKey(subject)),
+                ...subjectTotalMap.keys()
+            ]);
+
+            allSubjectKeys.forEach((subjectKey) => {
+                if (!subjectKey) return;
+
+                const completedChapterMap = completionBySubject.get(subjectKey) || new Map();
+                const syllabusChapters = syllabusDataMap.get(subjectKey) || [];
+                const totalFromSubjectCol = subjectTotalMap.get(subjectKey);
+
+                // Prefer existing teacher map subject casing if available.
+                const teacherSubjectName = Array.from(teachersMap.keys()).find((subject) => normalizeKey(subject) === subjectKey);
+                const subjectFromSubjectDoc = batchSubjectDocs.find((subjectDoc) => normalizeKey(subjectDoc.name) === subjectKey)?.name;
+                const subjectName = teacherSubjectName || subjectFromSubjectDoc || syllabusDocs.find((s) => normalizeKey(s.subject) === subjectKey)?.subject || subjectKey;
+
+                if (!teachersMap.has(subjectName)) {
+                    teachersMap.set(subjectName, 'Unassigned');
+                }
+
+                const chapters = [];
+                const addedChapterKeys = new Set();
+
+                // Preserve syllabus order and override completion state from ChapterCompletion when present.
+                syllabusChapters.forEach(ch => {
+                    const chapterKey = normalizeKey(ch.name);
+                    if (!chapterKey || addedChapterKeys.has(chapterKey)) return;
+
+                    const trackedChapter = completedChapterMap.get(chapterKey);
+                    chapters.push({
+                        name: ch.name,
+                        isCompleted: trackedChapter ? trackedChapter.isCompleted : Boolean(ch.isCompleted),
+                        completedAt: trackedChapter ? trackedChapter.completedAt : (ch.completedAt || null),
+                        isCompletionTracked: Boolean(trackedChapter),
+                        trackingSource: trackedChapter ? trackedChapter.trackingSource : 'syllabus'
+                    });
+                    addedChapterKeys.add(chapterKey);
+                });
+
+                // Add tracked chapters that were not listed in syllabus.
+                completedChapterMap.forEach((trackedChapter, trackedKey) => {
+                    if (addedChapterKeys.has(trackedKey)) return;
+                    chapters.push({
+                        name: trackedChapter.name,
+                        isCompleted: trackedChapter.isCompleted,
+                        completedAt: trackedChapter.completedAt,
+                        isCompletionTracked: true,
+                        trackingSource: trackedChapter.trackingSource
+                    });
+                    addedChapterKeys.add(trackedKey);
+                });
+
+                const completedCount = chapters.filter(c => c.isCompleted).length;
+                const totalChapters = totalFromSubjectCol || chapters.length || syllabusChapters.length;
+                const percentage = totalChapters > 0 ? Math.round((completedCount / totalChapters) * 100) : 0;
+                const trackedCount = chapters.filter(c => c.isCompletionTracked).length;
+
+                syllabusMap.set(subjectName, {
+                    chapters,
+                    completionPercentage: Math.min(percentage, 100),
                     totalChapters,
-                    completedChapters
+                    completedChapters: completedCount,
+                    tracking: {
+                        trackedChapters: trackedCount,
+                        untrackedChapters: Math.max(totalChapters - trackedCount, 0),
+                        source: 'chapterCompletion+syllabus'
+                    }
                 });
             });
         }
