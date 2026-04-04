@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, User, Calendar, IndianRupee, CreditCard, MapPin, Phone, Mail, BadgeInfo, CheckCircle2, History } from 'lucide-react';
+import { X, User, Calendar, IndianRupee, CreditCard, MapPin, Phone, Mail, BadgeInfo, History } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageToggleButton from './LanguageToggleButton';
 
@@ -204,15 +204,6 @@ const FeeInfoModal = ({ isOpen, onClose, fee, student }) => {
                     >
                         {t('Close')}
                     </button>
-                    {balance <= 0 && (
-                        <button
-                            type="button"
-                            className="flex-[1.5] inline-flex items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#4f46e5_0%,#7c3aed_50%,#6366f1_100%)] text-white px-4 py-3 font-semibold text-sm shadow-[0_12px_30px_rgba(79,70,229,0.45)] active:scale-[0.98]"
-                        >
-                            <CheckCircle2 size={18} className="text-white" />
-                            {t('Download Receipt')}
-                        </button>
-                    )}
                 </div>
             </div>
         </div>
