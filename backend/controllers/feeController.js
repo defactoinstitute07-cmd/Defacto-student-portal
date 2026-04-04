@@ -220,7 +220,6 @@ exports.getFeeReceipt = async (req, res) => {
 
         const fee = await fetchStudentReceipt(paymentId, String(studentId), student);
         if (!fee) {
-            console.warn(`[Receipt] Fee record ${paymentId} not found for student ${studentId}`);
             return res.status(404).json({ success: false, message: 'Fee record not found.' });
         }
 

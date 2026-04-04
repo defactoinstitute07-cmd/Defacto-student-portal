@@ -13,3 +13,6 @@ frontend/vite.config.js.timestamp-*.mjs
 
 .vercel
 backend/config/*.json
+
+.vercel
+.env*.local

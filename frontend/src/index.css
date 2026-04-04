@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap');
 
 @import "tailwindcss";
 
@@ -81,7 +81,7 @@ html {
 }
 
 body {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'DM Sans', system-ui, sans-serif;
     /* Background gradients updated to indigo tint */
     background:
         radial-gradient(800px 600px at 20% 10%, rgba(25, 24, 56, 0.04), transparent 50%),
@@ -99,7 +99,7 @@ h2,
 h3,
 h4,
 h5 {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'DM Sans', system-ui, sans-serif;
     font-weight: 700;
     /* UPDATE: Pehle ye pure white (#ffffff) tha. Ise variable mein change kar diya hai 
        taaki light mode mein ye dark slate color le le. */
@@ -546,7 +546,7 @@ textarea:focus-visible {
     border-radius: var(--radius-sm);
     font-size: 1rem;
     font-weight: 700;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'DM Sans', system-ui, sans-serif;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -606,7 +606,7 @@ textarea:focus-visible {
     display: flex;
     flex-direction: column;
     align-items: center;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'DM Sans', system-ui, sans-serif;
     color: var(--erp-text);
     /* Updated to dark text */
 }
@@ -667,7 +667,7 @@ textarea:focus-visible {
     margin: 0 0 6px;
     color: var(--erp-text);
     /* Updated to dark text */
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'DM Sans', system-ui, sans-serif;
 }
 
 .login-heading p {
@@ -996,7 +996,7 @@ textarea:focus-visible {
     white-space: nowrap;
     overflow: hidden;
     letter-spacing: 0.01em;
-    font-family: 'DM Sans', 'Inter', system-ui, sans-serif;
+    font-family: 'DM Sans', system-ui, sans-serif;
 }
 
 .sb-code {
@@ -1085,12 +1085,6 @@ textarea:focus-visible {
     width: 4px;
     border-radius: 999px;
     background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
-}
-
-.sb-item:focus-visible {
-    /* outline: 2px solid var(--erp-ring);
-    /* Light theme focus ring */
-    /* outline-offset: 2px; */ 
 }
 
 .sb-item-icon {
@@ -1198,7 +1192,7 @@ textarea:focus-visible {
     font-weight: 700;
     color: var(--erp-text);
     /* Dark text */
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'DM Sans', system-ui, sans-serif;
     flex: 1;
     position: relative;
     z-index: 1;

@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, User, Calendar, IndianRupee, CreditCard, MapPin, Phone, Mail, BadgeInfo, CheckCircle2, History } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import LanguageToggleButton from './LanguageToggleButton';
 
 const FeeInfoModal = ({ isOpen, onClose, fee, student }) => {
     const { t } = useLanguage();
@@ -39,14 +40,14 @@ const FeeInfoModal = ({ isOpen, onClose, fee, student }) => {
     return (
         <div className="fixed inset-0 z-[1200] flex items-center justify-center p-0 md:p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
             <div 
-                className="bg-white w-full h-full md:h-auto md:max-h-[90vh] md:max-w-3xl md:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-8 duration-300"
+                className="bg-white w-full h-full md:h-auto md:max-h-[90vh] md:max-w-3xl md:rounded-[15px] shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-8 duration-300"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
                <div className="bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 px-6 py-5 flex items-center justify-between text-gray-900 shadow-md sticky top-0 z-20 border-b border-indigo-400/30">
     <div className="flex items-center gap-4">
         {/* Glassmorphism Icon Container */}
-        <div className="bg-white/15 backdrop-blur-md p-2.5 rounded-2xl border border-white/20 shadow-sm shrink-0">
+        <div className="bg-white/15 backdrop-blur-md p-2.5 rounded-[15px] border border-white/20 shadow-sm shrink-0">
             <IndianRupee size={22} className="text-white drop-shadow-sm" />
         </div>
         
@@ -57,9 +58,9 @@ const FeeInfoModal = ({ isOpen, onClose, fee, student }) => {
             
             {/* Upgraded Info Pill */}
             <div className="flex items-center">
-                <p className="text-indigo-50 text-[11px] font-semibold tracking-wide bg-black/15 px-3 py-1 rounded-full border border-gray-200 flex items-center gap-1.5 shadow-inner">
+                <p className="text-indigo-50 text-[11px] font-semibold tracking-wide bg-black/15 px-3 py-1 rounded-[15px] border border-gray-200 flex items-center gap-1.5 shadow-inner">
                     {/* Optional indicator dot - makes the status pop */}
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shadow-[0_0_5px_rgba(74,222,128,0.5)]"></span>
+                    <span className="w-1.5 h-1.5 rounded-[15px] bg-indigo-400 shadow-[0_0_5px_rgba(74,222,128,0.5)]"></span>
                     <span>{fee.month} {fee.year}</span>
                     <span className="opacity-40 font-normal px-0.5">|</span>
                     <span className="uppercase tracking-wider">{t(fee.status)}</span>
@@ -68,14 +69,21 @@ const FeeInfoModal = ({ isOpen, onClose, fee, student }) => {
         </div>
     </div>
     
-    {/* Refined Close Button */}
-    <button 
-        onClick={onClose}
-        className="p-2.5 bg-black/5 hover:bg-black/20 rounded-full transition-all duration-200 active:scale-90 border border-transparent hover:border-gray-200 group"
-        aria-label="Close"
-    >
-        <X size={20} className="text-indigo-100 group-hover:text-gray-900 transition-colors" />
-    </button>
+    <div className="flex items-center gap-2">
+        <LanguageToggleButton
+            variant="topbar"
+            className="bg-white/15 border-white/25 text-white hover:bg-white/20"
+        />
+
+        {/* Refined Close Button */}
+        <button 
+            onClick={onClose}
+            className="p-2.5 bg-black/5 hover:bg-black/20 rounded-[15px] transition-all duration-200 active:scale-90 border border-transparent hover:border-gray-200 group"
+            aria-label="Close"
+        >
+            <X size={20} className="text-indigo-100 group-hover:text-gray-900 transition-colors" />
+        </button>
+    </div>
 </div>
 
                 {/* Content */}
@@ -89,7 +97,7 @@ const FeeInfoModal = ({ isOpen, onClose, fee, student }) => {
                             {t('Payment Breakdown')}
                         </h4>
                         
-                        <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+                        <div className="bg-white rounded-[15px] border border-slate-100 overflow-hidden shadow-sm">
                             <div className="p-4 space-y-3">
                                 <div className="flex justify-between items-center pb-2 border-b border-dashed border-slate-100 italic">
                                     <span className="text-xs text-slate-400">{t('Item Description')}</span>
@@ -146,7 +154,7 @@ const FeeInfoModal = ({ isOpen, onClose, fee, student }) => {
                         </h4>
                         
                         {paymentRows.length > 0 ? (
-                            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                            <div className="bg-white rounded-[15px] border border-slate-100 shadow-sm overflow-hidden">
                                 <div className="px-4 py-3 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
                                     <CreditCard size={14} className="text-indigo-500" />
                                     <div className="grid grid-cols-[minmax(0,1.3fr)_minmax(0,1.7fr)_minmax(0,0.9fr)_minmax(0,1.5fr)] gap-2 w-full text-[10px] font-semibold text-slate-400 uppercase tracking-[0.16em]">
@@ -165,7 +173,7 @@ const FeeInfoModal = ({ isOpen, onClose, fee, student }) => {
                                             <div className="flex items-center justify-between gap-2 text-xs text-slate-500 truncate">
                                                
                                                 {isFullyPaid && (
-                                                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-600">
+                                                    <span className="inline-flex items-center rounded-[15px] bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-600">
                                                         {t('Paid')}
                                                     </span>
                                                 )}
@@ -181,7 +189,7 @@ const FeeInfoModal = ({ isOpen, onClose, fee, student }) => {
                                 ))}
                             </div>
                         ) : (
-                            <div className="text-center p-8 bg-white rounded-2xl border border-dashed border-white/8 text-slate-400">
+                            <div className="text-center p-8 bg-white rounded-[15px] border border-dashed border-white/8 text-slate-400">
                                 <p className="text-sm italic">{t('No transaction records found.')}</p>
                             </div>
                         )}

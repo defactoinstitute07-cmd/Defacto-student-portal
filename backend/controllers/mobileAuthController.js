@@ -57,6 +57,15 @@ exports.mobileLogin = async (req, res) => {
             return sendAuthFailure(res, 401, 'invalid_credentials', 'Invalid credentials.');
         }
 
+        if (student.status === 'inactive') {
+            return sendAuthFailure(
+                res,
+                403,
+                'account_inactive',
+                'Your account is inactive. Please contact the admin.'
+            );
+        }
+
         if (!student.password) {
             return sendAuthFailure(res, 401, 'invalid_credentials', 'Invalid credentials.');
         }

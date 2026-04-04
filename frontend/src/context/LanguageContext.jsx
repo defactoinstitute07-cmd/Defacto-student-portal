@@ -281,7 +281,55 @@ const translations = {
         'Total Payable': 'कुल देय',
         'Net Balance': 'कुल बकाया',
         'Full Paid Receipt': 'पूर्ण भुगतान रसीद',
-        'Info': 'जानकारी'
+        'Info': 'जानकारी',
+        'Syllabus': 'सिलेबस',
+        'Subject Detail': 'विषय विवरण',
+        'Track results, attendance, and faculty updates in one place.': 'एक ही जगह पर परिणाम, उपस्थिति और शिक्षक अपडेट देखें।',
+        'Attendance Overview': 'उपस्थिति अवलोकन',
+        'No Syllabus Data': 'सिलेबस डेटा उपलब्ध नहीं है',
+        'The syllabus for this subject has not been added yet. Please check back later.': 'इस विषय का सिलेबस अभी जोड़ा नहीं गया है। कृपया बाद में फिर जांचें।',
+        'Chapter Tracking Dashboard': 'अध्याय ट्रैकिंग डैशबोर्ड',
+        'Analytics': 'विश्लेषण',
+        'Total Chapters': 'कुल अध्याय',
+        'Completed Chapters': 'पूर्ण अध्याय',
+        'Remaining Chapters': 'शेष अध्याय',
+        'Next Chapter ETA': 'अगले अध्याय का अनुमान',
+        'Completion Analytics': 'पूर्णता विश्लेषण',
+        'of': 'में से',
+        'chapters completed': 'अध्याय पूरे हुए',
+        'Progress Alert': 'प्रगति अलर्ट',
+        'Entire syllabus has been covered. Great consistency!': 'पूरा सिलेबस कवर हो चुका है। शानदार निरंतरता!',
+        'Next focus': 'अगला फोकस',
+        'Estimated completion': 'अनुमानित पूर्णता',
+        'chapters remaining': 'अध्याय शेष',
+        'Keep your pace steady to improve completion analytics.': 'पूर्णता विश्लेषण बेहतर करने के लिए अपनी गति स्थिर रखें।',
+        'Upcoming Chapters': 'आगामी अध्याय',
+        'Chapter list is not available yet, but overall chapter targets are active for this subject.': 'अभी अध्याय सूची उपलब्ध नहीं है, लेकिन इस विषय के कुल अध्याय लक्ष्य सक्रिय हैं।',
+        'Upcoming': 'आगामी',
+        'Done': 'पूर्ण',
+        'All': 'सभी',
+        'Scheduled': 'निर्धारित',
+        'Upcoming Schedule': 'आगामी समय-सारणी',
+        'These are scheduled tests. Scores and percentages will appear after results are declared.': 'ये निर्धारित टेस्ट हैं। परिणाम घोषित होने के बाद अंक और प्रतिशत दिखाई देंगे।',
+        'Scheduled on': 'निर्धारित तिथि',
+        'Result Pending': 'परिणाम लंबित',
+        'Failed': 'अनुत्तीर्ण',
+        'No Scheduled Tests': 'कोई निर्धारित टेस्ट नहीं',
+        'No Declared Results': 'कोई घोषित परिणाम नहीं',
+        'Upcoming tests will appear here once they are scheduled.': 'जैसे ही टेस्ट निर्धारित होंगे, वे यहां दिखाई देंगे।',
+        'Declared exam results will appear here once published by faculty.': 'शिक्षक द्वारा प्रकाशित होने पर घोषित परीक्षा परिणाम यहां दिखाई देंगे।',
+        'Lead Faculty': 'मुख्य शिक्षक',
+        'Subject Code': 'विषय कोड',
+        'Detailed Logs': 'विस्तृत रिकॉर्ड',
+        'Assessment': 'मूल्यांकन',
+        'Scheduled Test': 'निर्धारित टेस्ट',
+        'Result not declared yet for this test.': 'इस टेस्ट का परिणाम अभी घोषित नहीं हुआ है।',
+        'Scores and percentage will be visible after evaluation is completed.': 'मूल्यांकन पूरा होने के बाद अंक और प्रतिशत दिखाई देंगे।',
+        'Score': 'अंक',
+        'Percentage': 'प्रतिशत',
+        'Date': 'तिथि',
+        'Status': 'स्थिति',
+        'Test': 'परीक्षा'
     }
 };
 
@@ -291,11 +339,9 @@ const safeString = (val) => {
     if (val === null || val === undefined) return '';
     try {
         if (typeof val === 'symbol') {
-            console.warn('LanguageContext: Symbol encountered:', val);
             return val.toString();
         }
         if (typeof val === 'object') {
-            console.warn('LanguageContext: Object encountered where string expected:', val);
             return '[Object]';
         }
         return String(val);
@@ -329,9 +375,6 @@ export const LanguageProvider = ({ children }) => {
         setLanguage,
         toggleLanguage: () => setLanguage((current) => (current === 'en' ? 'hi' : 'en')),
         t: (key, values = {}) => {
-            if (typeof key !== 'string' && key !== null && key !== undefined) {
-                console.warn('LanguageContext: t() called with non-string key:', key);
-            }
             const template = language === 'hi'
                 ? translations.hi[key] || key
                 : key;

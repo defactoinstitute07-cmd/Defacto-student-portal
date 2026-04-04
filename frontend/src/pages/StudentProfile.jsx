@@ -8,7 +8,6 @@ import {
     Mail,
     Phone,
     Calendar,
-    Bell,
     Moon,
     Shield,
     LogOut,
@@ -19,7 +18,6 @@ import {
     MapPin,
     Briefcase,
     FileText,
-    CreditCard,
     Hash,
     BookOpen,
     Clock,
@@ -31,6 +29,9 @@ import { getCached, setCached } from '../utils/offlineCache';
 import { useLanguage } from '../context/LanguageContext';
 
 const EMPTY_VALUE = '-';
+const DEFAULT_PROFILE_IMAGE = `data:image/svg+xml;utf8,${encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240"><rect width="240" height="240" fill="#eef2ff"/><circle cx="120" cy="90" r="42" fill="#c7d2fe"/><path d="M40 214c10-39 42-64 80-64s70 25 80 64" fill="#c7d2fe"/></svg>'
+)}`;
 
 const formatValue = (value) => {
     if (value === null || value === undefined) return EMPTY_VALUE;
@@ -52,7 +53,7 @@ const formatDateValue = (value, locale) => {
 const formatCurrency = (value) => `\u20b9${Number(value || 0).toLocaleString('en-IN')}`;
 
 const DetailRow = ({ icon: Icon, label, value, colorClass = "text-slate-400" }) => (
-    <div className="flex items-center gap-4 rounded-2xl bg-slate-50 p-3.5 transition-all hover:bg-slate-100/80">
+    <div className="flex items-center gap-4 rounded-[15px] bg-slate-50 p-3.5 transition-all hover:bg-slate-100/80">
         <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm ${colorClass}`}>
             <Icon size={18} strokeWidth={2.2} />
         </div>
@@ -72,8 +73,8 @@ const SettingRow = ({ icon: Icon, label, type, active, onClick }) => (
             <span className="text-sm font-semibold text-slate-700">{label}</span>
         </div>
         {type === 'toggle' ? (
-            <div className={`flex h-6 w-11 items-center rounded-full px-1 transition-colors ${active ? 'bg-[#191838]' : 'bg-slate-200'}`}>
-                <div className={`h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${active ? 'translate-x-5' : 'translate-x-0'}`} />
+            <div className={`flex h-6 w-11 items-center rounded-[15px] px-1 transition-colors ${active ? 'bg-[#191838]' : 'bg-slate-200'}`}>
+                <div className={`h-4 w-4 rounded-[15px] bg-white shadow-sm transition-transform ${active ? 'translate-x-5' : 'translate-x-0'}`} />
             </div>
         ) : (
             <ChevronRight size={18} className="text-slate-300" />
@@ -95,7 +96,6 @@ const StudentProfile = () => {
     const [error, setError] = useState('');
     const token = localStorage.getItem('studentToken');
 
-    const [pushEnabled, setPushEnabled] = useState(true);
     const [darkModeEnabled, setDarkModeEnabled] = useState(false);
 
     useEffect(() => {
@@ -142,7 +142,7 @@ const StudentProfile = () => {
                     <button
                         type="button"
                         onClick={() => window.location.reload()}
-                        className="h-11 w-full rounded-2xl bg-[#191838] text-xs font-black uppercase tracking-[0.24em] text-white"
+                        className="h-11 w-full rounded-[15px] bg-[#191838] text-xs font-black uppercase tracking-[0.24em] text-white"
                     >
                         {t('Retry')}
                     </button>
@@ -150,13 +150,6 @@ const StudentProfile = () => {
             </div>
         );
     }
-
-    const initials = String(student?.name || 'S')
-        .split(' ')
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((part) => part[0]?.toUpperCase() || '')
-        .join('') || 'S';
 
     const attendancePercent = student?.attendanceSummary?.percentage || 0;
     const academicStatus = student?.status === 'batch_pending' ? t('Pending Batch') : (student?.status || t('Active'));
@@ -188,15 +181,15 @@ const StudentProfile = () => {
                 <div className="px-6 space-y-8">
                     {/* Skeleton Stats Grid */}
                     <div className="grid grid-cols-2 gap-4">
-                        <Skeleton className="h-32 w-full rounded-[28px]" />
-                        <Skeleton className="h-32 w-full rounded-[28px]" />
+                        <Skeleton className="h-32 w-full rounded-[15px]" />
+                        <Skeleton className="h-32 w-full rounded-[15px]" />
                     </div>
 
                     {/* Skeleton Detail Rows */}
                     <div className="space-y-4">
                         <Skeleton className="h-6 w-32 mb-4" />
                         {[1, 2, 3, 4].map(i => (
-                            <Skeleton key={i} className="h-16 w-full rounded-2xl" />
+                            <Skeleton key={i} className="h-16 w-full rounded-[15px]" />
                         ))}
                     </div>
                 </div>
@@ -210,20 +203,21 @@ const StudentProfile = () => {
             {/* 1. Header Card - Avatar & Primary Info */}
             <div className="relative overflow-hidden rounded-[32px] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] sm:p-8">
                 {/* Decorative Background Pattern */}
-                <div className="absolute -right-8 -top-8 h-40 w-40 rounded-full bg-indigo-50/50" />
+                <div className="absolute -right-8 -top-8 h-40 w-40 rounded-[15px] bg-indigo-50/50" />
                 
                 <div className="relative flex flex-col items-center gap-5 sm:flex-row sm:text-left">
                     <div className="relative h-24 w-24 shrink-0">
                         <div className="h-full w-full overflow-hidden rounded-[32px] border-4 border-white bg-slate-50 shadow-md">
-                            {student.profileImage ? (
-                                <img src={student.profileImage} alt={student.name} className="h-full w-full object-cover" />
-                            ) : (
-                                <div className="flex h-full w-full items-center justify-center text-2xl font-black text-slate-300">
-                                    {initials}
-                                </div>
-                            )}
+                            <img
+                                src={student.profileImage || DEFAULT_PROFILE_IMAGE}
+                                alt={student.name || 'Student profile'}
+                                className="h-full w-full object-cover"
+                                onError={(event) => {
+                                    event.currentTarget.src = DEFAULT_PROFILE_IMAGE;
+                                }}
+                            />
                         </div>
-                        <div className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-[#191838] text-white shadow-sm">
+                        <div className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-[15px] border-2 border-white bg-[#191838] text-white shadow-sm">
                             <UserCheck size={14} />
                         </div>
                     </div>
@@ -231,10 +225,10 @@ const StudentProfile = () => {
                     <div className="flex-1 text-center sm:text-left">
                         <h2 className="text-2xl font-black text-gray-900">{student.name}</h2>
                         <div className="mt-2 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-[11px] font-bold text-slate-600">
+                            <span className="inline-flex items-center gap-1.5 rounded-[15px] bg-slate-100 px-3 py-1 text-[11px] font-bold text-slate-600">
                                 <Hash size={12} /> {student.rollNo || EMPTY_VALUE}
                             </span>
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-bold text-[#191838]">
+                            <span className="inline-flex items-center gap-1.5 rounded-[15px] bg-indigo-50 px-3 py-1 text-[11px] font-bold text-[#191838]">
                                 <Clock size={12} /> {student.session || '2026-2027'}
                             </span>
                         </div>
@@ -251,7 +245,7 @@ const StudentProfile = () => {
                 {/* Academic Summary */}
                 <section>
                     <SectionHeader title={t('Academic Summary')} />
-                                        <div className="rounded-[28px] border border-gray-100 bg-white p-5 shadow-sm">
+                                        <div className="rounded-[15px] border border-gray-100 bg-white p-5 shadow-sm">
                                                 <div className="flex items-center justify-between">
                                                         <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                                                                 {t('Attendance')}
@@ -261,7 +255,7 @@ const StudentProfile = () => {
                                                         </span>
                                                 </div>
 
-                                                <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                                                <div className="mt-3 h-2 w-full overflow-hidden rounded-[15px] bg-slate-100">
                                                         <div
                                                                 className={`h-full transition-all ${getAttendanceColor(attendancePercent)}`}
                                                                 style={{ width: `${attendancePercent}%` }}
@@ -297,42 +291,13 @@ const StudentProfile = () => {
                     </div>
                 </section>
 
-                {/* Fees Overview */}
-                <section>
-                    <SectionHeader title={t('Fees Overview')} />
-                    <div className="rounded-[28px] border border-gray-100 bg-white p-5 shadow-sm">
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-orange-500">
-                                        <CreditCard size={18} />
-                                    </div>
-                                    <div>
-                                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t('Total Fees')}</p>
-                                        <p className="text-sm font-black text-slate-800">{formatCurrency(student.fees)}</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex items-center justify-between border-t border-slate-50 pt-4">
-                                <div>
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t('Registration')}</p>
-                                    <p className="text-sm font-semibold text-slate-700">{formatCurrency(student.registrationFee)}</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t('Paid')}</p>
-                                    <p className="text-sm font-bold text-[#12112a]">{formatCurrency(student.feesPaid)}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
             </div>
 
             {/* 3. Bio / Notes */}
             {(student.notes || student.bio) && (
                 <section className="mt-8">
                     <SectionHeader title={t('Notes & Bio')} />
-                    <div className="rounded-[28px] border border-gray-100 bg-indigo-50/30 p-5">
+                    <div className="rounded-[15px] border border-gray-100 bg-indigo-50/30 p-5">
                         <div className="flex gap-3">
                             <FileText className="shrink-0 text-[#191838]" size={18} />
                             <p className="text-sm italic leading-relaxed text-slate-600">
@@ -346,14 +311,7 @@ const StudentProfile = () => {
             {/* Settings & Support */}
             <section>
                 <SectionHeader title={t('Settings & Support')} />
-                <div className="rounded-[28px] bg-white p-5 border border-slate-100 shadow-sm divide-y divide-slate-50">
-                    <SettingRow 
-                        icon={Bell} 
-                        label={t('Push Notifications')} 
-                        type="toggle" 
-                        active={pushEnabled} 
-                        onClick={() => setPushEnabled(!pushEnabled)}
-                    />
+                <div className="rounded-[15px] bg-white p-5 border border-slate-100 shadow-sm divide-y divide-slate-50">
                     <SettingRow 
                         icon={Briefcase} 
                         label={t('Contact Support')} 
@@ -367,16 +325,14 @@ const StudentProfile = () => {
                         localStorage.removeItem('studentToken');
                         navigate('/student/login');
                     }}
-                    className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-4 text-sm font-extrabold text-rose-500 border border-rose-100 shadow-sm transition active:scale-95"
+                    className="mt-6 flex w-full items-center justify-center gap-2 rounded-[15px] bg-white px-4 py-4 text-sm font-extrabold text-rose-500 border border-rose-100 shadow-sm transition active:scale-95"
                 >
                     <LogOut size={18} />
                     {t('Sign Out')}
                 </button>
             </section>
 
-            <p className="mt-12 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 pb-10">
-                ClassNexus ERP v2.4.0
-            </p>
+            
         </div>
     );
 };

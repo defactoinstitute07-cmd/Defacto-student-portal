@@ -20,6 +20,7 @@
         "@capacitor/filesystem": "^7.1.8",
         "@capacitor/push-notifications": "^7.0.3",
         "@capacitor/share": "^7.0.4",
+        "@emailjs/browser": "^4.4.1",
         "@tanstack/react-query": "^5.52.0",
         "axios": "^1.6.0",
         "chart.js": "^4.5.1",

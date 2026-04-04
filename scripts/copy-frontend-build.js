@@ -13,5 +13,3 @@ if (!fs.existsSync(sourceDir)) {
 fs.rmSync(targetDir, { recursive: true, force: true });
 fs.mkdirSync(targetDir, { recursive: true });
 fs.cpSync(sourceDir, targetDir, { recursive: true });
-
-console.log(`Copied frontend build from ${sourceDir} to ${targetDir}`);

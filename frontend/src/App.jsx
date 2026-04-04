@@ -25,7 +25,7 @@ class ErrorBoundary extends Component {
             }
 
             return (
-                <div style={{ padding: '20px', color: 'red', background: '#fee', border: '2px solid red', borderRadius: '8px', margin: '20px', fontFamily: "'Inter', system-ui, sans-serif" }}>
+                <div style={{ padding: '20px', color: 'red', background: '#fee', border: '2px solid red', borderRadius: '8px', margin: '20px', fontFamily: "'DM Sans', system-ui, sans-serif" }}>
                     <h2 style={{ margin: '0 0 10px 0' }}>App Load Error</h2>
                     <p>The application encountered a problem. This is often caused by an outdated server cache (Vite 504 error).</p>
                     

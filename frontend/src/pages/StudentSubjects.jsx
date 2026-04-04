@@ -5,7 +5,7 @@ import api from '../services/api';
 import { useQuery } from '@tanstack/react-query';
 import { getCached, setCached } from '../utils/offlineCache';
 import { useLanguage } from '../context/LanguageContext';
-import { CheckCircle2, BookOpen } from 'lucide-react';
+import { CheckCircle2, BookOpen, User } from 'lucide-react';
 
 const StudentSubjects = () => {
     const navigate = useNavigate();
@@ -87,10 +87,40 @@ const StudentSubjects = () => {
         return name.charAt(0).toUpperCase();
     };
 
+    const getTeacherAvatar = (subjectTeacher, subjectName) => {
+        const fallback = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(subjectTeacher || subjectName || 'teacher')}`;
+        const raw = String(subjectTeacher?.teacherProfileImage || '').trim();
+        if (!raw) return fallback;
+        if (/^https?:\/\//i.test(raw) || raw.startsWith('data:')) return raw;
+        if (raw.startsWith('/')) return raw;
+        return `/${raw}`;
+    };
+
+    const isSyllabusCompleted = (subjectEntry) => {
+        const syllabus = subjectEntry?.syllabus || {};
+        const completion = Number(syllabus.completionPercentage);
+        if (Number.isFinite(completion) && completion >= 100) {
+            return true;
+        }
+
+        const total = Number(syllabus.totalChapters);
+        const completed = Number(syllabus.completedChapters);
+        if (Number.isFinite(total) && total > 0 && Number.isFinite(completed) && completed >= total) {
+            return true;
+        }
+
+        const chapters = Array.isArray(syllabus.chapters) ? syllabus.chapters : [];
+        if (chapters.length > 0 && chapters.every((chapter) => chapter?.isCompleted === true)) {
+            return true;
+        }
+
+        return false;
+    };
+
     if (isLoading) {
         return (
             <div className="bg-slate-50 px-5 pt-6 pb-24 no-scrollbar scroll-smooth min-h-screen">
-                <Skeleton className="h-32 w-full rounded-[28px] mb-6" />
+                <Skeleton className="h-32 w-full rounded-[15px] mb-6" />
                 <div className="flex gap-6 border-b border-slate-100 mb-6">
                     {[1, 2, 3].map(i => (
                         <Skeleton key={i} className="h-10 w-24 mb-3" />
@@ -98,7 +128,7 @@ const StudentSubjects = () => {
                 </div>
                 <div className="flex items-center justify-between mb-8">
                     <Skeleton className="h-6 w-48" />
-                    <Skeleton className="h-6 w-24 rounded-full" />
+                    <Skeleton className="h-6 w-24 rounded-[15px]" />
                 </div>
                 <div className="space-y-5">
                     {[1, 2, 3, 4].map(i => (
@@ -124,12 +154,12 @@ const StudentSubjects = () => {
     return (
         <div 
             className="bg-[radial-gradient(circle_at_top_right,#dbeafe_0%,#f8fafc_28%,#ffffff_100%)] text-slate-900 pb-24 min-h-screen" 
-            style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
+            style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}
         >
             <main className="p0">
                 <section className="relative overflow-hidden rounded-[30px] border border-slate-200/80 bg-white p-5 shadow-[0_18px_45px_rgba(15,23,42,0.08)] sm:p-6">
-                    <div className="absolute -right-14 -top-14 h-40 w-40 rounded-full bg-blue-100/60" />
-                    <div className="absolute -left-20 -bottom-20 h-48 w-48 rounded-full bg-emerald-100/40" />
+                    <div className="absolute -right-14 -top-14 h-40 w-40 rounded-[15px] bg-blue-100/60" />
+                    <div className="absolute -left-20 -bottom-20 h-48 w-48 rounded-[15px] bg-emerald-100/40" />
 
                     <div className="relative">
                         <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">{t('Subject Overview')}</p>
@@ -138,10 +168,8 @@ const StudentSubjects = () => {
                             {t('Open any subject to view chapter-wise progress, marks, and teacher feedback.')}
                         </p>
                         <div className="mt-4 flex flex-wrap gap-2">
-                            <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-bold tracking-wide text-slate-600 border border-slate-200">
-                                {t('Semester 4')}
-                            </span>
-                            <span className="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1.5 text-[11px] font-bold tracking-wide text-indigo-700 border border-indigo-100">
+                            
+                            <span className="inline-flex items-center rounded-[15px] bg-indigo-50 px-3 py-1.5 text-[11px] font-bold tracking-wide text-indigo-700 border border-indigo-100">
                                 {subjects.length} {t('Subjects')}
                             </span>
                         </div>
@@ -149,15 +177,15 @@ const StudentSubjects = () => {
                 </section>
 
                 <section className="mt-5 grid grid-cols-3 gap-3">
-                    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <div className="rounded-[15px] border border-slate-200 bg-white p-4 shadow-sm">
                         <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">{t('Total')}</p>
                         <p className="mt-2 text-xl font-black text-slate-900">{subjects.length}</p>
                     </div>
-                    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <div className="rounded-[15px] border border-slate-200 bg-white p-4 shadow-sm">
                         <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">{t('On Track')}</p>
                         <p className="mt-2 text-xl font-black text-emerald-700">{onTrackCount}</p>
                     </div>
-                    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <div className="rounded-[15px] border border-slate-200 bg-white p-4 shadow-sm">
                         <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">{t('Average')}</p>
                         <p className="mt-2 text-xl font-black text-[#191838]">{overallAverage}%</p>
                     </div>
@@ -165,15 +193,15 @@ const StudentSubjects = () => {
 
                 {/* Tabs */}
                 <div className="mt-5 flex gap-2 overflow-x-auto no-scrollbar">
-                    {['Ongoing', 'Completed'].map((tab) => {
+                    {['Ongoing'].map((tab) => {
                         const count = tab === 'Completed'
-                            ? subjects.filter(s => (s.syllabus?.completionPercentage || 0) === 100).length
-                            : subjects.filter(s => (s.syllabus?.completionPercentage || 0) < 100).length;
+                            ? subjects.filter((s) => isSyllabusCompleted(s)).length
+                            : subjects.filter((s) => !isSyllabusCompleted(s)).length;
                         return (
                             <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
-                                className={`px-4 py-2 rounded-full text-[12px] font-black uppercase tracking-wider transition-colors whitespace-nowrap border flex items-center gap-1.5 ${
+                                className={`px-4 py-2 rounded-[15px] text-[12px] font-black uppercase tracking-wider transition-colors whitespace-nowrap border flex items-center gap-1.5 ${
                                     activeTab === tab
                                         ? 'bg-[#191838] text-white border-[#191838]'
                                         : 'bg-white text-slate-500 border-slate-200 hover:text-slate-700 hover:border-slate-300'
@@ -181,7 +209,7 @@ const StudentSubjects = () => {
                             >
                                 {tab === 'Completed' && <CheckCircle2 size={13} />}
                                 {t(tab)}
-                                <span className={`ml-0.5 text-[10px] rounded-full px-1.5 py-0.5 font-black ${
+                                <span className={`ml-0.5 text-[10px] rounded-[15px] px-1.5 py-0.5 font-black ${
                                     activeTab === tab ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-400'
                                 }`}>{count}</span>
                             </button>
@@ -190,7 +218,7 @@ const StudentSubjects = () => {
                 </div>
 
                 {error && (
-                    <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-600">
+                    <div className="mt-5 rounded-[15px] border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-600">
                         {error}
                     </div>
                 )}
@@ -198,8 +226,8 @@ const StudentSubjects = () => {
                 <div className="space-y-4 mt-5">
                     {(() => {
                         const filteredSubjects = activeTab === 'Completed'
-                            ? subjects.filter(s => (s.syllabus?.completionPercentage || 0) === 100)
-                            : subjects.filter(s => (s.syllabus?.completionPercentage || 0) < 100);
+                            ? subjects.filter((s) => isSyllabusCompleted(s))
+                            : subjects.filter((s) => !isSyllabusCompleted(s));
 
                         if (filteredSubjects.length === 0) {
                             return (
@@ -232,19 +260,20 @@ const StudentSubjects = () => {
                             const theme = getStatusTheme(averageMarks);
                             const teacherName = s.teacher === 'Unassigned' ? t('Unassigned') : s.teacher;
                             const initial = getSubjectInitial(s.subject);
+                            const teacherAvatar = getTeacherAvatar(s, s.subject);
 
                             // Syllabus progress
                             const syllabusData = s.syllabus || {};
                             const totalCh = syllabusData.totalChapters || syllabusData.chapters?.length || 0;
                             const completedCh = syllabusData.completedChapters || syllabusData.chapters?.filter(c => c.isCompleted).length || 0;
                             const syllPct = syllabusData.completionPercentage ?? (totalCh > 0 ? Math.round((completedCh / totalCh) * 100) : 0);
-                            const isFullyCompleted = syllPct === 100;
+                            const isFullyCompleted = isSyllabusCompleted(s);
 
                             return (
                                 <button
                                     key={idx}
                                     onClick={() => navigate(`/student/results/subject/${s.subject}`)}
-                                    className={`group relative w-full overflow-hidden rounded-[26px] bg-white p-5 text-left transition-all duration-300 active:scale-[0.98] hover:-translate-y-0.5 ${
+                                    className={`group relative w-full overflow-hidden rounded-[15px] bg-white p-5 text-left transition-all duration-300 active:scale-[0.98] hover:-translate-y-0.5 ${
                                         isFullyCompleted
                                             ? 'border border-emerald-200 shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:shadow-[0_16px_32px_rgba(16,185,129,0.12)]'
                                             : theme.showBorder 
@@ -265,7 +294,7 @@ const StudentSubjects = () => {
 
                                     <div className="flex items-start gap-4">
                                         {/* Subject Icon Circle */}
-                                        <div className={`flex h-[56px] w-[56px] shrink-0 items-center justify-center rounded-2xl text-[22px] font-bold tracking-tighter border transition-colors ${
+                                        <div className={`flex h-[56px] w-[56px] shrink-0 items-center justify-center rounded-[15px] text-[22px] font-bold tracking-tighter border transition-colors ${
                                             isFullyCompleted
                                                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200 group-hover:bg-emerald-100'
                                                 : 'bg-slate-100 text-[#191838] border-slate-200 group-hover:bg-slate-200'
@@ -280,11 +309,11 @@ const StudentSubjects = () => {
                                                 </h3>
                                                 <div className="flex flex-col items-end gap-1.5 shrink-0">
                                                     {isFullyCompleted ? (
-                                                        <span className="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border bg-emerald-50 text-emerald-600 border-emerald-200">
+                                                        <span className="rounded-[15px] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border bg-emerald-50 text-emerald-600 border-emerald-200">
                                                             {t('Syllabus Done')}
                                                         </span>
                                                     ) : (
-                                                        <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border ${theme.badgeBg} ${theme.badgeText} ${theme.showBorder ? 'border-red-200' : 'border-transparent'}`}>
+                                                        <span className={`rounded-[15px] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border ${theme.badgeBg} ${theme.badgeText} ${theme.showBorder ? 'border-red-200' : 'border-transparent'}`}>
                                                             {t(theme.label)}
                                                         </span>
                                                     )}
@@ -301,34 +330,37 @@ const StudentSubjects = () => {
                                                 <span className="font-medium tracking-tight">{teacherName}</span>
                                             </p>
 
-                                            {/* Syllabus Chapter Progress */}
-                                            {totalCh > 0 && (
-                                                <div className="mt-3 flex items-center gap-2">
-                                                    <div className="flex-1 h-1.5 overflow-hidden rounded-full bg-slate-100">
-                                                        <div
-                                                            className={`h-full rounded-full transition-all duration-700 ${
-                                                                isFullyCompleted ? 'bg-emerald-500' :
-                                                                syllPct >= 50 ? 'bg-amber-500' : 'bg-indigo-500'
-                                                            }`}
-                                                            style={{ width: `${syllPct}%` }}
+                                            <div className="mt-3 flex items-center gap-3 rounded-[15px] border border-slate-200 bg-slate-50 px-3 py-2">
+                                                <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[15px] border border-white bg-white">
+                                                    {teacherName === t('Unassigned') ? (
+                                                        <User size={18} className="text-slate-400" />
+                                                    ) : (
+                                                        <img
+                                                            src={teacherAvatar}
+                                                            alt={teacherName}
+                                                            className="h-full w-full object-cover"
+                                                            onError={(event) => {
+                                                                event.currentTarget.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(s.teacher || s.subject || 'teacher')}`;
+                                                            }}
                                                         />
-                                                    </div>
-                                                    <span className={`text-[10px] font-black whitespace-nowrap ${
-                                                        isFullyCompleted ? 'text-emerald-600' : 'text-slate-400'
-                                                    }`}>
-                                                        {completedCh}/{totalCh} {t('Ch')}
-                                                    </span>
+                                                    )}
                                                 </div>
-                                            )}
+                                                <div className="min-w-0">
+                                                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">{t('Assigned Teacher')}</p>
+                                                    <p className="truncate text-sm font-bold text-[#191838]">{teacherName}</p>
+                                                </div>
+                                            </div>
+
+                             
 
                                             <div className="mt-3 flex items-center justify-between text-[11px] font-bold tracking-wide">
                                                 <span className="text-slate-500">{t('Overall Progress')}</span>
                                                 <span className={averageMarks >= 75 ? 'text-emerald-700' : 'text-[#191838]'}>{averageMarks}%</span>
                                             </div>
 
-                                            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                                            <div className="mt-2 h-2 w-full overflow-hidden rounded-[15px] bg-slate-100">
                                                 <div 
-                                                    className={`h-full rounded-full transition-all duration-500 ${theme.barColor}`}
+                                                    className={`h-full rounded-[15px] transition-all duration-500 ${theme.barColor}`}
                                                     style={{ width: `${averageMarks}%` }}
                                                 />
                                             </div>

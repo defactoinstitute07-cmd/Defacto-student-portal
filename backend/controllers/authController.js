@@ -13,6 +13,12 @@ const { invalidateUserCache } = require('../middleware/cache');
 const { sendApiError } = require('../utils/apiError');
 
 const escapeRegex = (value = '') => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const normalizeKey = (value = '') => String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
+const normalizeCodeKey = (value = '') => String(value || '')
+    .trim()
+    .replace(/[^a-zA-Z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .toUpperCase();
 
 const normalizeDeviceInfo = (payload = {}) => ({
     platform: String(payload.platform || '').trim(),
@@ -186,6 +192,13 @@ exports.studentLogin = async (req, res) => {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
 
+        if (student.status === 'inactive') {
+            return res.status(403).json({
+                success: false,
+                message: 'Your account is inactive. Please contact the admin.'
+            });
+        }
+
         // Verify password
         if (!student.password) {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
@@ -267,14 +280,6 @@ exports.registerDevice = async (req, res) => {
             }
         );
 
-        console.info('[student.registerDevice]', {
-            studentId: String(req.user.id),
-            platform: deviceInfo.platform || 'unknown',
-            packageName: deviceInfo.packageName || '',
-            tokenTail: token.slice(-12),
-            registeredAt: now.toISOString()
-        });
-
         res.json({ success: true, message: 'Device registered', registeredAt: now.toISOString() });
     } catch (error) {
         console.error('Error in registerDevice:', error);
@@ -331,6 +336,199 @@ exports.trackActivity = async (req, res) => {
     }
 };
 
+exports.getStudentSubjectDetail = async (req, res) => {
+    try {
+        const { subjectName } = req.params;
+        const student = await Student.findById(req.user.id)
+            .populate('batchId')
+            .select('batchId subjectTeachers roomAllocation')
+            .lean();
+
+        if (!student?.batchId?._id) {
+            return res.status(404).json({ success: false, message: 'Batch not found for this student.' });
+        }
+
+        const targetName = normalizeKey(subjectName);
+        if (!targetName) {
+            return res.status(400).json({ success: false, message: 'Subject name is required.' });
+        }
+
+        const subjectDocs = await Subject.find({
+            batchId: student.batchId._id,
+            isActive: true
+        })
+            .populate('teacherId', 'name profileImage status')
+            .lean();
+
+        const subject = subjectDocs.find((item) => {
+            const nameMatch = normalizeKey(item.name) === targetName;
+            const codeMatch = normalizeCodeKey(item.code) === normalizeCodeKey(subjectName);
+            return nameMatch || codeMatch;
+        });
+
+        if (!subject) {
+            return res.status(404).json({ success: false, message: 'Subject not found for this batch.' });
+        }
+
+        const subjectKey = normalizeKey(subject.name);
+        let teacher = 'Unassigned';
+        let teacherProfileImage = null;
+        const rooms = new Set();
+        const timings = new Set();
+
+        const studentOverride = student.subjectTeachers?.find((entry) => normalizeKey(entry.subject) === subjectKey);
+        if (studentOverride?.teacher) {
+            teacher = studentOverride.teacher;
+        }
+
+        const subjectAssignedTeacher = String(
+            subject.assignedTeacher?.name || subject.teacherId?.name || ''
+        ).trim();
+        if (teacher === 'Unassigned' && subjectAssignedTeacher) {
+            teacher = subjectAssignedTeacher;
+            teacherProfileImage = subject.teacherId?.profileImage || null;
+        }
+
+        const [teacherDocs, allExams, resultDocs] = await Promise.all([
+            Teacher.find({
+                status: 'active',
+                $or: [
+                    { 'assignments.batchId': student.batchId._id },
+                    { batchId: student.batchId._id }
+                ]
+            }).select('name assignments profileImage batchId subjectIds').lean(),
+            Exam.find({ batchId: student.batchId._id, subject: subject.name, status: { $ne: 'cancelled' } })
+                .sort({ date: -1 })
+                .lean(),
+            ExamResult.find({ studentId: student._id }).lean()
+        ]);
+
+        if (teacher !== 'Unassigned') {
+            const overrideDoc = teacherDocs.find((entry) => normalizeKey(entry.name) === normalizeKey(teacher));
+            if (overrideDoc?.profileImage) {
+                teacherProfileImage = overrideDoc.profileImage;
+            }
+        }
+
+        const batchIdStr = student.batchId._id.toString();
+        teacherDocs.forEach((entry) => {
+            const batchAssignment = entry.assignments?.find((assignment) => assignment.batchId?.toString() === batchIdStr);
+            const assignmentMatch = Array.isArray(batchAssignment?.subjects)
+                ? batchAssignment.subjects.some((assignedSubject) => normalizeKey(assignedSubject) === subjectKey)
+                : false;
+            const directSchemaMatch = entry.batchId?.toString() === batchIdStr
+                && Array.isArray(entry.subjectIds)
+                && entry.subjectIds.some((id) => id?.toString() === subject._id?.toString());
+
+            if ((assignmentMatch || directSchemaMatch) && teacher === 'Unassigned') {
+                teacher = entry.name;
+                teacherProfileImage = entry.profileImage || null;
+            }
+        });
+
+        if (Array.isArray(student.batchId.schedule)) {
+            student.batchId.schedule.forEach((slot) => {
+                if (normalizeKey(slot.subject) !== subjectKey) return;
+                if (slot.room) rooms.add(slot.room);
+                if (slot.time && slot.day) timings.add(`${slot.day} ${slot.time}`);
+                if (slot.teacher && teacher === 'Unassigned') {
+                    teacher = slot.teacher;
+                }
+            });
+        }
+
+        if (teacher !== 'Unassigned' && !teacherProfileImage) {
+            const matchedTeacher = teacherDocs.find((entry) => normalizeKey(entry.name) === normalizeKey(teacher));
+            if (matchedTeacher?.profileImage) {
+                teacherProfileImage = matchedTeacher.profileImage;
+            }
+
+            if (!teacherProfileImage && normalizeKey(subject.teacherId?.name) === normalizeKey(teacher)) {
+                teacherProfileImage = subject.teacherId?.profileImage || null;
+            }
+        }
+
+        const resultMap = new Map(resultDocs.map((result) => [result.examId.toString(), result]));
+        const exams = allExams.map((exam) => {
+            const result = resultMap.get(exam._id.toString());
+            const hasDeclaredResult = Boolean(result && result.isPresent);
+            const percentage = hasDeclaredResult && Number(exam.totalMarks) > 0
+                ? Math.round((Number(result.marksObtained || 0) / Number(exam.totalMarks)) * 100)
+                : null;
+
+            return {
+                _id: exam._id,
+                name: exam.name,
+                chapter: exam.chapter,
+                date: exam.date,
+                totalMarks: exam.totalMarks,
+                passingMarks: exam.passingMarks,
+                type: exam.type || 'Exam',
+                status: exam.status,
+                marksObtained: hasDeclaredResult ? result.marksObtained : null,
+                isPresent: result ? result.isPresent : true,
+                percentage,
+                hasPassed: hasDeclaredResult && Number(exam.totalMarks) > 0
+                    ? (Number(result.marksObtained || 0) / Number(exam.totalMarks)) >= 0.4
+                    : null
+            };
+        });
+
+        const chapters = Array.isArray(subject.chapters) ? subject.chapters.map((chapter) => ({
+            _id: chapter._id,
+            name: chapter.name,
+            durationDays: chapter.durationDays,
+            status: chapter.status,
+            createdAt: chapter.createdAt,
+            completedAt: chapter.completedAt,
+            projectedStartDate: chapter.projectedStartDate,
+            projectedCompletionDate: chapter.projectedCompletionDate,
+            isCompleted: chapter.status === 'completed',
+            isCompletionTracked: true,
+            trackingSource: 'subjectCollection'
+        })) : [];
+
+        const totalChapters = Number.isFinite(subject.totalChapters) && subject.totalChapters !== null
+            ? subject.totalChapters
+            : chapters.length;
+        const completedChapters = chapters.filter((chapter) => chapter.isCompleted).length;
+        const completionPercentage = totalChapters > 0
+            ? Math.round((completedChapters / totalChapters) * 100)
+            : 0;
+
+        return res.json({
+            success: true,
+            subject: {
+                _id: subject._id,
+                name: subject.name,
+                code: subject.code,
+                teacher,
+                teacherProfileImage,
+                rooms: Array.from(rooms),
+                timings: Array.from(timings),
+                totalChapters,
+                completedChapters,
+                chapters,
+                syllabus: {
+                    chapters,
+                    completionPercentage,
+                    totalChapters,
+                    completedChapters,
+                    tracking: {
+                        trackedChapters: chapters.length,
+                        untrackedChapters: 0,
+                        source: 'subjectCollection'
+                    }
+                },
+                exams
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching student subject detail:', error);
+        sendApiError(res, error, 'Unable to fetch subject detail right now.');
+    }
+};
+
 // Get Student Profile
 exports.getStudentProfile = async (req, res) => {
     try {
@@ -345,10 +543,41 @@ exports.getStudentProfile = async (req, res) => {
         // ── Extract teachers, room, code, and timing ───────────────────────
         let roomAllocation = student.roomAllocation || 'N/A';
         const teachersMap = new Map();
+        const teacherProfileMap = new Map();
+        const subjectSchedules = new Map(); // subjectName -> { timings: Set, rooms: Set }
+        const subjectCodeMap = new Map();
         
-        // Fetch all subjects to get their codes
-        const allSubjects = await Subject.find({ isActive: true }).select('name code').lean();
-        const subjectCodeMap = new Map(allSubjects.map(s => [s.name, s.code]));
+        let batchSubjectDocs = [];
+        if (student.batchId?._id) {
+            batchSubjectDocs = await Subject.find({
+                batchId: student.batchId._id,
+                isActive: true
+            })
+                .populate('teacherId', 'name profileImage status')
+                .select('name code teacherId assignedTeacher totalChapters')
+                .lean();
+
+            batchSubjectDocs.forEach((subjectDoc) => {
+                if (!subjectDoc?.name) return;
+
+                subjectCodeMap.set(subjectDoc.name, subjectDoc.code || null);
+
+                const assignedTeacherName = String(
+                    subjectDoc.assignedTeacher?.name || subjectDoc.teacherId?.name || ''
+                ).trim();
+
+                if (assignedTeacherName) {
+                    const existing = teachersMap.get(subjectDoc.name);
+                    if (!existing || existing === 'Unassigned') {
+                        teachersMap.set(subjectDoc.name, assignedTeacherName);
+                    }
+
+                    if (subjectDoc.teacherId?.profileImage) {
+                        teacherProfileMap.set(assignedTeacherName, subjectDoc.teacherId.profileImage);
+                    }
+                }
+            });
+        }
 
         // 1. First, populate from Student's own subjectTeachers (individual override)
         if (student.subjectTeachers && student.subjectTeachers.length > 0) {
@@ -360,8 +589,6 @@ exports.getStudentProfile = async (req, res) => {
         }
 
         // 2. Query Teacher assignments for this batch (Source of truth for Admin)
-        const subjectSchedules = new Map(); // subjectName -> { timings: Set, rooms: Set }
-
         if (student.batchId) {
             const batchIdStr = student.batchId._id.toString();
             const teachers = await Teacher.find({ 'assignments.batchId': student.batchId._id })
@@ -369,6 +596,10 @@ exports.getStudentProfile = async (req, res) => {
                 .lean();
 
             teachers.forEach(t => {
+                if (t.name) {
+                    teacherProfileMap.set(t.name, t.profileImage || null);
+                }
+
                 const batchAssignment = t.assignments.find(a => a.batchId?.toString() === batchIdStr);
                 if (batchAssignment && batchAssignment.subjects) {
                     batchAssignment.subjects.forEach(sub => {
@@ -611,6 +842,7 @@ exports.getStudentProfile = async (req, res) => {
             return {
                 subject,
                 teacher,
+                teacherProfileImage: teacherProfileMap.get(teacher) || null,
                 averageMarks,
                 code: subjectCodeMap.get(subject) || null,
                 rooms: schedule ? Array.from(schedule.rooms) : [],
@@ -705,26 +937,15 @@ exports.resetPassword = async (req, res) => {
 // Complete Setup (First Login)
 exports.completeSetup = async (req, res) => {
     try {
-        console.log('--- completeSetup Debug ---');
-        console.log('User ID:', req.user?.id);
-        console.log('File:', req.file ? {
-            fieldname: req.file.fieldname,
-            originalname: req.file.originalname,
-            path: req.file.path
-        } : 'No file received');
-        console.log('Body:', req.body);
-
         const { newPassword } = req.body;
         const student = await Student.findById(req.user.id);
 
         if (!student) {
-            console.warn('Student not found for ID:', req.user.id);
             return res.status(404).json({ success: false, message: 'Student not found' });
         }
 
         const needsSetup = student.isFirstLogin || !student.profileImage;
         if (!needsSetup) {
-            console.warn('Setup already completed for student:', student.rollNo);
             return res.status(400).json({ success: false, message: 'Setup already completed' });
         }
 
@@ -747,9 +968,7 @@ exports.completeSetup = async (req, res) => {
             lastLoginAt: student.portalAccess?.lastLoginAt || new Date()
         };
 
-        console.log('Attempting to save student profile...');
         await student.save();
-        console.log('Student profile saved successfully');
 
         await invalidateUserCache(student._id.toString());
 

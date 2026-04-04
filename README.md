@@ -32,6 +32,17 @@ CLOUDINARY_API_KEY=your_cloudinary_api_key
 CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 ```
 
+Create a `.env` file in the `frontend/` directory with:
+```env
+VITE_API_BASE_URL=http://localhost:5005
+VITE_ENABLE_PUSH=false
+VITE_SUPPORT_ADMIN_EMAIL=ighost474@gmail.com
+VITE_EMAILJS_SERVICE_ID=your_emailjs_service_id
+VITE_EMAILJS_PUBLIC_KEY=your_emailjs_public_key
+VITE_EMAILJS_ADMIN_TEMPLATE_ID=your_admin_template_id
+VITE_EMAILJS_STUDENT_TEMPLATE_ID=your_student_template_id
+```
+
 ### 3. Run the App
 Run the following command in the root directory:
 ```bash
@@ -90,3 +101,31 @@ npm run android:open
 
 ### Notes
 - For local backend access on Android emulator, use `http://10.0.2.2:5005` as `VITE_API_BASE_URL` and enable cleartext traffic in the Android app configuration.
+
+## EmailJS Requirements (Support Tickets)
+
+The Contact & Support form now sends emails using EmailJS directly from the frontend.
+
+Required setup:
+1. Create an EmailJS account and connect your email provider (Gmail/Outlook/SMTP).
+2. Create one service and copy `Service ID`.
+3. Create templates:
+	- Admin template (`VITE_EMAILJS_ADMIN_TEMPLATE_ID`) for support team notification.
+	- Student template (`VITE_EMAILJS_STUDENT_TEMPLATE_ID`) for acknowledgement mail.
+4. Add frontend env variables listed above.
+5. In both templates, include these variables in template content:
+	- `to_email`
+	- `ticket_category`
+	- `ticket_subject`
+	- `ticket_message`
+	- `raised_at`
+	- `student_name`
+	- `student_roll_no`
+	- `student_email`
+	- `student_class`
+	- `student_batch`
+	- `recipient_type`
+
+Important:
+- Vite exposes `VITE_*` values to the browser, so only use EmailJS public credentials there.
+- Do not put backend secrets in frontend env files.

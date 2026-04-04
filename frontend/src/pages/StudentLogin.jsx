@@ -159,7 +159,7 @@ const StudentLogin = () => {
                         flex-direction: column;
                         min-height: 100vh;
                         min-height: 100dvh;
-                        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+                        font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
                         background: #f5f7fa;
                         overflow-x: hidden;
                         position: relative;

@@ -100,7 +100,7 @@ const StudentSettings = () => {
     return (
         <StudentLayout title="Settings">
             <div className="w-full max-w-2xl mx-auto px-4 pt-4 pb-24 sm:pb-12 animate-in fade-in duration-300 min-h-screen bg-[radial-gradient(circle_at_top,#e0e7ff_0%,#f8fafc_35%,#f8fafc_100%)]">
-                <div className="mb-6 rounded-[28px] border border-slate-200/80 bg-white/95 backdrop-blur-sm p-5 shadow-[0_20px_45px_rgba(15,23,42,0.08)] sm:p-6">
+                <div className="mb-6 rounded-[15px] border border-slate-200/80 bg-white/95 backdrop-blur-sm p-5 shadow-[0_20px_45px_rgba(15,23,42,0.08)] sm:p-6">
                     <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">{t('Preferences')}</p>
                     <h2 className="mt-2 text-xl sm:text-2xl font-black tracking-tight text-slate-900">{t('Personalize your account settings')}</h2>
                     <p className="mt-2 text-sm text-slate-600">
@@ -109,7 +109,7 @@ const StudentSettings = () => {
                 </div>
 
                 {/* Security Section */}
-                <section className="mb-6 rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-[0_18px_40px_rgba(15,23,42,0.06)] sm:p-6">
+                <section className="mb-6 rounded-[15px] border border-slate-200/80 bg-white p-5 shadow-[0_18px_40px_rgba(15,23,42,0.06)] sm:p-6">
                     <div className="flex items-center justify-between gap-3 mb-5">
                         <div className="flex items-center gap-2.5">
                             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-50 text-rose-600 border border-rose-100">
@@ -120,12 +120,12 @@ const StudentSettings = () => {
                                 <p className="text-xs text-slate-500 mt-0.5">{t('Keep your account protected')}</p>
                             </div>
                         </div>
-                        <span className="hidden sm:inline-flex px-3 py-1 rounded-full bg-slate-100 text-[10px] font-black uppercase tracking-wider text-slate-600 border border-slate-200">
+                        <span className="hidden sm:inline-flex px-3 py-1 rounded-[15px] bg-slate-100 text-[10px] font-black uppercase tracking-wider text-slate-600 border border-slate-200">
                             {t('Recommended')}
                         </span>
                     </div>
 
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
+                    <div className="rounded-[15px] border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
                         {(error || success) && (
                             <div className={`p-3.5 rounded-xl mb-5 flex items-start gap-3 animate-in slide-in-from-top-2 ${error ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}`}>
                                 <div className="mt-0.5">
@@ -175,57 +175,6 @@ const StudentSettings = () => {
                                 {t('Use at least 8 characters with a mix of letters, numbers, and symbols.')}
                             </p>
                         </form>
-                    </div>
-                </section>
-
-                {/* Notifications Section */}
-                <section className="mb-6 rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-[0_18px_40px_rgba(15,23,42,0.06)] sm:p-6">
-                    <div className="flex items-center gap-2.5 mb-5">
-                        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
-                            <Bell size={16} />
-                        </span>
-                        <div>
-                            <h3 className="text-sm font-black uppercase tracking-[0.16em] text-slate-800">{t('Notifications')}</h3>
-                            <p className="text-xs text-slate-500 mt-0.5">{t('Control app alerts for this device')}</p>
-                        </div>
-                    </div>
-
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5 space-y-4">
-                        <div className="flex items-start justify-between gap-3">
-                            <div>
-                                <p className="text-sm font-semibold text-slate-900">{t('Push Notifications')}</p>
-                                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                                    {t('Enable alerts on this phone for announcements and updates.')}
-                                </p>
-                            </div>
-                            <span className={`shrink-0 px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full border ${pushStatusClass}`}>
-                                {pushStatusLabel}
-                            </span>
-                        </div>
-
-                        {pushNotice && (
-                            <div className={`p-3 rounded-xl text-xs font-bold ${pushStatus === 'granted' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
-                                {pushNotice}
-                            </div>
-                        )}
-
-                        <button
-                            type="button"
-                            onClick={handleEnableNotifications}
-                            disabled={pushLoading || !pushEnabledInBuild}
-                            className="w-full mt-2 h-12 bg-indigo-600 text-white text-xs font-black uppercase tracking-widest rounded-xl active:scale-[0.98] transition-transform disabled:opacity-50 shadow-md shadow-indigo-600/20 flex items-center justify-center gap-2"
-                        >
-                            {pushLoading && <RefreshCcw size={14} className="animate-spin" />}
-                            {pushLoading
-                                ? t('Enabling...')
-                                : pushStatus === 'granted'
-                                    ? t('Refresh Notification Setup')
-                                    : t('Enable Notifications')}
-                        </button>
-
-                        <p className="text-[11px] text-slate-500 leading-relaxed">
-                            {t('You can change this anytime from app or device notification settings.')}
-                        </p>
                     </div>
                 </section>
 

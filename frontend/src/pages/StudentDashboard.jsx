@@ -46,20 +46,13 @@ const getPerformanceTone = (score) => {
   };
 };
 
-const getAttendanceBadgeClass = (status) => {
-  if (status === 'Present') return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-  if (status === 'Late') return 'bg-amber-50 text-amber-700 border-amber-200';
-  if (status === 'Absent') return 'bg-rose-50 text-rose-700 border-rose-200';
-  return 'bg-gray-100 text-gray-600 border-gray-200';
-};
-
 const InsightCard = ({ icon: Icon, label, value, hint, tone }) => (
-  <div className="min-w-0 rounded-[28px] border border-gray-200 bg-white p-5 shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
+  <div className="min-w-0 rounded-[15px] border border-gray-200 bg-white p-5 shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
     <div className="flex items-start justify-between gap-4">
-      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gray-100 text-gray-600">
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[15px] bg-gray-100 text-gray-600">
         <Icon size={18} />
       </div>
-      <span className={`shrink-0 rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] ${tone.soft}`}>
+      <span className={`shrink-0 rounded-[15px] border px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] ${tone.soft}`}>
         {tone.label}
       </span>
     </div>
@@ -73,10 +66,10 @@ const QuickActionCard = ({ icon: Icon, label, description, onClick }) => (
   <button
     type="button"
     onClick={onClick}
-    className="group flex w-full items-center justify-between gap-4 rounded-2xl border border-gray-200 bg-white px-4 py-4 text-left transition hover:border-[#191838] hover:bg-indigo-50/50"
+    className="group flex w-full items-center justify-between gap-4 rounded-[15px] border border-gray-200 bg-white px-4 py-4 text-left transition hover:border-[#191838] hover:bg-indigo-50/50"
   >
     <div className="flex min-w-0 items-center gap-3">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#191838] text-white">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[15px] bg-[#191838] text-white">
         <Icon size={18} />
       </div>
       <div className="min-w-0">
@@ -84,28 +77,15 @@ const QuickActionCard = ({ icon: Icon, label, description, onClick }) => (
         <p className="mt-1 break-words text-xs font-medium text-gray-500">{description}</p>
       </div>
     </div>
-    <span className="shrink-0 rounded-full border border-gray-200 bg-gray-50 p-2 text-gray-400 transition group-hover:border-[#191838] group-hover:bg-[#191838] group-hover:text-white">
+    <span className="shrink-0 rounded-[15px] border border-gray-200 bg-gray-50 p-2 text-gray-400 transition group-hover:border-[#191838] group-hover:bg-[#191838] group-hover:text-white">
       <ArrowRight size={16} />
     </span>
   </button>
 );
 
-const SectionCard = ({ eyebrow, title, action = null, children }) => (
-  <section className="rounded-[28px] border border-gray-200 bg-white p-5 shadow-[0_12px_40px_rgba(0,0,0,0.04)] sm:p-6">
-    <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-      <div className="min-w-0">
-        <p className="text-[10px] font-black uppercase tracking-[0.24em] text-gray-500">{eyebrow}</p>
-        <h3 className="mt-2 text-xl font-black text-gray-900">{title}</h3>
-      </div>
-      {action ? <div className="w-full sm:w-auto">{action}</div> : null}
-    </div>
-    {children}
-  </section>
-);
-
 const StudentDashboard = () => {
   const navigate = useNavigate();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [error, setError] = useState('');
   const apiBaseUrl = api.defaults.baseURL || '/api';
   const token = localStorage.getItem('studentToken');
@@ -176,14 +156,14 @@ const StudentDashboard = () => {
         <Skeleton className="h-72 w-full rounded-[32px]" />
         <div className="grid gap-4 md:grid-cols-3">
           {[1, 2, 3].map((item) => (
-            <Skeleton key={item} className="h-44 w-full rounded-[28px]" />
+            <Skeleton key={item} className="h-44 w-full rounded-[15px]" />
           ))}
         </div>
         <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-          <Skeleton className="h-96 w-full rounded-[28px]" />
-          <Skeleton className="h-96 w-full rounded-[28px]" />
+          <Skeleton className="h-96 w-full rounded-[15px]" />
+          <Skeleton className="h-96 w-full rounded-[15px]" />
         </div>
-        <Skeleton className="h-80 w-full rounded-[28px]" />
+        <Skeleton className="h-80 w-full rounded-[15px]" />
       </div>
     );
   }
@@ -206,7 +186,7 @@ const StudentDashboard = () => {
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="h-11 w-full rounded-2xl bg-[#191838] text-xs font-black uppercase tracking-[0.24em] text-white"
+            className="h-11 w-full rounded-[15px] bg-[#191838] text-xs font-black uppercase tracking-[0.24em] text-white"
           >
             {t('Retry')}
           </button>
@@ -223,7 +203,6 @@ const StudentDashboard = () => {
     late: 0,
     percentage: 0
   };
-  const attendanceRecent = Array.isArray(student.attendanceRecent) ? student.attendanceRecent : [];
   const subjectCount = Array.isArray(student.subjectTeachers) && student.subjectTeachers.length > 0
     ? student.subjectTeachers.length
     : Array.isArray(student.fullBatchData?.subjects)
@@ -245,16 +224,6 @@ const StudentDashboard = () => {
       bar: 'bg-rose-500',
       label: t('Pending Fees')
     };
-
-  const formatAttendanceDate = (value) => {
-    if (!value) return '-';
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return '-';
-    return date.toLocaleDateString(language === 'hi' ? 'hi-IN' : 'en-GB', {
-      day: '2-digit',
-      month: 'short'
-    });
-  };
 
   const quickActions = [
     {
@@ -301,15 +270,15 @@ const StudentDashboard = () => {
             </p>
 
             <div className="mt-5 flex flex-wrap gap-2">
-              <span className="inline-flex max-w-full items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 shadow-sm">
+              <span className="inline-flex max-w-full items-center gap-2 rounded-[15px] border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 shadow-sm">
                 <Hash size={14} className="text-gray-400" />
                 <span className="break-all">{student.rollNo || '-'}</span>
               </span>
-              <span className="inline-flex max-w-full items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 shadow-sm">
+              <span className="inline-flex max-w-full items-center gap-2 rounded-[15px] border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 shadow-sm">
                 <BookOpen size={14} className="text-gray-400" />
                 <span className="break-words">{student.className || student.batchName || 'N/A'}</span>
               </span>
-              <span className="inline-flex max-w-full items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 shadow-sm">
+              <span className="inline-flex max-w-full items-center gap-2 rounded-[15px] border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 shadow-sm">
                 <User size={14} className="text-gray-400" />
                 <span className="break-words">{subjectCount} {t('Subjects')}</span>
               </span>
@@ -319,7 +288,7 @@ const StudentDashboard = () => {
       </section>
 
       {error ? (
-        <div className="flex items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+        <div className="flex items-center gap-2 rounded-[15px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
           <AlertTriangle size={16} />
           <span>{error}</span>
         </div>
@@ -350,15 +319,19 @@ const StudentDashboard = () => {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <SectionCard
-          eyebrow={t('Attendance')}
-          title={t('Monthly Overview')}
-          action={(
-            <span className={`inline-flex w-fit rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] ${attendanceTone.soft}`}>
-              {attendanceSummary.percentage || 0}%
-            </span>
-          )}
-        >
+        <section className="rounded-[15px] border border-gray-200 bg-white p-5 shadow-[0_12px_40px_rgba(0,0,0,0.04)] sm:p-6">
+          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-gray-500">{t('Attendance')}</p>
+              <h3 className="mt-2 text-xl font-black text-gray-900">{t('Monthly Overview')}</h3>
+            </div>
+            <div className="w-full sm:w-auto">
+              <span className={`inline-flex w-fit rounded-[15px] border px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] ${attendanceTone.soft}`}>
+                {attendanceSummary.percentage || 0}%
+              </span>
+            </div>
+          </div>
+
           <div className="rounded-3xl border border-gray-200 bg-white p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div className="min-w-0">
@@ -368,9 +341,9 @@ const StudentDashboard = () => {
                 </p>
               </div>
               <div className="w-full max-w-xs">
-                <div className="h-2 overflow-hidden rounded-full bg-gray-100 ring-1 ring-gray-200">
+                <div className="h-2 overflow-hidden rounded-[15px] bg-gray-100 ring-1 ring-gray-200">
                   <div
-                    className={`h-full rounded-full ${attendanceTone.bar}`}
+                    className={`h-full rounded-[15px] ${attendanceTone.bar}`}
                     style={{ width: `${Math.max(0, Math.min(attendanceSummary.percentage || 0, 100))}%` }}
                   />
                 </div>
@@ -378,15 +351,15 @@ const StudentDashboard = () => {
             </div>
 
             <div className="mt-5 grid grid-cols-3 gap-2 sm:gap-3">
-              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-center">
+              <div className="rounded-[15px] border border-emerald-200 bg-emerald-50 p-3 text-center">
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-700">{t('Present')}</p>
                 <p className="mt-2 text-xl font-black text-emerald-700">{attendanceSummary.present || 0}</p>
               </div>
-              <div className="rounded-2xl border border-rose-200 bg-rose-50 p-3 text-center">
+              <div className="rounded-[15px] border border-rose-200 bg-rose-50 p-3 text-center">
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-700">{t('Absent')}</p>
                 <p className="mt-2 text-xl font-black text-rose-700">{attendanceSummary.absent || 0}</p>
               </div>
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-center">
+              <div className="rounded-[15px] border border-amber-200 bg-amber-50 p-3 text-center">
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-700">{t('Late')}</p>
                 <p className="mt-2 text-xl font-black text-amber-700">{attendanceSummary.late || 0}</p>
               </div>
@@ -397,9 +370,17 @@ const StudentDashboard = () => {
               <span className="text-gray-900">{attendanceSummary.total || 0}</span>
             </div>
           </div>
-        </SectionCard>
 
-        <SectionCard eyebrow={t('Academic')} title={t('Quick Access')}>
+        </section>
+
+        <section className="rounded-[15px] border border-gray-200 bg-white p-5 shadow-[0_12px_40px_rgba(0,0,0,0.04)] sm:p-6">
+          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-gray-500">{t('Academic')}</p>
+              <h3 className="mt-2 text-xl font-black text-gray-900">{t('Quick Access')}</h3>
+            </div>
+          </div>
+
           <div className="space-y-3">
             {quickActions.map((action) => (
               <QuickActionCard
@@ -411,48 +392,10 @@ const StudentDashboard = () => {
               />
             ))}
           </div>
-        </SectionCard>
+
+        </section>
       </div>
 
-      <SectionCard
-        eyebrow={t('Recent Attendance')}
-        title={t('Latest Sessions')}
-        action={(
-          <span className="text-[10px] font-black uppercase tracking-[0.22em] text-gray-500">
-            {attendanceRecent.length} {t('records')}
-          </span>
-        )}
-      >
-        {attendanceRecent.length > 0 ? (
-          <div className="space-y-3">
-            {attendanceRecent.map((item, idx) => {
-              const subject = item.subjectId?.name || item.subjectName || 'Subject';
-              const code = item.subjectId?.code ? ` (${item.subjectId.code})` : '';
-
-              return (
-                <div
-                  key={item._id || idx}
-                  className="flex flex-col items-start gap-3 rounded-2xl border border-gray-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between hover:bg-gray-50 transition-colors"
-                >
-                  <div className="min-w-0">
-                    <p className="break-words text-sm font-semibold text-gray-900 sm:truncate">{subject}{code}</p>
-                    <p className="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-gray-500">
-                      {formatAttendanceDate(item.attendanceDate)}
-                    </p>
-                  </div>
-                  <span className={`shrink-0 rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] ${getAttendanceBadgeClass(item.status)}`}>
-                    {t(item.status || '-')}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="rounded-3xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
-            <p className="text-sm font-semibold text-gray-500">{t('No recent attendance records yet.')}</p>
-          </div>
-        )}
-      </SectionCard>
     </div>
   );
 };

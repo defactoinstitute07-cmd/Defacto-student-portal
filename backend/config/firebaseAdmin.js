@@ -38,7 +38,6 @@ const initFirebaseAdmin = () => {
         firebaseApp = admin.initializeApp({
             credential: admin.credential.cert(credentialConfig)
         });
-        console.log('[firebaseAdmin] Firebase Admin initialized');
     } catch (err) {
         console.error('[firebaseAdmin] Failed to initialize Firebase Admin:', err.message);
         firebaseApp = null;

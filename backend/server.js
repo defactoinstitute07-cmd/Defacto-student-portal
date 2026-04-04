@@ -128,12 +128,9 @@ app.use((err, req, res, next) => {
 
 if (require.main === module) {
     connectToDatabase()
-        .then(() => console.log('Connected to MongoDB'))
         .catch((err) => console.error('MongoDB connection error:', err.message));
 
-    app.listen(PORT, () => {
-        console.log(`Student Auth Server running on port ${PORT}`);
-    });
+    app.listen(PORT);
 }
 
 module.exports = app;

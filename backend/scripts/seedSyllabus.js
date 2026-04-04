@@ -16,15 +16,9 @@ const BATCHES = [
 const seedData = async () => {
     try {
         await mongoose.connect(process.env.MONGODB_URI);
-        console.log('Connected to MongoDB...');
 
         for (const batch of BATCHES) {
-            console.log(`Seeding ${batch.name} (${batch.id})...`);
-            
             const student = await Student.findOne({ batchId: batch.id });
-            if (!student) {
-                console.log(`No student found for ${batch.name}. Skipping exams/results.`);
-            }
 
             // 1. Seed Syllabus
             await Syllabus.deleteMany({ batchId: batch.id });
@@ -103,7 +97,6 @@ const seedData = async () => {
                 }
             }
         }
-        console.log('Seeding complete.');
         process.exit();
     } catch (err) {
         console.error(err);

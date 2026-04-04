@@ -32,6 +32,9 @@ router.post('/student/activity', authMiddleware, authController.trackActivity);
 // Get Subject Attendance Detail
 router.get('/student/attendance/subject/:subjectId', authMiddleware, authController.getSubjectAttendanceDetail);
 
+// Get Live Subject Detail
+router.get('/student/subject/:subjectName', authMiddleware, authController.getStudentSubjectDetail);
+
 // Reset Password
 router.post('/student/reset-password', authMiddleware, authController.resetPassword);
 

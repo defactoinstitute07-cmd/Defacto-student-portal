@@ -334,19 +334,19 @@ const StudentResults = () => {
     return (
         <div className="max-w-7xl mx-auto space-y-5 sm:space-y-6 px-0 sm:px-0 pb-8 sm:pb-12">
             {/* Header Section */}
-            <div className="relative overflow-hidden rounded-[28px] border border-slate-200 bg-gradient-to-r from-slate-50 via-white to-slate-50 p-5 sm:p-6 shadow-[0_12px_35px_rgba(15,23,42,0.08)]">
-                <div className="absolute -top-10 -right-10 h-36 w-36 rounded-full bg-indigo-100/50" />
+            <div className="relative overflow-hidden rounded-[15px] border border-slate-200 bg-gradient-to-r from-slate-50 via-white to-slate-50 p-5 sm:p-6 shadow-[0_12px_35px_rgba(15,23,42,0.08)]">
+                <div className="absolute -top-10 -right-10 h-36 w-36 rounded-[15px] bg-indigo-100/50" />
                 <div className="relative flex items-center gap-2 mb-1">
                     <h1 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">{t('Academic Analytics')}</h1>
                     {studentInfo?.batchName && (
-                        <span className="px-2.5 py-1 bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase rounded-full border border-indigo-100">{studentInfo.batchName}</span>
+                        <span className="px-2.5 py-1 bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase rounded-[15px] border border-indigo-100">{studentInfo.batchName}</span>
                     )}
                 </div>
                 <p className="relative text-gray-600 text-sm sm:text-base max-w-2xl">{t('View your test scores, track progress, and identify areas for improvement.')}</p>
             </div>
 
             {error && (
-                <div className="bg-rose-50 text-rose-700 p-3 sm:p-4 rounded-2xl border border-rose-200 flex items-center gap-2 sm:gap-3 text-sm sm:text-base">
+                <div className="bg-rose-50 text-rose-700 p-3 sm:p-4 rounded-[15px] border border-rose-200 flex items-center gap-2 sm:gap-3 text-sm sm:text-base">
                     <AlertTriangle size={18} className="shrink-0" />
                     <span>{error}</span>
                 </div>
@@ -354,7 +354,7 @@ const StudentResults = () => {
 
             {/* Key Metrics Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 flex items-center gap-3 sm:gap-4">
+                <div className="bg-white rounded-[15px] shadow-sm border border-gray-100 p-4 sm:p-6 flex items-center gap-3 sm:gap-4">
                     <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
                         <BookOpen size={20} className="sm:hidden" />
                         <BookOpen size={24} className="hidden sm:block" />
@@ -365,7 +365,7 @@ const StudentResults = () => {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 flex items-center gap-3 sm:gap-4">
+                <div className="bg-white rounded-[15px] shadow-sm border border-gray-100 p-4 sm:p-6 flex items-center gap-3 sm:gap-4">
                     <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
                         <Award size={20} className="sm:hidden" />
                         <Award size={24} className="hidden sm:block" />
@@ -376,7 +376,7 @@ const StudentResults = () => {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 flex items-center gap-3 sm:gap-4 sm:col-span-2 lg:col-span-1">
+                <div className="bg-white rounded-[15px] shadow-sm border border-gray-100 p-4 sm:p-6 flex items-center gap-3 sm:gap-4 sm:col-span-2 lg:col-span-1">
                     <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center shrink-0 ${weakSubjects.length > 0 ? 'bg-orange-100 text-orange-600' : 'bg-emerald-100 text-emerald-600'}`}>
                         {weakSubjects.length > 0 ? (
                             <>
@@ -404,7 +404,7 @@ const StudentResults = () => {
                 <div className="space-y-4 sm:space-y-6">
 
                     {/* Progressive Chart Box */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                    <div className="bg-white rounded-[15px] shadow-sm border border-gray-100 p-4 sm:p-6">
                         <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4 flex items-center gap-2">
                             <TrendingUp className="text-blue-500 shrink-0" size={18} />
                             <span>{t('Progress Over Time')}</span>
@@ -423,7 +423,7 @@ const StudentResults = () => {
 
                     {/* Weak Subjects Alert Box - Interactive */}
                     {weakSubjects.length > 0 && (
-                        <div className="bg-white rounded-2xl shadow-sm border border-orange-200 overflow-hidden">
+                        <div className="bg-white rounded-[15px] shadow-sm border border-orange-200 overflow-hidden">
 
                             <div className="p-4 sm:p-6 bg-orange-50/50 border-b border-orange-100">
                                 <h3 className="text-sm sm:text-lg font-bold text-orange-800 mb-1 flex items-center gap-2">
@@ -472,7 +472,7 @@ const StudentResults = () => {
                     )}
 
                     {/* Results Table Section */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="bg-white rounded-[15px] shadow-sm border border-gray-100 overflow-hidden">
 
                         <div className="p-4 sm:p-6 border-b border-gray-100 bg-slate-50/60">
 
@@ -566,7 +566,7 @@ const StudentResults = () => {
                                 paginatedResults.map((r, idx) => (
                                     <div
                                         key={r._id || r.id || idx}
-                                        className="m-3 rounded-2xl border border-gray-100 bg-white p-4 space-y-3 cursor-pointer hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                                        className="m-3 rounded-[15px] border border-gray-100 bg-white p-4 space-y-3 cursor-pointer hover:bg-gray-50 active:bg-gray-100 transition-colors"
                                         onClick={() => setSelectedTest(r)}
                                     >
 
