@@ -10,6 +10,10 @@
         android:usesCleartextTraffic="false"
         android:supportsRtl="true"
         android:theme="@style/Theme.StudentPortal">
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_df" />
+
         <activity
             android:name=".AuthRouterActivity"
             android:exported="true"

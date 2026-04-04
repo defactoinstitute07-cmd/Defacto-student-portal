@@ -5,6 +5,7 @@ import api from '../services/api';
 import instituteLogo from '../assets/icon.png';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageToggleButton from '../components/LanguageToggleButton';
+import WelcomeModal from '../components/WelcomeModal';
 import { isNativeShell } from '../services/nativeAuth';
 import { App as CapacitorApp } from '@capacitor/app';
 
@@ -20,6 +21,9 @@ const StudentLogin = () => {
     const [submitAttempted, setSubmitAttempted] = useState(false);
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [showWelcome, setShowWelcome] = useState(false);
+    const [pendingStudent, setPendingStudent] = useState(null);
+    const [pendingNeedsSetup, setPendingNeedsSetup] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -104,30 +108,12 @@ const StudentLogin = () => {
                     ? response.data.student.needsSetup
                     : (response.data.student?.isFirstLogin || !response.data.student?.profileImage);
 
-                if (isNativeShell() && needsSetup) {
-                    const webUrl = import.meta.env.VITE_STUDENT_WEB_URL;
-                    if (webUrl) {
-                        const base = webUrl.replace(/\/$/, '');
-                        const setupUrl = `${base}/student/setup?from=app`;
-                        try {
-                            CapacitorApp.openUrl({ url: setupUrl });
-                        } catch (e) {
-                            try {
-                                window.open(setupUrl, '_blank', 'noopener,noreferrer');
-                            } catch {
-                                window.location.assign(setupUrl);
-                            }
-                        }
-                        setFormError(t('Setup opened in your browser. After completing it, relogin with your app.'));
-                        return;
-                    }
-                }
-
-                if (needsSetup) {
-                    navigate('/student/setup');
-                } else {
-                    navigate('/student/dashboard');
-                }
+                // Store data for welcome modal handling
+                setPendingStudent(response.data.student);
+                setPendingNeedsSetup(needsSetup);
+                
+                // Show welcome modal
+                setShowWelcome(true);
             }
         } catch (err) {
             if (err.response?.status === 401) {
@@ -145,6 +131,37 @@ const StudentLogin = () => {
             }
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleWelcomeClose = () => {
+        setShowWelcome(false);
+        
+        if (!pendingStudent) return;
+        
+        if (isNativeShell() && pendingNeedsSetup) {
+            const webUrl = import.meta.env.VITE_STUDENT_WEB_URL;
+            if (webUrl) {
+                const base = webUrl.replace(/\/$/, '');
+                const setupUrl = `${base}/student/setup?from=app`;
+                try {
+                    CapacitorApp.openUrl({ url: setupUrl });
+                } catch (e) {
+                    try {
+                        window.open(setupUrl, '_blank', 'noopener,noreferrer');
+                    } catch {
+                        window.location.assign(setupUrl);
+                    }
+                }
+                setFormError(t('Setup opened in your browser. After completing it, relogin with your app.'));
+                return;
+            }
+        }
+
+        if (pendingNeedsSetup) {
+            navigate('/student/setup');
+        } else {
+            navigate('/student/dashboard');
         }
     };
 
@@ -636,6 +653,14 @@ const StudentLogin = () => {
                     <span className="sl-footer-text">{t('Secured with 256-bit encryption')}</span>
                 </div>
             </div>
+
+            {/* Welcome Modal */}
+            {showWelcome && (
+                <WelcomeModal 
+                    studentName={pendingStudent?.name} 
+                    onClose={handleWelcomeClose}
+                />
+            )}
         </div>
     );
 };
