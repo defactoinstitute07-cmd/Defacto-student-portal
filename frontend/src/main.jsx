@@ -4,9 +4,6 @@ import App from './App.jsx'
 import './index.css'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { LanguageProvider } from './context/LanguageContext'
-import { initNativeAuthBridge } from './services/nativeAuth'
-
-initNativeAuthBridge()
 
 const queryClient = new QueryClient({
     defaultOptions: {

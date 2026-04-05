@@ -9,7 +9,6 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageToggleButton from './LanguageToggleButton';
-import { isNativeShell, triggerNativeLogout } from '../services/nativeAuth';
 const NAV_ITEMS = [
     {
         section: 'MAIN',
@@ -56,11 +55,6 @@ const StudentLayout = ({ children, title, backUrl, useHistoryBack = false, hideM
     const student = studentInfoRaw ? JSON.parse(studentInfoRaw) : {};
 
     const logout = () => {
-        if (isNativeShell()) {
-            triggerNativeLogout('user-logout');
-            return;
-        }
-
         localStorage.removeItem('studentToken');
         localStorage.removeItem('studentInfo');
         navigate('/student/login');

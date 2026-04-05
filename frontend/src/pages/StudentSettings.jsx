@@ -11,15 +11,8 @@ import { useLanguage } from '../context/LanguageContext';
 const StudentSettings = () => {
     const navigate = useNavigate();
     const { t } = useLanguage();
-    const pushEnabledInBuild = import.meta.env.VITE_ENABLE_PUSH === 'true';
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
-    const [pushStatus, setPushStatus] = useState(() => {
-        if (!pushEnabledInBuild) return 'disabled';
-        return localStorage.getItem('pushNotificationsEnabled') === 'true' ? 'granted' : 'idle';
-    });
-    const [pushNotice, setPushNotice] = useState('');
-    const [pushLoading, setPushLoading] = useState(false);
     const token = localStorage.getItem('studentToken');
 
     const [pwdData, setPwdData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -61,41 +54,6 @@ const StudentSettings = () => {
             setPwdLoading(false);
         }
     };
-
-    const handleEnableNotifications = async () => {
-        setPushLoading(true);
-        setPushNotice('');
-
-        try {
-            const { registerPushNotifications } = await import('../services/pushNotifications');
-            const result = await registerPushNotifications({ requestPermission: true });
-
-            if (result.ok) {
-                setPushStatus('granted');
-                setPushNotice(t('Notifications enabled for this device.'));
-            } else {
-                setPushStatus(result.reason || 'error');
-                setPushNotice(result.message || t('Unable to enable notifications right now.'));
-            }
-        } catch (err) {
-            setPushStatus('error');
-            setPushNotice(t('Unable to enable notifications right now.'));
-        } finally {
-            setPushLoading(false);
-        }
-    };
-
-    const pushStatusClass = pushStatus === 'granted'
-        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-        : 'bg-amber-50 text-amber-700 border-amber-200';
-    
-    const pushStatusLabel = pushStatus === 'granted'
-        ? t('Enabled')
-        : pushStatus === 'unsupported'
-            ? t('App Only')
-            : pushStatus === 'disabled'
-                ? t('Disabled')
-                : t('Not Enabled');
 
     return (
         <StudentLayout title="Settings">

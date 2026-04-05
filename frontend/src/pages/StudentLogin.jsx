@@ -6,8 +6,8 @@ import instituteLogo from '../assets/icon.png';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageToggleButton from '../components/LanguageToggleButton';
 import WelcomeModal from '../components/WelcomeModal';
-import { isNativeShell } from '../services/nativeAuth';
-import { App as CapacitorApp } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 
 
 const StudentLogin = () => {
@@ -26,6 +26,25 @@ const StudentLogin = () => {
     const [pendingNeedsSetup, setPendingNeedsSetup] = useState(false);
     const navigate = useNavigate();
 
+    const isNativeLoginOnlyMode = Capacitor.isNativePlatform();
+
+    const openBrowserWithSession = async ({ token, student, needsSetup }) => {
+        const webUrl = import.meta.env.VITE_STUDENT_WEB_URL || 'https://defacto-student-erp-new.vercel.app';
+        const base = webUrl.replace(/\/$/, '');
+        const targetPath = needsSetup ? '/student/setup' : '/student/dashboard';
+        const studentParam = encodeURIComponent(JSON.stringify(student || {}));
+        const targetUrl = `${base}${targetPath}?token=${encodeURIComponent(token)}&student=${studentParam}`;
+
+        try {
+            await Browser.open({
+                url: targetUrl,
+                presentationStyle: 'fullscreen'
+            });
+        } catch {
+            window.open(targetUrl, '_blank', 'noopener,noreferrer');
+        }
+    };
+
     useEffect(() => {
         const token = localStorage.getItem('studentToken');
         if (!token) return;
@@ -35,30 +54,18 @@ const StudentLogin = () => {
                 ? student.needsSetup
                 : (student?.isFirstLogin || !student?.profileImage);
 
-            if (isNativeShell() && needsSetup) {
-                const webUrl = import.meta.env.VITE_STUDENT_WEB_URL;
-                if (webUrl) {
-                    const base = webUrl.replace(/\/$/, '');
-                    const setupUrl = `${base}/student/setup?from=app`;
-                    try {
-                        CapacitorApp.openUrl({ url: setupUrl });
-                    } catch (e) {
-                        try {
-                            window.open(setupUrl, '_blank', 'noopener,noreferrer');
-                        } catch {
-                            window.location.assign(setupUrl);
-                        }
-                    }
-                    setFormError(t('Setup opened in your browser. After completing it, relogin with your app.'));
-                    return;
-                }
+            if (isNativeLoginOnlyMode) {
+                openBrowserWithSession({ token, student, needsSetup });
+                return;
             }
 
             navigate(needsSetup ? '/student/setup' : '/student/dashboard', { replace: true });
         } catch {
-            navigate('/student/dashboard', { replace: true });
+            if (!isNativeLoginOnlyMode) {
+                navigate('/student/dashboard', { replace: true });
+            }
         }
-    }, [navigate, t]);
+    }, [navigate, t, isNativeLoginOnlyMode]);
 
     const validate = (nextRollNo = rollNo, nextPassword = password) => {
         const errors = { rollNo: '', password: '' };
@@ -108,6 +115,15 @@ const StudentLogin = () => {
                     ? response.data.student.needsSetup
                     : (response.data.student?.isFirstLogin || !response.data.student?.profileImage);
 
+                if (isNativeLoginOnlyMode) {
+                    await openBrowserWithSession({
+                        token: response.data.token,
+                        student: response.data.student,
+                        needsSetup
+                    });
+                    return;
+                }
+
                 // Store data for welcome modal handling
                 setPendingStudent(response.data.student);
                 setPendingNeedsSetup(needsSetup);
@@ -138,25 +154,6 @@ const StudentLogin = () => {
         setShowWelcome(false);
         
         if (!pendingStudent) return;
-        
-        if (isNativeShell() && pendingNeedsSetup) {
-            const webUrl = import.meta.env.VITE_STUDENT_WEB_URL;
-            if (webUrl) {
-                const base = webUrl.replace(/\/$/, '');
-                const setupUrl = `${base}/student/setup?from=app`;
-                try {
-                    CapacitorApp.openUrl({ url: setupUrl });
-                } catch (e) {
-                    try {
-                        window.open(setupUrl, '_blank', 'noopener,noreferrer');
-                    } catch {
-                        window.location.assign(setupUrl);
-                    }
-                }
-                setFormError(t('Setup opened in your browser. After completing it, relogin with your app.'));
-                return;
-            }
-        }
 
         if (pendingNeedsSetup) {
             navigate('/student/setup');

@@ -15,11 +15,8 @@
     "dependencies": {
         "@capacitor/android": "^7.4.3",
         "@capacitor/app": "^7.1.0",
+        "@capacitor/browser": "^7.0.4",
         "@capacitor/core": "^7.4.3",
-        "@capacitor/device": "^7.0.2",
-        "@capacitor/filesystem": "^7.1.8",
-        "@capacitor/push-notifications": "^7.0.3",
-        "@capacitor/share": "^7.0.4",
         "@emailjs/browser": "^4.4.1",
         "@tanstack/react-query": "^5.52.0",
         "axios": "^1.6.0",
@@ -37,7 +34,6 @@
         "y18n": "^5.0.8"
     },
     "devDependencies": {
-        "@capacitor/assets": "^3.0.5",
         "@capacitor/cli": "^7.4.3",
         "@tailwindcss/vite": "^4.0.0",
         "@types/react": "^18.2.37",

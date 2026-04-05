@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { isNativeShell, refreshNativeSession, syncNativeSession, triggerNativeLogout } from './nativeAuth';
+import { Capacitor } from '@capacitor/core';
 
 const LEGACY_API_ORIGIN = 'https://student-erp-server-api.vercel.app';
 const PRIMARY_API_ORIGIN = 'https://student-erp-6w9m.onrender.com';
@@ -34,10 +34,6 @@ const shouldForcePublicApiOrigin = (rawBase) => {
     try {
         const url = new URL(value);
         if (!isPrivateOrLocalHost(url.hostname)) {
-            return false;
-        }
-
-        if (isNativeShell()) {
             return false;
         }
 
@@ -78,6 +74,18 @@ const normalizeBaseURL = (rawBase) => {
 
 const getBaseURL = () => {
     const envBase = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
+
+    // In native APK mode, relative URLs like /api may not resolve to your deployed backend.
+    // Prefer an absolute web origin so login always reaches a live server.
+    if (Capacitor.isNativePlatform() && String(envBase || '').trim().startsWith('/')) {
+        const webOrigin = String(import.meta.env.VITE_STUDENT_WEB_URL || '').trim();
+        if (webOrigin) {
+            return normalizeBaseURL(webOrigin);
+        }
+
+        return normalizeBaseURL(PRIMARY_API_ORIGIN);
+    }
+
     if (shouldForcePublicApiOrigin(envBase)) {
         return normalizeBaseURL(PRIMARY_API_ORIGIN);
     }
@@ -96,64 +104,7 @@ const normalizeAuthReason = (error) => {
     return String(rawReason).trim().toLowerCase().replace(/-/g, '_');
 };
 
-const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-const retryNativeRequest = async (error, options = {}) => {
-    const config = error?.config;
-    if (!config) {
-        return null;
-    }
-
-    const retryCount = Number(config.__nativeRetryCount || 0);
-    if (retryCount >= 1) {
-        return null;
-    }
-
-    const bootstrap = options.forceRefresh
-        ? refreshNativeSession() || syncNativeSession()
-        : syncNativeSession();
-    const token = bootstrap?.accessToken || localStorage.getItem('studentToken');
-    if (!token) {
-        return null;
-    }
-
-    config.__nativeRetryCount = retryCount + 1;
-    config.headers = config.headers || {};
-    config.headers.Authorization = `Bearer ${token}`;
-    config.headers['X-Native-App'] = 'android';
-
-    await wait(400);
-    return api.request(config);
-};
-
-const nativeLogoutReason = (reason) => {
-    if (reason === 'token_invalid' || reason === 'token_missing') {
-        return 'token_invalid';
-    }
-
-    return reason || 'session_expired';
-};
-
-const buildNativeLogoutPayload = (error, reason) => {
-    const statusCode = error?.response?.status ?? null;
-    const message = error?.response?.data?.message || error?.message || null;
-    const path = typeof error?.config?.url === 'string' ? error.config.url : null;
-
-    return {
-        reason: nativeLogoutReason(reason),
-        upstreamReason: reason,
-        statusCode,
-        message,
-        path,
-        source: 'webview_api'
-    };
-};
-
 api.interceptors.request.use((config) => {
-    if (isNativeShell()) {
-        syncNativeSession();
-    }
-
     const token = localStorage.getItem('studentToken');
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
@@ -170,23 +121,6 @@ api.interceptors.response.use(
 
         // Never intercept 401s from login endpoints — let the login page handle them
         const isLoginRequest = requestUrl.includes('/login') || requestUrl.includes('/register');
-
-        if (isNativeShell()) {
-            if (statusCode === 503 || reason === 'db_unavailable') {
-                return Promise.reject(error);
-            }
-
-            if (statusCode === 401 && !isLoginRequest) {
-                const retriedResponse = await retryNativeRequest(error, { forceRefresh: true });
-                if (retriedResponse) {
-                    return retriedResponse;
-                }
-
-                triggerNativeLogout(buildNativeLogoutPayload(error, reason));
-            }
-
-            return Promise.reject(error);
-        }
 
         if (statusCode === 401 && !isLoginRequest) {
             localStorage.removeItem('studentToken');
