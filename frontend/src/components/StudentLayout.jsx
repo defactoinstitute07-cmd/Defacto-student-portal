@@ -5,7 +5,7 @@ import {
     LayoutDashboard, User, Trophy, BookOpen,
     FileText, Wallet, Award, Bell,
     LogOut, Menu, X, GraduationCap, ShieldAlert,
-    Settings, ArrowLeft, Sparkles
+    Settings, ArrowLeft, Sparkles, RefreshCw
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageToggleButton from './LanguageToggleButton';
@@ -50,6 +50,7 @@ const StudentLayout = ({ children, title, backUrl, useHistoryBack = false, hideM
     const { t } = useLanguage();
     const [mini, setMini] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
 
     const studentInfoRaw = localStorage.getItem('studentInfo');
     const student = studentInfoRaw ? JSON.parse(studentInfoRaw) : {};
@@ -92,6 +93,11 @@ const StudentLayout = ({ children, title, backUrl, useHistoryBack = false, hideM
         }
 
         navigate('/student/dashboard?tab=home');
+    };
+
+    const handleRefresh = () => {
+        setRefreshing(true);
+        window.location.reload();
     };
 
     return (
@@ -184,6 +190,15 @@ const StudentLayout = ({ children, title, backUrl, useHistoryBack = false, hideM
                     </div>
 
                     <div className="tb-right">
+                        <button
+                            className="tb-hamburger"
+                            onClick={handleRefresh}
+                            disabled={refreshing}
+                            title={t('Refresh')}
+                            aria-label={t('Refresh')}
+                        >
+                            <RefreshCw size={18} className={refreshing ? 'animate-spin' : ''} />
+                        </button>
                         <LanguageToggleButton variant="topbar" />
                         <span className="tb-name-desktop tb-greeting">
                             {t('Hi')}, <strong>{student.name?.split(' ')[0] || 'Student'}</strong>

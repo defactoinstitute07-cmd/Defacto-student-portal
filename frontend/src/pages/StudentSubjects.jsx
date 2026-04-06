@@ -455,7 +455,7 @@ const StudentSubjects = () => {
 
                 {/* Tabs */}
                 <div className="mt-5 flex gap-2 overflow-x-auto no-scrollbar">
-                    {['All', 'Ongoing', 'Completed'].map((tab) => {
+                    {['All'].map((tab) => {
                         const count = tab === 'Completed'
                             ? subjects.filter((s) => isSyllabusCompleted(s)).length
                             : tab === 'Ongoing'
