@@ -87,7 +87,7 @@ const SplashScreen = ({ onComplete }) => {
 
         {/* Premium Loading Indicator */}
         <div className="mt-24 w-64 md:w-80 flex flex-col items-center">
-          <div className="relative w-full h-1 bg-white rounded-[15px] overflow-hidden">
+          <div className="relative w-full h-1 bg-white   rounded-[10px] overflow-hidden">
             <div 
               className="absolute top-0 left-0 h-full bg-[#d4af37] transition-all duration-300 ease-linear shadow-[0_0_10px_#d4af37]"
               style={{ width: `${loadingProgress}%` }}

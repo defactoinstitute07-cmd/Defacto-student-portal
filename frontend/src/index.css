@@ -74,6 +74,10 @@
     --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
+/* Tailwind font-sans override: force DM Sans everywhere */
+:root {
+  --font-sans: 'DM Sans', sans-serif;
+}
 
 html {
     scroll-behavior: smooth;
@@ -81,7 +85,7 @@ html {
 }
 
 body {
-    font-family: 'DM Sans', system-ui, sans-serif;
+    font-family: 'DM Sans';
     /* Background gradients updated to indigo tint */
     background:
         radial-gradient(800px 600px at 20% 10%, rgba(25, 24, 56, 0.04), transparent 50%),
@@ -110,7 +114,7 @@ button,
 input,
 select,
 textarea {
-    font-family: inherit;
+    font-family:  'DM Sans';
 }
 
 a {

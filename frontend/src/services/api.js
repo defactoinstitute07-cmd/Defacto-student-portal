@@ -115,16 +115,25 @@ api.interceptors.response.use(
     (response) => response,
     async (error) => {
         const statusCode = error.response?.status;
-        const reason = normalizeAuthReason(error);
         const requestUrl = error?.config?.url || '';
+        const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+        const isLoginRoute = currentPath.startsWith('/student/login');
+        const authRedirectInProgress = typeof window !== 'undefined'
+            ? sessionStorage.getItem('auth_redirecting') === '1'
+            : false;
 
         // Never intercept 401s from login endpoints — let the login page handle them
         const isLoginRequest = requestUrl.includes('/login') || requestUrl.includes('/register');
 
-        if (statusCode === 401 && !isLoginRequest) {
+        if (statusCode === 401 && !isLoginRequest && !isLoginRoute && !authRedirectInProgress) {
+            try {
+                sessionStorage.setItem('auth_redirecting', '1');
+            } catch {
+                // no-op
+            }
             localStorage.removeItem('studentToken');
             localStorage.removeItem('studentInfo');
-            window.location.href = '/student/login';
+            window.location.replace('/student/login');
         }
 
         return Promise.reject(error);

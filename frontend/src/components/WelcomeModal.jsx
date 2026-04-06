@@ -138,7 +138,7 @@ const WelcomeModal = ({ studentName, onClose }) => {
                 }
 
                 .brand-gradient {
-                    background: linear-gradient(90deg, #193466 0%, #FFC50F 100%);
+                    background: linear-gradient(90deg, #193466 0%, #193466 100%);
                     -webkit-background-clip: text;
                     -webkit-text-fill-color: transparent;
                     background-clip: text;

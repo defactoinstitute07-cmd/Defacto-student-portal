@@ -99,11 +99,11 @@ const Leaderboard = () => {
 
                 {/* Fixed Header Card */}
                 <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#1e293b] to-[#0f172a] p-8 text-white shadow-xl mb-8">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/10 rounded-[15px] -mr-20 -mt-20 blur-3xl" />
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/10   rounded-[10px] -mr-20 -mt-20 blur-3xl" />
                     <div className="relative flex items-center justify-between">
                         <div className="space-y-2">
                             <div className="flex items-center gap-3">
-                                <div className="p-3 bg-yellow-400/20 rounded-[15px] border border-yellow-400/30">
+                                <div className="p-3 bg-yellow-400/20   rounded-[10px] border border-yellow-400/30">
                                     <Trophy size={28} className="text-yellow-400" />
                                 </div>
                                 <p className="text-2xl font-black uppercase tracking-tight italic">{t('Hall of Fame')}</p>
@@ -117,9 +117,9 @@ const Leaderboard = () => {
                 </div>
 
                 {/* Controls Section */}
-                <div className="bg-white p-4 rounded-[15px] border border-slate-100 shadow-sm mb-6">
+                <div className="bg-white p-4   rounded-[10px] border border-slate-100 shadow-sm mb-6">
                     <div className="flex flex-col sm:flex-row gap-4">
-                        <div className="flex flex-1 p-1.5 bg-slate-50 rounded-[15px] border border-slate-100">
+                        <div className="flex flex-1 p-1.5 bg-slate-50   rounded-[10px] border border-slate-100">
                             <button
                                 onClick={() => { setLbType('batch'); setLbSubject('All'); }}
                                 className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${lbType === 'batch' ? 'bg-white text-[#1e293b] shadow-md' : 'text-slate-400'}`}
@@ -139,7 +139,7 @@ const Leaderboard = () => {
                                 <select
                                     value={lbSubject}
                                     onChange={(e) => setLbSubject(e.target.value)}
-                                    className="w-full h-full px-5 py-3 bg-white border border-slate-200 rounded-[15px] text-xs font-bold text-slate-700 outline-none appearance-none cursor-pointer"
+                                    className="w-full h-full px-5 py-3 bg-white border border-slate-200   rounded-[10px] text-xs font-bold text-slate-700 outline-none appearance-none cursor-pointer"
                                 >
                                     {subjects.map(sub => (
                                         <option key={sub} value={sub}>{sub === 'All' ? t('All Subjects') : sub}</option>
@@ -170,14 +170,14 @@ const Leaderboard = () => {
                             {topThreeLeaderboard.map((item, idx) => (
                                 <div
                                     key={item.studentId || idx}
-                                    className="group flex items-center justify-between p-4 bg-white rounded-[15px] border border-slate-100 shadow-sm hover:shadow-md transition-all active:scale-[0.99]"
+                                    className="group flex items-center justify-between p-4 bg-white   rounded-[10px] border border-slate-100 shadow-sm hover:shadow-md transition-all active:scale-[0.99]"
                                 >
                                     <div className="flex items-center gap-4">
                                         <div className={`h-11 w-11 shrink-0 rounded-xl flex items-center justify-center text-[15px] font-black border ${getRankStyles(idx)}`}>
                                             {idx + 1}
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            <div className="h-10 w-10 rounded-[15px] border-2 border-white bg-slate-100 shadow-sm overflow-hidden flex items-center justify-center">
+                                            <div className="h-10 w-10   rounded-[10px] border-2 border-white bg-slate-100 shadow-sm overflow-hidden flex items-center justify-center">
                                                 {item.profileImage ? (
                                                     <img src={item.profileImage} alt={item.studentName} className="h-full w-full object-cover" />
                                                 ) : (

@@ -56,9 +56,14 @@ const StudentLayout = ({ children, title, backUrl, useHistoryBack = false, hideM
     const student = studentInfoRaw ? JSON.parse(studentInfoRaw) : {};
 
     const logout = () => {
+        try {
+            sessionStorage.setItem('auth_redirecting', '1');
+        } catch {
+            // no-op
+        }
         localStorage.removeItem('studentToken');
         localStorage.removeItem('studentInfo');
-        navigate('/student/login');
+        window.location.replace('/student/login');
     };
 
     // Screen resize hone par sidebar state handle karne ke liye
@@ -226,7 +231,7 @@ const StudentLayout = ({ children, title, backUrl, useHistoryBack = false, hideM
   className="fixed bottom-2 left-1/2 -translate-x-1/2 w-[95%] max-w-md z-[150] md:hidden"
   aria-label="Primary"
 >
-  <div className="rounded-[15px] border border-gray-200 bg-white shadow-md px-2 py-1">
+  <div className="   rounded-[10px] border border-gray-200 bg-white shadow-md px-2 py-1">
     <div
       className="grid items-center"
       style={{ gridTemplateColumns: `repeat(${MOBILE_NAV_ITEMS.length}, minmax(0, 1fr))` }}
@@ -256,7 +261,7 @@ const StudentLayout = ({ children, title, backUrl, useHistoryBack = false, hideM
 
             {/* Active Indicator */}
             {active && (
-              <div className="mt-1 h-1 w-5 rounded-[15px] bg-blue-600" />
+              <div className="mt-1 h-1 w-5   rounded-[10px] bg-blue-600" />
             )}
           </Link>
         );

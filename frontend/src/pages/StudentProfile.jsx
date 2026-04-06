@@ -53,7 +53,7 @@ const formatDateValue = (value, locale) => {
 const formatCurrency = (value) => `\u20b9${Number(value || 0).toLocaleString('en-IN')}`;
 
 const DetailRow = ({ icon: Icon, label, value, colorClass = "text-slate-400" }) => (
-    <div className="flex items-center gap-4 rounded-[15px] bg-slate-50 p-3.5 transition-all hover:bg-slate-100/80">
+    <div className="flex items-center gap-4   rounded-[10px] bg-slate-50 p-3.5 transition-all hover:bg-slate-100/80">
         <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm ${colorClass}`}>
             <Icon size={18} strokeWidth={2.2} />
         </div>
@@ -73,8 +73,8 @@ const SettingRow = ({ icon: Icon, label, type, active, onClick }) => (
             <span className="text-sm font-semibold text-slate-700">{label}</span>
         </div>
         {type === 'toggle' ? (
-            <div className={`flex h-6 w-11 items-center rounded-[15px] px-1 transition-colors ${active ? 'bg-[#191838]' : 'bg-slate-200'}`}>
-                <div className={`h-4 w-4 rounded-[15px] bg-white shadow-sm transition-transform ${active ? 'translate-x-5' : 'translate-x-0'}`} />
+            <div className={`flex h-6 w-11 items-center   rounded-[10px] px-1 transition-colors ${active ? 'bg-[#191838]' : 'bg-slate-200'}`}>
+                <div className={`h-4 w-4   rounded-[10px] bg-white shadow-sm transition-transform ${active ? 'translate-x-5' : 'translate-x-0'}`} />
             </div>
         ) : (
             <ChevronRight size={18} className="text-slate-300" />
@@ -142,7 +142,7 @@ const StudentProfile = () => {
                     <button
                         type="button"
                         onClick={() => window.location.reload()}
-                        className="h-11 w-full rounded-[15px] bg-[#191838] text-xs font-black uppercase tracking-[0.24em] text-white"
+                        className="h-11 w-full   rounded-[10px] bg-[#191838] text-xs font-black uppercase tracking-[0.24em] text-white"
                     >
                         {t('Retry')}
                     </button>
@@ -203,7 +203,7 @@ const StudentProfile = () => {
             {/* 1. Header Card - Avatar & Primary Info */}
             <div className="relative overflow-hidden rounded-[32px] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] sm:p-8">
                 {/* Decorative Background Pattern */}
-                <div className="absolute -right-8 -top-8 h-40 w-40 rounded-[15px] bg-indigo-50/50" />
+                <div className="absolute -right-8 -top-8 h-40 w-40   rounded-[10px] bg-indigo-50/50" />
                 
                 <div className="relative flex flex-col items-center gap-5 sm:flex-row sm:text-left">
                     <div className="relative h-24 w-24 shrink-0">
@@ -217,7 +217,7 @@ const StudentProfile = () => {
                                 }}
                             />
                         </div>
-                        <div className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-[15px] border-2 border-white bg-[#191838] text-white shadow-sm">
+                        <div className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center   rounded-[10px] border-2 border-white bg-[#191838] text-white shadow-sm">
                             <UserCheck size={14} />
                         </div>
                     </div>
@@ -225,10 +225,10 @@ const StudentProfile = () => {
                     <div className="flex-1 text-center sm:text-left">
                         <h2 className="text-2xl font-black text-gray-900">{student.name}</h2>
                         <div className="mt-2 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-                            <span className="inline-flex items-center gap-1.5 rounded-[15px] bg-slate-100 px-3 py-1 text-[11px] font-bold text-slate-600">
+                            <span className="inline-flex items-center gap-1.5   rounded-[10px] bg-slate-100 px-3 py-1 text-[11px] font-bold text-slate-600">
                                 <Hash size={12} /> {student.rollNo || EMPTY_VALUE}
                             </span>
-                            <span className="inline-flex items-center gap-1.5 rounded-[15px] bg-indigo-50 px-3 py-1 text-[11px] font-bold text-[#191838]">
+                            <span className="inline-flex items-center gap-1.5   rounded-[10px] bg-indigo-50 px-3 py-1 text-[11px] font-bold text-[#191838]">
                                 <Clock size={12} /> {student.session || '2026-2027'}
                             </span>
                         </div>
@@ -245,7 +245,7 @@ const StudentProfile = () => {
                 {/* Academic Summary */}
                 <section>
                     <SectionHeader title={t('Academic Summary')} />
-                                        <div className="rounded-[15px] border border-gray-100 bg-white p-5 shadow-sm">
+                                        <div className="   rounded-[10px] border border-gray-100 bg-white p-5 shadow-sm">
                                                 <div className="flex items-center justify-between">
                                                         <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                                                                 {t('Attendance')}
@@ -255,7 +255,7 @@ const StudentProfile = () => {
                                                         </span>
                                                 </div>
 
-                                                <div className="mt-3 h-2 w-full overflow-hidden rounded-[15px] bg-slate-100">
+                                                <div className="mt-3 h-2 w-full overflow-hidden   rounded-[10px] bg-slate-100">
                                                         <div
                                                                 className={`h-full transition-all ${getAttendanceColor(attendancePercent)}`}
                                                                 style={{ width: `${attendancePercent}%` }}
@@ -307,7 +307,7 @@ const StudentProfile = () => {
             {(student.notes || student.bio) && (
                 <section className="mt-8">
                     <SectionHeader title={t('Notes & Bio')} />
-                    <div className="rounded-[15px] border border-gray-100 bg-indigo-50/30 p-5">
+                    <div className="   rounded-[10px] border border-gray-100 bg-indigo-50/30 p-5">
                         <div className="flex gap-3">
                             <FileText className="shrink-0 text-[#191838]" size={18} />
                             <p className="text-sm italic leading-relaxed text-slate-600">
@@ -321,7 +321,7 @@ const StudentProfile = () => {
             {/* Settings & Support */}
             <section>
                 <SectionHeader title={t('Settings & Support')} />
-                <div className="rounded-[15px] bg-white p-5 border border-slate-100 shadow-sm divide-y divide-slate-50">
+                <div className="   rounded-[10px] bg-white p-5 border border-slate-100 shadow-sm divide-y divide-slate-50">
                     <SettingRow 
                         icon={Briefcase} 
                         label={t('Contact Support')} 
@@ -332,10 +332,16 @@ const StudentProfile = () => {
                 
                 <button 
                     onClick={() => {
+                        try {
+                            sessionStorage.setItem('auth_redirecting', '1');
+                        } catch {
+                            // no-op
+                        }
                         localStorage.removeItem('studentToken');
-                        navigate('/student/login');
+                        localStorage.removeItem('studentInfo');
+                        window.location.replace('/student/login');
                     }}
-                    className="mt-6 flex w-full items-center justify-center gap-2 rounded-[15px] bg-white px-4 py-4 text-sm font-extrabold text-rose-500 border border-rose-100 shadow-sm transition active:scale-95"
+                    className="mt-6 flex w-full items-center justify-center gap-2   rounded-[10px] bg-white px-4 py-4 text-sm font-extrabold text-rose-500 border border-rose-100 shadow-sm transition active:scale-95"
                 >
                     <LogOut size={18} />
                     {t('Sign Out')}

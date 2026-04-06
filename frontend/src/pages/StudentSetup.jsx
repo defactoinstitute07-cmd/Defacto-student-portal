@@ -110,18 +110,18 @@ const StudentSetup = () => {
             <div className="absolute inset-0 opacity-[0.03] [background-image:radial-gradient(circle_at_1px_1px,rgba(0,0,0,0.8)_1px,transparent_0)] [background-size:20px_20px]" />
 
             {/* Decorative blobs */}
-            <div className="absolute top-[-10%] right-[-5%] w-[400px] h-[400px] bg-indigo-100 rounded-[15px] blur-[100px] opacity-50 pointer-events-none" />
-            <div className="absolute bottom-[-10%] left-[-5%] w-[350px] h-[350px] bg-emerald-100 rounded-[15px] blur-[100px] opacity-40 pointer-events-none" />
+            <div className="absolute top-[-10%] right-[-5%] w-[400px] h-[400px] bg-indigo-100   rounded-[10px] blur-[100px] opacity-50 pointer-events-none" />
+            <div className="absolute bottom-[-10%] left-[-5%] w-[350px] h-[350px] bg-emerald-100   rounded-[10px] blur-[100px] opacity-40 pointer-events-none" />
 
             {/* --- MAIN CARD --- */}
-            <div className="relative z-10 w-full max-w-[440px] bg-white rounded-[24px] sm:rounded-[15px] shadow-[0_20px_60px_rgba(0,0,0,0.08)] border border-gray-200 overflow-hidden">
+            <div className="relative z-10 w-full max-w-[440px] bg-white rounded-[24px] sm:   rounded-[10px] shadow-[0_20px_60px_rgba(0,0,0,0.08)] border border-gray-200 overflow-hidden">
 
                 {/* Step Indicator */}
                 <div className="px-6 pt-6 sm:px-8 sm:pt-8">
                     <div className="flex items-center gap-2">
                         {[1, 2, 3].map((s) => (
                             <div key={s} className="flex-1">
-                                <div className={`h-1.5 rounded-[15px] transition-all duration-500 ${
+                                <div className={`h-1.5   rounded-[10px] transition-all duration-500 ${
                                     s <= step ? 'bg-[#191838]' : 'bg-gray-100'
                                 }`} />
                             </div>
@@ -146,7 +146,7 @@ const StudentSetup = () => {
                 {/* Content */}
                 <div className="px-6 pb-8 pt-4 sm:px-8 sm:pb-10">
                     {error && (
-                        <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-[15px] flex items-start gap-3 mb-6 animate-in fade-in zoom-in duration-300">
+                        <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-700   rounded-[10px] flex items-start gap-3 mb-6 animate-in fade-in zoom-in duration-300">
                             <AlertTriangle size={18} className="shrink-0 mt-0.5" />
                             <span className="text-sm font-bold leading-snug">{error}</span>
                         </div>
@@ -157,7 +157,7 @@ const StudentSetup = () => {
                         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div className="flex flex-col items-center space-y-5">
                                 <div className="relative flex flex-col items-center gap-3">
-                                    <div className="h-32 w-32 sm:h-36 sm:w-36 rounded-[15px] bg-gray-50 border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden transition-all hover:border-[#191838]/30 group">
+                                    <div className="h-32 w-32 sm:h-36 sm:w-36   rounded-[10px] bg-gray-50 border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden transition-all hover:border-[#191838]/30 group">
                                         {preview ? (
                                             <img src={preview} alt="Preview" className="h-full w-full object-cover rounded-[15px]" />
                                         ) : (
@@ -174,7 +174,7 @@ const StudentSetup = () => {
                                     <button
                                         type="button"
                                         onClick={() => fileInputRef.current && fileInputRef.current.click()}
-                                        className="inline-flex items-center gap-2 px-4 py-2 bg-[#191838] text-white text-xs font-bold rounded-[15px] shadow-lg shadow-gray-300/60 hover:bg-[#12112a] transition-all active:scale-95"
+                                        className="inline-flex items-center gap-2 px-4 py-2 bg-[#191838] text-white text-xs font-bold   rounded-[10px] shadow-lg shadow-gray-300/60 hover:bg-[#12112a] transition-all active:scale-95"
                                     >
                                         <Camera size={14} />
                                         <span>{t('Select Photo')}</span>
@@ -190,7 +190,7 @@ const StudentSetup = () => {
 
                             <button
                                 onClick={() => image ? setStep(2) : setError(t('Please upload your photo to continue'))}
-                                className="w-full py-3.5 bg-[#191838] hover:bg-[#12112a] text-white text-sm font-bold rounded-[15px] flex items-center justify-center gap-2 shadow-[0_4px_14px_rgba(25,24,56,0.25)] hover:shadow-[0_6px_20px_rgba(25,24,56,0.3)] hover:-translate-y-0.5 transition-all duration-200 active:scale-[0.98] group"
+                                className="w-full py-3.5 bg-[#191838] hover:bg-[#12112a] text-white text-sm font-bold   rounded-[10px] flex items-center justify-center gap-2 shadow-[0_4px_14px_rgba(25,24,56,0.25)] hover:shadow-[0_6px_20px_rgba(25,24,56,0.3)] hover:-translate-y-0.5 transition-all duration-200 active:scale-[0.98] group"
                             >
                                 <span>{t('Continue')}</span>
                                 <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
@@ -203,8 +203,8 @@ const StudentSetup = () => {
                         <form onSubmit={handleSubmit} className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                             {/* Preview thumbnail */}
                             {preview && (
-                                <div className="flex items-center gap-3 p-3 rounded-[15px] bg-gray-50 border border-gray-200 mb-2">
-                                    <img src={preview} alt="Profile" className="h-10 w-10 rounded-[15px] object-cover ring-2 ring-[#191838]/10" />
+                                <div className="flex items-center gap-3 p-3   rounded-[10px] bg-gray-50 border border-gray-200 mb-2">
+                                    <img src={preview} alt="Profile" className="h-10 w-10   rounded-[10px] object-cover ring-2 ring-[#191838]/10" />
                                     <div className="flex-1 min-w-0">
                                         <p className="text-xs font-bold text-gray-900 truncate">{t('Photo uploaded')}</p>
                                         <p className="text-[10px] text-gray-400 font-medium">{t('Ready for activation')}</p>
@@ -272,7 +272,7 @@ const StudentSetup = () => {
                                 <button
                                     type="button"
                                     onClick={() => setStep(1)}
-                                    className="flex-1 py-3 bg-gray-50 border border-gray-200 text-gray-600 text-sm font-bold rounded-[15px] hover:bg-gray-100 transition-all flex items-center justify-center gap-1.5"
+                                    className="flex-1 py-3 bg-gray-50 border border-gray-200 text-gray-600 text-sm font-bold   rounded-[10px] hover:bg-gray-100 transition-all flex items-center justify-center gap-1.5"
                                 >
                                     <ArrowLeft size={15} />
                                     <span>{t('Back')}</span>
@@ -280,10 +280,10 @@ const StudentSetup = () => {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="flex-[2] py-3 bg-[#191838] hover:bg-[#12112a] text-white text-sm font-bold rounded-[15px] shadow-[0_4px_14px_rgba(25,24,56,0.25)] hover:shadow-[0_6px_20px_rgba(25,24,56,0.3)] hover:-translate-y-0.5 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                    className="flex-[2] py-3 bg-[#191838] hover:bg-[#12112a] text-white text-sm font-bold   rounded-[10px] shadow-[0_4px_14px_rgba(25,24,56,0.25)] hover:shadow-[0_6px_20px_rgba(25,24,56,0.3)] hover:-translate-y-0.5 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
                                     {loading ? (
-                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-[15px] animate-spin" />
+                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white   rounded-[10px] animate-spin" />
                                     ) : (
                                         <>
                                             <span>{t('Activate Portal')}</span>
@@ -298,7 +298,7 @@ const StudentSetup = () => {
                     {/* STEP 3: Success */}
                     {step === 3 && (
                         <div className="py-10 sm:py-14 text-center space-y-5 animate-in fade-in duration-500">
-                            <div className="h-20 w-20 sm:h-24 sm:w-24 bg-emerald-50 border border-emerald-200 text-emerald-500 rounded-[15px] flex items-center justify-center mx-auto shadow-lg shadow-emerald-100">
+                            <div className="h-20 w-20 sm:h-24 sm:w-24 bg-emerald-50 border border-emerald-200 text-emerald-500   rounded-[10px] flex items-center justify-center mx-auto shadow-lg shadow-emerald-100">
                                 <CheckCircle2 size={40} />
                             </div>
                             <div className="space-y-2">

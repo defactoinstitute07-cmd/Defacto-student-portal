@@ -60,6 +60,12 @@ const StudentLogin = () => {
     };
 
     useEffect(() => {
+        try {
+            sessionStorage.removeItem('auth_redirecting');
+        } catch {
+            // no-op
+        }
+
         const token = localStorage.getItem('studentToken');
         if (!token) return;
         try {

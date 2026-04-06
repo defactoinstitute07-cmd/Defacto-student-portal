@@ -153,7 +153,7 @@ const StudentFees = () => {
         <>
         <div className="min-h-screen bg-[radial-gradient(circle_at_20%_0%,#eff6ff,transparent_40%),radial-gradient(circle_at_80%_20%,#fff7ed,transparent_40%),#f8fafc] pb-16 selection:bg-sky-200/60">
             <div className="p0">
-                <div className="max-w-5xl mx-auto rounded-[15px] border border-sky-100 bg-white/90 backdrop-blur-sm shadow-[0_20px_45px_-35px_rgba(2,132,199,0.55)] overflow-hidden">
+                <div className="max-w-5xl mx-auto   rounded-[10px] border border-sky-100 bg-white/90 backdrop-blur-sm shadow-[0_20px_45px_-35px_rgba(2,132,199,0.55)] overflow-hidden">
                     <div className="bg-[linear-gradient(110deg,#172554_0%,#1d4ed8_60%,#1e40af_100%)] p-6 sm:p-8">
                         <div className="flex items-start justify-between gap-4">
                             <div>
@@ -167,7 +167,7 @@ const StudentFees = () => {
                                     {t('View and clear your pending fee dues quickly.')}
                                 </p>
                             </div>
-                            <div className="hidden sm:flex w-14 h-14 rounded-[15px] items-center justify-center bg-white/15 border border-white/20 text-white shrink-0">
+                            <div className="hidden sm:flex w-14 h-14   rounded-[10px] items-center justify-center bg-white/15 border border-white/20 text-white shrink-0">
                                 <Wallet size={30} strokeWidth={1.8} />
                             </div>
                         </div>
@@ -181,7 +181,7 @@ const StudentFees = () => {
 
             <div className="max-w-5xl mx-auto p0 sm:p0 mt-5 space-y-6">
                 <div className="grid grid-cols-1 gap-4">
-                    <div className="bg-rose-50 border border-rose-400 rounded-[15px] p-5 shadow-sm">
+                    <div className="bg-rose-50 border border-rose-400   rounded-[10px] p-5 shadow-sm">
                         <div className="flex items-center justify-between mb-3">
                             <span className="text-[11px] font-black tracking-[0.16em] uppercase text-rose-500">{t('Pending Dues')}</span>
                             <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center">
@@ -215,7 +215,7 @@ const StudentFees = () => {
                                                 className="w-full rounded-[999px] border px-4 py-3 flex items-center justify-between text-sm shadow-sm transition-all active:scale-[0.99] bg-rose-50 border-rose-100 text-rose-800"
                                             >
                                                 <div className="flex items-center gap-3">
-                                                    <span className="w-2.5 h-2.5 rounded-[15px] bg-rose-500" />
+                                                    <span className="w-2.5 h-2.5   rounded-[10px] bg-rose-500" />
                                                     <span className="font-semibold text-slate-900">
                                                         {fee.month} {fee.year}
                                                     </span>
@@ -232,8 +232,8 @@ const StudentFees = () => {
                                 </div>
                             </>
                         ) : (
-                            <div className="text-center py-16 bg-white rounded-[15px] border border-slate-200 shadow-sm flex flex-col items-center justify-center">
-                                <div className="w-16 h-16 bg-slate-100 rounded-[15px] flex items-center justify-center text-slate-500 mb-4">
+                            <div className="text-center py-16 bg-white   rounded-[10px] border border-slate-200 shadow-sm flex flex-col items-center justify-center">
+                                <div className="w-16 h-16 bg-slate-100   rounded-[10px] flex items-center justify-center text-slate-500 mb-4">
                                     <Wallet size={32} strokeWidth={1.5} />
                                 </div>
                                 <h3 className="text-lg font-black text-slate-800 mb-1">{t('No Pending Fees')}</h3>
@@ -261,7 +261,7 @@ const StudentFees = () => {
                                             className="w-full rounded-[999px] border px-4 py-3 flex items-center justify-between text-sm shadow-sm transition-all active:scale-[0.99] bg-emerald-50 border-emerald-100 text-emerald-800"
                                         >
                                             <div className="flex items-center gap-3">
-                                                <span className="w-2.5 h-2.5 rounded-[15px] bg-emerald-500" />
+                                                <span className="w-2.5 h-2.5   rounded-[10px] bg-emerald-500" />
                                                 <span className="font-semibold text-slate-900">
                                                     {fee.month} {fee.year}
                                                 </span>

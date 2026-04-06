@@ -58,7 +58,7 @@ const StudentSettings = () => {
     return (
         <StudentLayout title="Settings">
             <div className="w-full max-w-2xl mx-auto px-4 pt-4 pb-24 sm:pb-12 animate-in fade-in duration-300 min-h-screen bg-[radial-gradient(circle_at_top,#e0e7ff_0%,#f8fafc_35%,#f8fafc_100%)]">
-                <div className="mb-6 rounded-[15px] border border-slate-200/80 bg-white/95 backdrop-blur-sm p-5 shadow-[0_20px_45px_rgba(15,23,42,0.08)] sm:p-6">
+                <div className="mb-6   rounded-[10px] border border-slate-200/80 bg-white/95 backdrop-blur-sm p-5 shadow-[0_20px_45px_rgba(15,23,42,0.08)] sm:p-6">
                     <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">{t('Preferences')}</p>
                     <h2 className="mt-2 text-xl sm:text-2xl font-black tracking-tight text-slate-900">{t('Personalize your account settings')}</h2>
                     <p className="mt-2 text-sm text-slate-600">
@@ -67,7 +67,7 @@ const StudentSettings = () => {
                 </div>
 
                 {/* Security Section */}
-                <section className="mb-6 rounded-[15px] border border-slate-200/80 bg-white p-5 shadow-[0_18px_40px_rgba(15,23,42,0.06)] sm:p-6">
+                <section className="mb-6   rounded-[10px] border border-slate-200/80 bg-white p-5 shadow-[0_18px_40px_rgba(15,23,42,0.06)] sm:p-6">
                     <div className="flex items-center justify-between gap-3 mb-5">
                         <div className="flex items-center gap-2.5">
                             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-50 text-rose-600 border border-rose-100">
@@ -78,12 +78,12 @@ const StudentSettings = () => {
                                 <p className="text-xs text-slate-500 mt-0.5">{t('Keep your account protected')}</p>
                             </div>
                         </div>
-                        <span className="hidden sm:inline-flex px-3 py-1 rounded-[15px] bg-slate-100 text-[10px] font-black uppercase tracking-wider text-slate-600 border border-slate-200">
+                        <span className="hidden sm:inline-flex px-3 py-1   rounded-[10px] bg-slate-100 text-[10px] font-black uppercase tracking-wider text-slate-600 border border-slate-200">
                             {t('Recommended')}
                         </span>
                     </div>
 
-                    <div className="rounded-[15px] border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
+                    <div className="   rounded-[10px] border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
                         {(error || success) && (
                             <div className={`p-3.5 rounded-xl mb-5 flex items-start gap-3 animate-in slide-in-from-top-2 ${error ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}`}>
                                 <div className="mt-0.5">

@@ -48,12 +48,12 @@ const getPerformanceTone = (score) => {
 };
 
 const InsightCard = ({ icon: Icon, label, value, hint, tone }) => (
-  <div className="min-w-0 rounded-[15px] border border-gray-200 bg-white p-5 shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
+  <div className="min-w-0   rounded-[10px] border border-gray-200 bg-white p-5 shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
     <div className="flex items-start justify-between gap-4">
-      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[15px] bg-gray-100 text-gray-600">
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center   rounded-[10px] bg-gray-100 text-gray-600">
         <Icon size={18} />
       </div>
-      <span className={`shrink-0 rounded-[15px] border px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] ${tone.soft}`}>
+      <span className={`shrink-0   rounded-[10px] border px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] ${tone.soft}`}>
         {tone.label}
       </span>
     </div>
@@ -67,10 +67,10 @@ const QuickActionCard = ({ icon: Icon, label, description, onClick }) => (
   <button
     type="button"
     onClick={onClick}
-    className="group flex w-full items-center justify-between gap-4 rounded-[15px] border border-gray-200 bg-white px-4 py-4 text-left transition hover:border-[#191838] hover:bg-indigo-50/50"
+    className="group flex w-full items-center justify-between gap-4   rounded-[10px] border border-gray-200 bg-white px-4 py-4 text-left transition hover:border-[#191838] hover:bg-indigo-50/50"
   >
     <div className="flex min-w-0 items-center gap-3">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[15px] bg-[#191838] text-white">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center   rounded-[10px] bg-[#191838] text-white">
         <Icon size={18} />
       </div>
       <div className="min-w-0">
@@ -78,7 +78,7 @@ const QuickActionCard = ({ icon: Icon, label, description, onClick }) => (
         <p className="mt-1 break-words text-xs font-medium text-gray-500">{description}</p>
       </div>
     </div>
-    <span className="shrink-0 rounded-[15px] border border-gray-200 bg-gray-50 p-2 text-gray-400 transition group-hover:border-[#191838] group-hover:bg-[#191838] group-hover:text-white">
+    <span className="shrink-0   rounded-[10px] border border-gray-200 bg-gray-50 p-2 text-gray-400 transition group-hover:border-[#191838] group-hover:bg-[#191838] group-hover:text-white">
       <ArrowRight size={16} />
     </span>
   </button>
@@ -187,7 +187,7 @@ const StudentDashboard = () => {
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="h-11 w-full rounded-[15px] bg-[#191838] text-xs font-black uppercase tracking-[0.24em] text-white"
+            className="h-11 w-full   rounded-[10px] bg-[#191838] text-xs font-black uppercase tracking-[0.24em] text-white"
           >
             {t('Retry')}
           </button>
@@ -274,36 +274,31 @@ const StudentDashboard = () => {
             </p>
 
             <div className="mt-5 flex flex-wrap gap-2">
-              <span className="inline-flex max-w-full items-center gap-2 rounded-[15px] border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 shadow-sm">
+              <span className="inline-flex max-w-full items-center gap-2   rounded-[10px] border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 shadow-sm">
                 <Hash size={14} className="text-gray-400" />
                 <span className="break-all">{student.rollNo || '-'}</span>
               </span>
-              <span className="inline-flex max-w-full items-center gap-2 rounded-[15px] border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 shadow-sm">
+              <span className="inline-flex max-w-full items-center gap-2   rounded-[10px] border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 shadow-sm">
                 <BookOpen size={14} className="text-gray-400" />
                 <span className="break-words">{student.className || student.batchName || 'N/A'}</span>
               </span>
-              <span className="inline-flex max-w-full items-center gap-2 rounded-[15px] border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 shadow-sm">
+              <span className="inline-flex max-w-full items-center gap-2   rounded-[10px] border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 shadow-sm">
                 <Building2 size={14} className="text-gray-400" />
                 <span className="break-words">{t('Batch')}: {batchName}</span>
               </span>
-              <span className="inline-flex max-w-full items-center gap-2 rounded-[15px] border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 shadow-sm">
+              <span className="inline-flex max-w-full items-center gap-2   rounded-[10px] border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 shadow-sm">
                 <User size={14} className="text-gray-400" />
                 <span className="break-words">{subjectCount} {t('Subjects')}</span>
               </span>
             </div>
 
-            <div className="mt-4 grid gap-2 sm:grid-cols-1">
-              <div className="rounded-[15px] border border-gray-200 bg-white px-3 py-2 shadow-sm">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">{t('Batch Name')}</p>
-                <p className="mt-1 truncate text-xs font-bold text-gray-800">{batchName}</p>
-              </div>
-            </div>
+           
           </div>
         </div>
       </section>
 
       {error ? (
-        <div className="flex items-center gap-2 rounded-[15px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+        <div className="flex items-center gap-2   rounded-[10px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
           <AlertTriangle size={16} />
           <span>{error}</span>
         </div>
@@ -334,14 +329,14 @@ const StudentDashboard = () => {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <section className="rounded-[15px] border border-gray-200 bg-white p-5 shadow-[0_12px_40px_rgba(0,0,0,0.04)] sm:p-6">
+        <section className="   rounded-[10px] border border-gray-200 bg-white p-5 shadow-[0_12px_40px_rgba(0,0,0,0.04)] sm:p-6">
           <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <p className="text-[10px] font-black uppercase tracking-[0.24em] text-gray-500">{t('Attendance')}</p>
               <h3 className="mt-2 text-xl font-black text-gray-900">{t('Monthly Overview')}</h3>
             </div>
             <div className="w-full sm:w-auto">
-              <span className={`inline-flex w-fit rounded-[15px] border px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] ${attendanceTone.soft}`}>
+              <span className={`inline-flex w-fit   rounded-[10px] border px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] ${attendanceTone.soft}`}>
                 {attendanceSummary.percentage || 0}%
               </span>
             </div>
@@ -356,9 +351,9 @@ const StudentDashboard = () => {
                 </p>
               </div>
               <div className="w-full max-w-xs">
-                <div className="h-2 overflow-hidden rounded-[15px] bg-gray-100 ring-1 ring-gray-200">
+                <div className="h-2 overflow-hidden   rounded-[10px] bg-gray-100 ring-1 ring-gray-200">
                   <div
-                    className={`h-full rounded-[15px] ${attendanceTone.bar}`}
+                    className={`h-full   rounded-[10px] ${attendanceTone.bar}`}
                     style={{ width: `${Math.max(0, Math.min(attendanceSummary.percentage || 0, 100))}%` }}
                   />
                 </div>
@@ -366,15 +361,15 @@ const StudentDashboard = () => {
             </div>
 
             <div className="mt-5 grid grid-cols-3 gap-2 sm:gap-3">
-              <div className="rounded-[15px] border border-emerald-200 bg-emerald-50 p-3 text-center">
+              <div className="   rounded-[10px] border border-emerald-200 bg-emerald-50 p-3 text-center">
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-700">{t('Present')}</p>
                 <p className="mt-2 text-xl font-black text-emerald-700">{attendanceSummary.present || 0}</p>
               </div>
-              <div className="rounded-[15px] border border-rose-200 bg-rose-50 p-3 text-center">
+              <div className="   rounded-[10px] border border-rose-200 bg-rose-50 p-3 text-center">
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-700">{t('Absent')}</p>
                 <p className="mt-2 text-xl font-black text-rose-700">{attendanceSummary.absent || 0}</p>
               </div>
-              <div className="rounded-[15px] border border-amber-200 bg-amber-50 p-3 text-center">
+              <div className="   rounded-[10px] border border-amber-200 bg-amber-50 p-3 text-center">
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-700">{t('Late')}</p>
                 <p className="mt-2 text-xl font-black text-amber-700">{attendanceSummary.late || 0}</p>
               </div>
@@ -388,7 +383,7 @@ const StudentDashboard = () => {
 
         </section>
 
-        <section className="rounded-[15px] border border-gray-200 bg-white p-5 shadow-[0_12px_40px_rgba(0,0,0,0.04)] sm:p-6">
+        <section className="   rounded-[10px] border border-gray-200 bg-white p-5 shadow-[0_12px_40px_rgba(0,0,0,0.04)] sm:p-6">
           <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <p className="text-[10px] font-black uppercase tracking-[0.24em] text-gray-500">{t('Academic')}</p>
