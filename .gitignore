@@ -16,3 +16,12 @@ backend/config/*.json
 
 .vercel
 .env*.local
+
+# Local backups / generated artifacts
+.vercel_backup_*/
+
+# Android generated caches and bundled Gradle distributions
+android-defacto-erp/.gradle/
+android-defacto-erp/gradle-8.7/
+android-defacto-erp/gradle-8.7-bin.zip
+android-defacto-erp/app/build/

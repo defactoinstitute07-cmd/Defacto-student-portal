@@ -2,8 +2,17 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './index.css'
+import appIcon from './assets/icon.png'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { LanguageProvider } from './context/LanguageContext'
+
+const faviconLink = document.querySelector("link[rel='icon']") || document.createElement('link')
+faviconLink.setAttribute('rel', 'icon')
+faviconLink.setAttribute('type', 'image/png')
+faviconLink.setAttribute('href', appIcon)
+if (!faviconLink.parentNode) {
+    document.head.appendChild(faviconLink)
+}
 
 const queryClient = new QueryClient({
     defaultOptions: {

@@ -7,12 +7,92 @@ import { getCached, setCached } from '../utils/offlineCache';
 import { useLanguage } from '../context/LanguageContext';
 import { CheckCircle2, BookOpen, User } from 'lucide-react';
 
+const normalizeId = (value) => {
+    if (!value) return null;
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+        return trimmed || null;
+    }
+
+    if (typeof value === 'object') {
+        const objectId = value._id || value.id || value.$oid;
+        if (typeof objectId === 'string' && objectId.trim()) return objectId.trim();
+    }
+
+    return null;
+};
+
+const normalizeSubjectId = (subject) => normalizeId(
+    subject?.subjectId
+    || subject?._id
+    || subject?.id
+    || subject?.subject?._id
+    || subject?.subject?.id
+);
+
+const getLinkedBatchIds = (subject, fallbackBatchId = null) => {
+    const linked = new Set();
+
+    const addIfValid = (candidate) => {
+        const id = normalizeId(candidate);
+        if (id) linked.add(id);
+    };
+
+    if (Array.isArray(subject?.batchIds)) {
+        subject.batchIds.forEach(addIfValid);
+    }
+
+    addIfValid(subject?.batchId);
+    addIfValid(subject?.subject?.batchId);
+
+    if (Array.isArray(subject?.subject?.batchIds)) {
+        subject.subject.batchIds.forEach(addIfValid);
+    }
+
+    // Preserve legacy behavior when backend payload does not include explicit subject batch links.
+    if (linked.size === 0 && fallbackBatchId) {
+        addIfValid(fallbackBatchId);
+    }
+
+    return Array.from(linked);
+};
+
+const subjectMatchesStudentBatch = (subject, studentBatchId) => {
+    const targetBatchId = normalizeId(studentBatchId);
+    if (!targetBatchId) return true;
+
+    const linkedBatchIds = Array.isArray(subject?.linkedBatchIds) ? subject.linkedBatchIds : [];
+    if (linkedBatchIds.includes(targetBatchId)) return true;
+
+    const legacyBatchId = normalizeId(subject?.batchId || subject?.subject?.batchId);
+    return legacyBatchId === targetBatchId;
+};
+
 const StudentSubjects = () => {
     const navigate = useNavigate();
     const { t } = useLanguage();
     const [error, setError] = useState('');
-    const [activeTab, setActiveTab] = useState('Ongoing');
+    const [activeTab, setActiveTab] = useState('All');
     const token = localStorage.getItem('studentToken');
+    const loginSeedStudent = useMemo(() => {
+        try {
+            const raw = localStorage.getItem('studentInfo');
+            if (!raw) return null;
+            return JSON.parse(raw);
+        } catch {
+            return null;
+        }
+    }, []);
+    const batchHintFromStorage = useMemo(() => {
+        try {
+            const raw = localStorage.getItem('studentInfo');
+            if (!raw) return null;
+            const parsed = JSON.parse(raw);
+            return normalizeId(parsed?.activeBatchId || parsed?.batchId || parsed?.fullBatchData?._id);
+        } catch {
+            return null;
+        }
+    }, []);
 
     useEffect(() => {
         if (!token) {
@@ -25,10 +105,75 @@ const StudentSubjects = () => {
         enabled: !!token,
         queryFn: async () => {
             try {
-                const res = await api.get('/student/me');
+                const params = {};
+                if (batchHintFromStorage) params.batchId = batchHintFromStorage;
+                const res = await api.get('/student/me', { params });
                 if (res.data.success) {
-                    await setCached('student.me', res.data.student);
-                    return res.data.student;
+                    const profileStudent = res.data.student || {};
+                    if (import.meta.env.DEV) {
+                        console.log('[SUBJECT_DEBUG] /student/me response', {
+                            activeBatchId: profileStudent?.activeBatchId,
+                            batchName: profileStudent?.batchName,
+                            subjectsCount: Array.isArray(profileStudent?.subjects) ? profileStudent.subjects.length : 0,
+                            subjectTeachersCount: Array.isArray(profileStudent?.subjectTeachers) ? profileStudent.subjectTeachers.length : 0,
+                            batchSubjectsCount: Array.isArray(profileStudent?.fullBatchData?.subjects) ? profileStudent.fullBatchData.subjects.length : 0
+                        });
+                    }
+                    const seedSubjects = Array.isArray(loginSeedStudent?.subjects) ? loginSeedStudent.subjects : [];
+                    const profileSubjects = Array.isArray(profileStudent?.subjects) ? profileStudent.subjects : [];
+                    const mergedProfileStudent = {
+                        ...profileStudent,
+                        activeBatchId: profileStudent?.activeBatchId || loginSeedStudent?.activeBatchId || null,
+                        batchName: profileStudent?.batchName || loginSeedStudent?.batch || loginSeedStudent?.fullBatchData?.name || '',
+                        subjects: profileSubjects.length > 0 ? profileSubjects : seedSubjects,
+                        fullBatchData: {
+                            ...(loginSeedStudent?.fullBatchData || {}),
+                            ...(profileStudent?.fullBatchData || {})
+                        }
+                    };
+
+                    const hasUsableSubjects = (
+                        Array.isArray(mergedProfileStudent?.subjects) && mergedProfileStudent.subjects.length > 0
+                    ) || (
+                        Array.isArray(mergedProfileStudent?.subjectTeachers) && mergedProfileStudent.subjectTeachers.length > 0
+                    ) || (
+                        Array.isArray(mergedProfileStudent?.fullBatchData?.subjects) && mergedProfileStudent.fullBatchData.subjects.length > 0
+                    );
+
+                    if (hasUsableSubjects) {
+                        await setCached('student.me', mergedProfileStudent);
+                        return mergedProfileStudent;
+                    }
+
+                    try {
+                        const subjectsRes = await api.get('/student/subjects', { params });
+                        const fallbackSubjects = Array.isArray(subjectsRes?.data?.subjects) ? subjectsRes.data.subjects : [];
+                        if (import.meta.env.DEV) {
+                            console.log('[SUBJECT_DEBUG] /student/subjects response', {
+                                activeBatchId: subjectsRes?.data?.activeBatchId,
+                                batchName: subjectsRes?.data?.batchName,
+                                subjectsCount: fallbackSubjects.length,
+                                subjects: fallbackSubjects.map((item) => item?.subject || item?.name).filter(Boolean)
+                            });
+                        }
+
+                        const mergedStudent = {
+                            ...mergedProfileStudent,
+                            activeBatchId: mergedProfileStudent?.activeBatchId || subjectsRes?.data?.activeBatchId || null,
+                            batchName: mergedProfileStudent?.batchName || subjectsRes?.data?.batchName || mergedProfileStudent?.fullBatchData?.name || '',
+                            subjects: fallbackSubjects,
+                            fullBatchData: {
+                                ...(mergedProfileStudent?.fullBatchData || {}),
+                                subjects: fallbackSubjects.map((item) => String(item?.subject || item?.name || '').trim()).filter(Boolean)
+                            }
+                        };
+
+                        await setCached('student.me', mergedStudent);
+                        return mergedStudent;
+                    } catch {
+                        await setCached('student.me', mergedProfileStudent);
+                        return mergedProfileStudent;
+                    }
                 }
                 throw new Error('Failed to load');
             } catch (err) {
@@ -42,10 +187,127 @@ const StudentSubjects = () => {
                 throw err;
             }
         },
-        onError: () => setError(t('Failed to load subjects.'))
+        onError: (err) => {
+            if (err?.response?.status === 401 || err?.response?.status === 403) {
+                setError(t('You are not authorized to view subjects for this account.'));
+                return;
+            }
+
+            setError(t('Failed to load subjects. Please try again in a moment.'));
+        }
     });
 
-    const subjects = student?.subjectTeachers || [];
+    const studentBatchId = useMemo(() => (
+        normalizeId(student?.activeBatchId)
+        || normalizeId(student?.batchId)
+        || normalizeId(student?.fullBatchData?._id)
+    ), [student]);
+
+    const studentBatchName = useMemo(() => (
+        String(student?.batchName || student?.fullBatchData?.name || '').trim() || t('N/A')
+    ), [student?.batchName, student?.fullBatchData?.name, t]);
+
+    const subjects = useMemo(() => {
+        const subjectTeachers = Array.isArray(student?.subjectTeachers) ? student.subjectTeachers : [];
+        const resolvedSubjects = Array.isArray(student?.subjects) ? student.subjects : [];
+        const batchSubjectsFallback = Array.isArray(student?.fullBatchData?.subjects)
+            ? student.fullBatchData.subjects.map((name) => ({ subject: name }))
+            : [];
+
+        const teacherLookup = new Map();
+        subjectTeachers.forEach((entry) => {
+            const nameKey = String(entry?.subject || '').trim().toLowerCase();
+            const codeKey = String(entry?.code || '').trim().toLowerCase();
+            if (nameKey) teacherLookup.set(`name:${nameKey}`, entry);
+            if (codeKey) teacherLookup.set(`code:${codeKey}`, entry);
+        });
+
+        const preferredRaw = resolvedSubjects.length > 0
+            ? resolvedSubjects
+            : (subjectTeachers.length > 0 ? subjectTeachers : batchSubjectsFallback);
+
+        const harmonizedSubjects = preferredRaw.map((entry) => {
+            const base = typeof entry === 'string' ? { subject: entry, name: entry } : (entry || {});
+            const subjectName = String(base.subject || base.name || '').trim();
+            const subjectCode = String(base.code || '').trim();
+            const matchedTeacherEntry = teacherLookup.get(`name:${subjectName.toLowerCase()}`)
+                || teacherLookup.get(`code:${subjectCode.toLowerCase()}`)
+                || null;
+
+            const chapters = Array.isArray(base.chapters) ? base.chapters : [];
+            const chapterCompletedCount = chapters.filter((chapter) => chapter?.status === 'completed' || chapter?.isCompleted === true).length;
+            const totalChapters = Number.isFinite(Number(base.totalChapters))
+                ? Number(base.totalChapters)
+                : chapters.length;
+            const derivedSyllabus = totalChapters > 0 || chapters.length > 0
+                ? {
+                    chapters: chapters.map((chapter) => ({
+                        ...chapter,
+                        isCompleted: chapter?.isCompleted === true || chapter?.status === 'completed'
+                    })),
+                    totalChapters,
+                    completedChapters: chapterCompletedCount,
+                    completionPercentage: totalChapters > 0 ? Math.round((chapterCompletedCount / totalChapters) * 100) : 0
+                }
+                : null;
+
+            return {
+                ...base,
+                ...(matchedTeacherEntry || {}),
+                subject: subjectName || matchedTeacherEntry?.subject || '',
+                code: subjectCode || matchedTeacherEntry?.code || null,
+                subjectId: normalizeId(base._id || base.subjectId || matchedTeacherEntry?._id || matchedTeacherEntry?.subjectId),
+                batchId: base.batchId || matchedTeacherEntry?.batchId || null,
+                batchIds: Array.isArray(base.batchIds) ? base.batchIds : (matchedTeacherEntry?.batchIds || []),
+                batchNames: Array.isArray(base.batchNames) ? base.batchNames : (matchedTeacherEntry?.batchNames || []),
+                syllabus: matchedTeacherEntry?.syllabus || derivedSyllabus || base.syllabus || {},
+                exams: matchedTeacherEntry?.exams || base.exams || [],
+                teacher: matchedTeacherEntry?.teacher || base.teacher || 'Unassigned',
+                teacherProfileImage: matchedTeacherEntry?.teacherProfileImage || base.teacherProfileImage || null,
+                averageMarks: Number.isFinite(Number(matchedTeacherEntry?.averageMarks))
+                    ? Number(matchedTeacherEntry.averageMarks)
+                    : (Number.isFinite(Number(base.averageMarks)) ? Number(base.averageMarks) : 0)
+            };
+        });
+
+        const normalizedSubjects = harmonizedSubjects.map((entry, index) => {
+            const subjectId = normalizeSubjectId(entry);
+            const linkedBatchIds = getLinkedBatchIds(entry, studentBatchId);
+
+            return {
+                ...entry,
+                subjectId,
+                linkedBatchIds,
+                legacyBatchId: normalizeId(entry?.batchId || entry?.subject?.batchId),
+                __dedupeKey: subjectId
+                    || `${String(entry?.subject || '').trim().toLowerCase()}::${String(entry?.code || '').trim().toLowerCase()}::${index}`
+            };
+        });
+
+        const visible = normalizedSubjects.filter((entry) => subjectMatchesStudentBatch(entry, studentBatchId));
+        const deduped = new Map();
+
+        visible.forEach((entry) => {
+            const byIdKey = entry.subjectId ? `id:${entry.subjectId}` : null;
+            const byNameKey = `name:${String(entry.subject || '').trim().toLowerCase()}::${String(entry.code || '').trim().toLowerCase()}`;
+
+            const existing = (byIdKey && deduped.get(byIdKey)) || deduped.get(byNameKey);
+            if (!existing) {
+                if (byIdKey) deduped.set(byIdKey, entry);
+                deduped.set(byNameKey, entry);
+                return;
+            }
+
+            const existingScore = Number.isFinite(Number(existing.averageMarks)) ? Number(existing.averageMarks) : -1;
+            const candidateScore = Number.isFinite(Number(entry.averageMarks)) ? Number(entry.averageMarks) : -1;
+            if (candidateScore > existingScore) {
+                if (byIdKey) deduped.set(byIdKey, entry);
+                deduped.set(byNameKey, entry);
+            }
+        });
+
+        return Array.from(deduped.values()).filter((value, idx, arr) => arr.findIndex((v) => v.__dedupeKey === value.__dedupeKey) === idx);
+    }, [student?.subjectTeachers, student?.subjects, student?.fullBatchData?.subjects, studentBatchId, loginSeedStudent?.subjects]);
 
     // Helper to determine exact styling based on the image's status types
     const getStatusTheme = (score) => {
@@ -193,10 +455,12 @@ const StudentSubjects = () => {
 
                 {/* Tabs */}
                 <div className="mt-5 flex gap-2 overflow-x-auto no-scrollbar">
-                    {['Ongoing'].map((tab) => {
+                    {['All', 'Ongoing', 'Completed'].map((tab) => {
                         const count = tab === 'Completed'
                             ? subjects.filter((s) => isSyllabusCompleted(s)).length
-                            : subjects.filter((s) => !isSyllabusCompleted(s)).length;
+                            : tab === 'Ongoing'
+                                ? subjects.filter((s) => !isSyllabusCompleted(s)).length
+                                : subjects.length;
                         return (
                             <button
                                 key={tab}
@@ -225,9 +489,24 @@ const StudentSubjects = () => {
 
                 <div className="space-y-4 mt-5">
                     {(() => {
+                        if (!error && subjects.length === 0) {
+                            return (
+                                <div className="rounded-[24px] border border-dashed border-slate-300 bg-white/70 p-10 text-center">
+                                    <div className="flex justify-center mb-3">
+                                        <BookOpen size={32} className="text-slate-300" />
+                                    </div>
+                                    <p className="font-semibold text-slate-600">
+                                        {t('No subjects available for your class level/batch.')}
+                                    </p>
+                                </div>
+                            );
+                        }
+
                         const filteredSubjects = activeTab === 'Completed'
                             ? subjects.filter((s) => isSyllabusCompleted(s))
-                            : subjects.filter((s) => !isSyllabusCompleted(s));
+                            : activeTab === 'Ongoing'
+                                ? subjects.filter((s) => !isSyllabusCompleted(s))
+                                : subjects;
 
                         if (filteredSubjects.length === 0) {
                             return (
@@ -268,11 +547,22 @@ const StudentSubjects = () => {
                             const completedCh = syllabusData.completedChapters || syllabusData.chapters?.filter(c => c.isCompleted).length || 0;
                             const syllPct = syllabusData.completionPercentage ?? (totalCh > 0 ? Math.round((completedCh / totalCh) * 100) : 0);
                             const isFullyCompleted = isSyllabusCompleted(s);
+                            const assignedBatchLabel = Array.isArray(s.batchNames) && s.batchNames.length > 0
+                                ? s.batchNames.join(', ')
+                                : studentBatchName;
 
                             return (
                                 <button
-                                    key={idx}
-                                    onClick={() => navigate(`/student/results/subject/${s.subject}`)}
+                                    key={s.subjectId || `${s.subject}-${s.code || idx}`}
+                                    onClick={() => {
+                                        const encodedSubjectName = encodeURIComponent(String(s.subject || ''));
+                                        const query = new URLSearchParams();
+                                        if (s.subjectId) query.set('subjectId', s.subjectId);
+                                        if (studentBatchId) query.set('batchId', studentBatchId);
+
+                                        const qs = query.toString();
+                                        navigate(`/student/results/subject/${encodedSubjectName}${qs ? `?${qs}` : ''}`);
+                                    }}
                                     className={`group relative w-full overflow-hidden rounded-[15px] bg-white p-5 text-left transition-all duration-300 active:scale-[0.98] hover:-translate-y-0.5 ${
                                         isFullyCompleted
                                             ? 'border border-emerald-200 shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:shadow-[0_16px_32px_rgba(16,185,129,0.12)]'
@@ -328,6 +618,11 @@ const StudentSubjects = () => {
                                             <p className="mt-1 text-[13px] text-[#191838]">
                                                 <span className="text-slate-400">{t('Faculty')}: </span>
                                                 <span className="font-medium tracking-tight">{teacherName}</span>
+                                            </p>
+
+                                            <p className="mt-1 text-[12px] text-slate-500">
+                                                <span className="font-semibold text-slate-400">{t('Batch')}: </span>
+                                                <span className="font-semibold text-slate-700">{assignedBatchLabel}</span>
                                             </p>
 
                                             <div className="mt-3 flex items-center gap-3 rounded-[15px] border border-slate-200 bg-slate-50 px-3 py-2">

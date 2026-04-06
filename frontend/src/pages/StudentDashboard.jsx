@@ -4,6 +4,7 @@ import api from '../services/api';
 import {
   AlertTriangle,
   ArrowRight,
+  Building2,
   BookOpen,
   CheckCircle2,
   FileText,
@@ -203,11 +204,14 @@ const StudentDashboard = () => {
     late: 0,
     percentage: 0
   };
-  const subjectCount = Array.isArray(student.subjectTeachers) && student.subjectTeachers.length > 0
-    ? student.subjectTeachers.length
-    : Array.isArray(student.fullBatchData?.subjects)
-      ? student.fullBatchData.subjects.length
-      : 0;
+  const subjectCount = Array.isArray(student.subjects) && student.subjects.length > 0
+    ? student.subjects.length
+    : Array.isArray(student.subjectTeachers) && student.subjectTeachers.length > 0
+      ? student.subjectTeachers.length
+      : Array.isArray(student.fullBatchData?.subjects)
+        ? student.fullBatchData.subjects.length
+        : 0;
+  const batchName = student.batchName || student.fullBatchData?.name || 'N/A';
       
   const performanceTone = getPerformanceTone(overallScore);
   const attendanceTone = getPerformanceTone(attendanceSummary.percentage || 0);
@@ -279,9 +283,20 @@ const StudentDashboard = () => {
                 <span className="break-words">{student.className || student.batchName || 'N/A'}</span>
               </span>
               <span className="inline-flex max-w-full items-center gap-2 rounded-[15px] border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 shadow-sm">
+                <Building2 size={14} className="text-gray-400" />
+                <span className="break-words">{t('Batch')}: {batchName}</span>
+              </span>
+              <span className="inline-flex max-w-full items-center gap-2 rounded-[15px] border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 shadow-sm">
                 <User size={14} className="text-gray-400" />
                 <span className="break-words">{subjectCount} {t('Subjects')}</span>
               </span>
+            </div>
+
+            <div className="mt-4 grid gap-2 sm:grid-cols-1">
+              <div className="rounded-[15px] border border-gray-200 bg-white px-3 py-2 shadow-sm">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">{t('Batch Name')}</p>
+                <p className="mt-1 truncate text-xs font-bold text-gray-800">{batchName}</p>
+              </div>
             </div>
           </div>
         </div>

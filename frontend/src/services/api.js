@@ -1,8 +1,7 @@
 import axios from 'axios';
-import { Capacitor } from '@capacitor/core';
 
 const LEGACY_API_ORIGIN = 'https://student-erp-server-api.vercel.app';
-const PRIMARY_API_ORIGIN = 'https://student-erp-6w9m.onrender.com';
+const PRIMARY_API_ORIGIN = 'https://defacto-student-portal.vercel.app';
 
 const isPrivateOrLocalHost = (hostname = '') => {
     const host = String(hostname || '').trim().toLowerCase();
@@ -46,7 +45,11 @@ const shouldForcePublicApiOrigin = (rawBase) => {
 
 const normalizeBaseURL = (rawBase) => {
     const value = String(rawBase || '').trim();
-    if (!value) return '/api';
+    if (!value) {
+        // In production builds, avoid relative /api to prevent frontend-only hosts
+        // from returning "Server temporarily unavailable" during login.
+        return import.meta.env.DEV ? '/api' : `${PRIMARY_API_ORIGIN}/api`;
+    }
     if (!value.startsWith('http')) return value;
 
     try {
@@ -73,18 +76,13 @@ const normalizeBaseURL = (rawBase) => {
 };
 
 const getBaseURL = () => {
-    const envBase = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
-
-    // In native APK mode, relative URLs like /api may not resolve to your deployed backend.
-    // Prefer an absolute web origin so login always reaches a live server.
-    if (Capacitor.isNativePlatform() && String(envBase || '').trim().startsWith('/')) {
-        const webOrigin = String(import.meta.env.VITE_STUDENT_WEB_URL || '').trim();
-        if (webOrigin) {
-            return normalizeBaseURL(webOrigin);
-        }
-
-        return normalizeBaseURL(PRIMARY_API_ORIGIN);
+    // During local development, always use Vite proxy so backend changes are testable
+    // without depending on deployed API routes.
+    if (import.meta.env.DEV) {
+        return '/api';
     }
+
+    const envBase = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
 
     if (shouldForcePublicApiOrigin(envBase)) {
         return normalizeBaseURL(PRIMARY_API_ORIGIN);
@@ -95,6 +93,7 @@ const getBaseURL = () => {
 
 const api = axios.create({
     baseURL: getBaseURL(),
+    timeout: 20000,
 });
 
 const normalizeAuthReason = (error) => {

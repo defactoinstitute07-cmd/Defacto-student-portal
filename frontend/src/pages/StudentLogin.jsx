@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-react';
+import axios from 'axios';
 import api from '../services/api';
+import { getFcmToken } from '../firebase';
 import instituteLogo from '../assets/icon.png';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageToggleButton from '../components/LanguageToggleButton';
 import WelcomeModal from '../components/WelcomeModal';
-import { Capacitor } from '@capacitor/core';
-import { Browser } from '@capacitor/browser';
 
 
 const StudentLogin = () => {
@@ -20,28 +20,42 @@ const StudentLogin = () => {
     const [touched, setTouched] = useState({ rollNo: false, password: false });
     const [submitAttempted, setSubmitAttempted] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [loginStarted, setLoginStarted] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [logoLoadFailed, setLogoLoadFailed] = useState(false);
     const [showWelcome, setShowWelcome] = useState(false);
     const [pendingStudent, setPendingStudent] = useState(null);
     const [pendingNeedsSetup, setPendingNeedsSetup] = useState(false);
     const navigate = useNavigate();
 
-    const isNativeLoginOnlyMode = Capacitor.isNativePlatform();
-
-    const openBrowserWithSession = async ({ token, student, needsSetup }) => {
-        const webUrl = import.meta.env.VITE_STUDENT_WEB_URL || 'https://defacto-student-erp-new.vercel.app';
-        const base = webUrl.replace(/\/$/, '');
-        const targetPath = needsSetup ? '/student/setup' : '/student/dashboard';
-        const studentParam = encodeURIComponent(JSON.stringify(student || {}));
-        const targetUrl = `${base}${targetPath}?token=${encodeURIComponent(token)}&student=${studentParam}`;
-
+    const registerDeviceToken = async (authToken) => {
         try {
-            await Browser.open({
-                url: targetUrl,
-                presentationStyle: 'fullscreen'
+            const fcmToken = await getFcmToken();
+            if (!fcmToken) return;
+
+            await api.post('/student/device', {
+                fcmToken,
+                platform: 'web',
+                appType: 'web',
+                appVersion: 'web',
+                deviceId: navigator.userAgent,
+                model: navigator.platform || 'browser',
+                manufacturer: 'browser'
+            }, {
+                headers: {
+                    Authorization: `Bearer ${authToken}`
+                }
             });
         } catch {
-            window.open(targetUrl, '_blank', 'noopener,noreferrer');
+            // Best-effort registration; skip blocking login flow.
+        }
+    };
+
+    const sendAppOpenActivity = async () => {
+        try {
+            await api.post('/student/activity', { event: 'app_open' });
+        } catch {
+            // Ignore presence ping failures during login.
         }
     };
 
@@ -53,19 +67,11 @@ const StudentLogin = () => {
             const needsSetup = student?.needsSetup !== undefined
                 ? student.needsSetup
                 : (student?.isFirstLogin || !student?.profileImage);
-
-            if (isNativeLoginOnlyMode) {
-                openBrowserWithSession({ token, student, needsSetup });
-                return;
-            }
-
             navigate(needsSetup ? '/student/setup' : '/student/dashboard', { replace: true });
         } catch {
-            if (!isNativeLoginOnlyMode) {
-                navigate('/student/dashboard', { replace: true });
-            }
+            navigate('/student/dashboard', { replace: true });
         }
-    }, [navigate, t, isNativeLoginOnlyMode]);
+    }, [navigate, t]);
 
     const validate = (nextRollNo = rollNo, nextPassword = password) => {
         const errors = { rollNo: '', password: '' };
@@ -96,33 +102,49 @@ const StudentLogin = () => {
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        if (loading) return;
+        if (loading || loginStarted) return;
+        setLoginStarted(true);
         setFormError('');
         setFormErrorHint('');
         setSubmitAttempted(true);
         const normalizedRollNo = rollNo.trim();
         const isValid = validate(normalizedRollNo, password);
-        if (!isValid) return;
+        if (!isValid) {
+            setLoginStarted(false);
+            return;
+        }
 
         setLoading(true);
         try {
-            const response = await api.post('/student/login', { rollNo: normalizedRollNo, password });
+            let response;
+            try {
+                response = await api.post('/student/login', { rollNo: normalizedRollNo, password });
+            } catch (primaryError) {
+                const fallbackBase = String(import.meta.env.VITE_API_BASE_URL || 'https://defacto-student-portal.vercel.app').trim().replace(/\/$/, '');
+                const isNetworkError = !primaryError?.response;
+
+                if (!isNetworkError) {
+                    throw primaryError;
+                }
+
+                response = await axios.post(`${fallbackBase}/api/student/login`, {
+                    rollNo: normalizedRollNo,
+                    password
+                }, {
+                    timeout: 20000
+                });
+            }
+
             if (response.data.success) {
                 localStorage.setItem('studentToken', response.data.token);
                 localStorage.setItem('studentInfo', JSON.stringify(response.data.student));
 
+                registerDeviceToken(response.data.token);
+                sendAppOpenActivity();
+
                 const needsSetup = response.data.student?.needsSetup !== undefined
                     ? response.data.student.needsSetup
                     : (response.data.student?.isFirstLogin || !response.data.student?.profileImage);
-
-                if (isNativeLoginOnlyMode) {
-                    await openBrowserWithSession({
-                        token: response.data.token,
-                        student: response.data.student,
-                        needsSetup
-                    });
-                    return;
-                }
 
                 // Store data for welcome modal handling
                 setPendingStudent(response.data.student);
@@ -147,6 +169,7 @@ const StudentLogin = () => {
             }
         } finally {
             setLoading(false);
+            setLoginStarted(false);
         }
     };
 
@@ -551,7 +574,15 @@ const StudentLogin = () => {
                 <div className="sl-logo-wrap">
                     <div className="sl-logo-glow" />
                     <div className="sl-logo-box">
-                        <img src={instituteLogo} alt="Institute Logo" />
+                        {logoLoadFailed ? (
+                            <ShieldCheck size={40} color="#ffffff" aria-hidden="true" />
+                        ) : (
+                            <img
+                                src={instituteLogo}
+                                alt="Institute Logo"
+                                onError={() => setLogoLoadFailed(true)}
+                            />
+                        )}
                     </div>
                 </div>
 
@@ -632,9 +663,17 @@ const StudentLogin = () => {
                     </div>
 
                     {/* Submit Button */}
-                    <button type="submit" disabled={loading} className="sl-submit">
+                    <button
+                        type="submit"
+                        disabled={loading || loginStarted}
+                        className="sl-submit"
+                        aria-busy={loading || loginStarted}
+                    >
                         {loading ? (
-                            <div className="sl-spinner" />
+                            <>
+                                <div className="sl-spinner" />
+                                <span>{t('Signing In...')}</span>
+                            </>
                         ) : (
                             <>
                                 <span>{t('Secure Login Access')}</span>

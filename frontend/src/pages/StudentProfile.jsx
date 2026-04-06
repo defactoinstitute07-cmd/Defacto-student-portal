@@ -270,6 +270,16 @@ const StudentProfile = () => {
                                         </div>
                 </section>
 
+                {/* Batch Details */}
+                <section>
+                    <SectionHeader title={t('Batch Details')} />
+                    <div className="space-y-3">
+                        <DetailRow icon={BookOpen} label={t('Batch Name')} value={formatValue(student.batchName || student.fullBatchData?.name)} colorClass="text-indigo-500" />
+                        <DetailRow icon={Briefcase} label={t('Class')} value={formatValue(student.className)} colorClass="text-amber-500" />
+                        <DetailRow icon={FileText} label={t('Course')} value={formatValue(student.fullBatchData?.course)} colorClass="text-indigo-500" />
+                    </div>
+                </section>
+
                 {/* Guardian Info */}
                 <section>
                     <SectionHeader title={t('Guardian Info')} />

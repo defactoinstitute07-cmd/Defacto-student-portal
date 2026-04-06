@@ -6,21 +6,14 @@
     "scripts": {
         "dev": "vite",
         "build": "vite build",
-        "preview": "vite preview",
-        "android:add": "npx cap add android",
-        "android:sync": "npx cap sync android",
-        "android:open": "npx cap open android",
-        "android:build": "npm run build && npx cap sync android"
+        "preview": "vite preview"
     },
     "dependencies": {
-        "@capacitor/android": "^7.4.3",
-        "@capacitor/app": "^7.1.0",
-        "@capacitor/browser": "^7.0.4",
-        "@capacitor/core": "^7.4.3",
         "@emailjs/browser": "^4.4.1",
         "@tanstack/react-query": "^5.52.0",
         "axios": "^1.6.0",
         "chart.js": "^4.5.1",
+        "firebase": "^10.14.1",
         "firebase-admin": "^13.7.0",
         "framer-motion": "^12.38.0",
         "jspdf": "^4.2.0",
@@ -34,7 +27,6 @@
         "y18n": "^5.0.8"
     },
     "devDependencies": {
-        "@capacitor/cli": "^7.4.3",
         "@tailwindcss/vite": "^4.0.0",
         "@types/react": "^18.2.37",
         "@types/react-dom": "^18.2.15",

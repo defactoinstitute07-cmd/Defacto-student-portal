@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "686004222164",
+    "project_id": "rishukie-erp-student-e7b71",
+    "storage_bucket": "rishukie-erp-student-e7b71.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:686004222164:android:3271b2eb27e7881a6c2341",
+        "android_client_info": {
+          "package_name": "com.student.erp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCb3X_Po7FzRqOnSqSFllLm2qpv6sVfP4Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">DeFacto ERP</string>
+    <string name="default_notification_channel_id">defacto_general</string>
+    <string name="default_notification_channel_name">General Notifications</string>
+    <string name="roll_no_hint">Roll Number</string>
+    <string name="password_hint">Password</string>
+    <string name="login">Login</string>
+    <string name="logging_in">Logging in...</string>
+    <string name="login_failed">Login failed. Please try again.</string>
+    <string name="invalid_credentials">Invalid credentials</string>
+    <string name="link_not_found">Link not found</string>
+    <string name="network_error">Unable to connect. Check your internet connection.</string>
+</resources>

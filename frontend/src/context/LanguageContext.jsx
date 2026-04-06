@@ -321,7 +321,6 @@ const translations = {
         'Lead Faculty': 'मुख्य शिक्षक',
         'Subject Code': 'विषय कोड',
         'Detailed Logs': 'विस्तृत रिकॉर्ड',
-        'Assessment': 'मूल्यांकन',
         'Scheduled Test': 'निर्धारित टेस्ट',
         'Result not declared yet for this test.': 'इस टेस्ट का परिणाम अभी घोषित नहीं हुआ है।',
         'Scores and percentage will be visible after evaluation is completed.': 'मूल्यांकन पूरा होने के बाद अंक और प्रतिशत दिखाई देंगे।',

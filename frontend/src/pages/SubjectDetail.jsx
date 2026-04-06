@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import StudentLayout from '../components/StudentLayout';
 import {
@@ -16,6 +16,7 @@ import { useLanguage } from '../context/LanguageContext';
 const SubjectDetail = () => {
     const { subjectName } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const { t, language } = useLanguage();
     const resolvedSubjectName = useMemo(() => {
         try {
@@ -24,6 +25,25 @@ const SubjectDetail = () => {
             return String(subjectName || '').trim();
         }
     }, [subjectName]);
+
+    const normalizeId = (value) => {
+        if (!value) return null;
+        if (typeof value === 'string') {
+            const trimmed = value.trim();
+            return trimmed || null;
+        }
+
+        if (typeof value === 'object') {
+            const objectId = value._id || value.id || value.$oid;
+            if (typeof objectId === 'string' && objectId.trim()) return objectId.trim();
+        }
+
+        return null;
+    };
+
+    const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+    const requestedSubjectId = useMemo(() => normalizeId(searchParams.get('subjectId')), [searchParams]);
+    const requestedBatchId = useMemo(() => normalizeId(searchParams.get('batchId')), [searchParams]);
 
     const normalizeSubjectKey = (value = '') => String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
     const [activeTab, setActiveTab] = useState('Results');
@@ -49,11 +69,18 @@ const SubjectDetail = () => {
         }
     });
 
-    const { data: liveSubjectResponse, isLoading: subjectLoading } = useQuery({
-        queryKey: ['subject', resolvedSubjectName],
-        enabled: !!token && !!resolvedSubjectName,
+    const { data: liveSubjectResponse, isLoading: subjectLoading, error: subjectFetchError } = useQuery({
+        queryKey: ['subject', resolvedSubjectName, requestedSubjectId, requestedBatchId],
+        enabled: !!token && (!!resolvedSubjectName || !!requestedSubjectId),
         queryFn: async () => {
-            const res = await api.get(`/student/subject/${encodeURIComponent(resolvedSubjectName)}`);
+            const subjectLookupKey = resolvedSubjectName || requestedSubjectId;
+            const params = {};
+            if (requestedSubjectId) params.subjectId = requestedSubjectId;
+            if (requestedBatchId) params.batchId = requestedBatchId;
+
+            const res = await api.get(`/student/subject/${encodeURIComponent(subjectLookupKey)}`, {
+                params
+            });
             return res.data;
         },
         staleTime: 0,
@@ -62,9 +89,34 @@ const SubjectDetail = () => {
     });
 
     const legacySubjectData = useMemo(() => {
+        const resolvedSubjects = Array.isArray(student?.subjects) ? student.subjects : [];
+        const subjectTeachers = Array.isArray(student?.subjectTeachers) ? student.subjectTeachers : [];
+        const batchSubjectsFallback = Array.isArray(student?.fullBatchData?.subjects)
+            ? student.fullBatchData.subjects.map((name) => ({ subject: name, name }))
+            : [];
+
+        const allSubjects = resolvedSubjects.length > 0
+            ? resolvedSubjects
+            : (subjectTeachers.length > 0 ? subjectTeachers : batchSubjectsFallback);
+
+        if (requestedSubjectId) {
+            const matchById = allSubjects.find((entry) => {
+                const candidateId = normalizeId(
+                    entry?.subjectId
+                    || entry?._id
+                    || entry?.id
+                    || entry?.subject?._id
+                    || entry?.subject?.id
+                );
+                return candidateId === requestedSubjectId;
+            });
+
+            if (matchById) return matchById;
+        }
+
         const target = normalizeSubjectKey(resolvedSubjectName);
-        return student?.subjectTeachers?.find((s) => normalizeSubjectKey(s.subject) === target);
-    }, [student, resolvedSubjectName]);
+        return allSubjects.find((s) => normalizeSubjectKey(s.subject || s.name) === target);
+    }, [student, resolvedSubjectName, requestedSubjectId]);
     const subjectData = liveSubjectResponse?.subject || legacySubjectData || null;
     const faculty = subjectData?.teacher || legacySubjectData?.teacher || t('Unassigned');
 
@@ -123,16 +175,23 @@ const SubjectDetail = () => {
 
     const filteredResults = useMemo(() => {
         if (!subjectData?.exams) return [];
-        return subjectData.exams.filter((e) => e.type === 'Exam');
+        return subjectData.exams.filter((e) => {
+            const normalizedType = String(e?.type || 'Exam').trim().toLowerCase();
+            return ['exam', 'quiz', 'assignment'].includes(normalizedType);
+        });
     }, [subjectData]);
 
     const isScheduledTest = (exam) => {
+        const status = String(exam?.status || '').trim().toLowerCase();
+        if (status === 'cancelled') return false;
+        if (status === 'scheduled') return true;
+
         if (!exam?.date) return false;
         const examDate = new Date(exam.date);
         if (Number.isNaN(examDate.getTime())) return false;
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        return examDate.getTime() > today.getTime();
+        return examDate.getTime() >= today.getTime();
     };
 
     const hasPassedTest = (exam) => {
@@ -166,6 +225,30 @@ const SubjectDetail = () => {
             </div>
         </StudentLayout>
     );
+
+    if (!subjectData) {
+        const unauthorized = subjectFetchError?.response?.status === 401 || subjectFetchError?.response?.status === 403;
+        return (
+            <StudentLayout title={resolvedSubjectName}>
+                <div className="flex min-h-[60vh] items-center justify-center px-4">
+                    <div className="w-full max-w-[420px] rounded-[24px] border border-red-200 bg-red-50 p-6 text-center">
+                        <p className="text-sm font-bold text-red-700">
+                            {unauthorized
+                                ? t('You are not authorized to view this subject.')
+                                : t('Unable to load this subject right now. Please try again shortly.')}
+                        </p>
+                        <button
+                            type="button"
+                            onClick={() => navigate('/student/results')}
+                            className="mt-4 inline-flex items-center rounded-[12px] bg-[#191838] px-4 py-2 text-xs font-black uppercase tracking-wider text-white"
+                        >
+                            {t('Back to Results')}
+                        </button>
+                    </div>
+                </div>
+            </StudentLayout>
+        );
+    }
 
     const tabs = [
         { id: 'Results', label: t('Results'), icon: Award },
@@ -591,6 +674,11 @@ const SubjectDetail = () => {
                                                                 <div className="mt-2 inline-flex items-center gap-1.5 rounded-[15px] border border-blue-200 bg-white/80 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-blue-700">
                                                                     <Calendar size={11} />
                                                                     {t('Result Pending')}
+                                                                </div>
+                                                            )}
+                                                            {import.meta.env.DEV && resultViewTab === 'Scheduled' && (
+                                                                <div className="mt-2 rounded-[12px] border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-semibold text-amber-800">
+                                                                    DBG: Type: {String(e?.type || 'N/A')} | Status: {String(e?.status || 'N/A')} | Date: {e?.date ? new Date(e.date).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}
                                                                 </div>
                                                             )}
                                                         </div>

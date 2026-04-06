@@ -24,6 +24,7 @@ router.get('/student/mobile/session', ...mobileAuthController.mobileSession);
 
 // Get Student Profile
 router.get('/student/me', authMiddleware, cacheMiddleware(30), authController.getStudentProfile);
+router.get('/student/subjects', authMiddleware, cacheMiddleware(30), authController.getStudentSubjects);
 
 // Device registration + activity tracking
 router.post('/student/device', authMiddleware, authController.registerDevice);

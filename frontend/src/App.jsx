@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Suspense, lazy, useEffect } from 'react';
 import { useAppPresence } from './hooks/useAppPresence';
-import { Capacitor } from '@capacitor/core';
 
 import { Component } from 'react';
 
@@ -105,21 +104,12 @@ function App() {
         }
     }, []);
 
-    const nativeLoginOnlyMode = Capacitor.isNativePlatform();
-
     return (
         <Router>
             <ErrorBoundary>
                 <Suspense fallback={<div className="p-8 text-center text-slate-500">Loading...</div>}>
                     <Routes>
-                        {nativeLoginOnlyMode ? (
-                            <>
-                                <Route path="/" element={<Navigate to="/student/login" replace />} />
-                                <Route path="/student/login" element={<StudentLogin />} />
-                                <Route path="*" element={<Navigate to="/student/login" replace />} />
-                            </>
-                        ) : (
-                            <>
+                        <>
                         <Route path="/" element={<Navigate to={getStoredStudentRoute()} replace />} />
                         <Route path="/student/login" element={
                             localStorage.getItem('studentToken') 
@@ -138,8 +128,7 @@ function App() {
                         <Route path="/student/support" element={<ContactSupport />} />
                         <Route path="/student/leaderboard" element={<Leaderboard />} />
                         <Route path="/student/settings" element={<StudentSettings />} />
-                            </>
-                        )}
+                        </>
                     </Routes>
                 </Suspense>
             </ErrorBoundary>

@@ -20,6 +20,105 @@ const normalizeCodeKey = (value = '') => String(value || '')
     .replace(/^_+|_+$/g, '')
     .toUpperCase();
 
+const normalizeObjectIdString = (value) => {
+    const normalized = String(value || '').trim();
+    return normalized || null;
+};
+
+const shouldLogSubjectDebug = process.env.SUBJECT_DEBUG === '1' || process.env.NODE_ENV !== 'production';
+
+const logSubjectDebug = (label, payload) => {
+    if (!shouldLogSubjectDebug) return;
+    try {
+        console.log(`[SUBJECT_DEBUG] ${label}`, JSON.stringify(payload));
+    } catch {
+        console.log(`[SUBJECT_DEBUG] ${label}`, payload);
+    }
+};
+
+const getSubjectBatchQueryForStudent = (studentBatchId, options = {}) => {
+    const { activeOnly = false } = options;
+    if (!studentBatchId) {
+        return activeOnly ? { isActive: true } : {};
+    }
+
+    const query = {
+        $or: [
+            { batchIds: studentBatchId },
+            { batchId: studentBatchId }
+        ]
+    };
+
+    if (activeOnly) {
+        query.isActive = true;
+    }
+
+    return query;
+};
+
+const findSubjectsForStudentBatch = async (studentBatchId, options = {}) => {
+    const {
+        projection = null,
+        lean = false,
+        populate = []
+    } = options;
+
+    if (!studentBatchId) return [];
+
+    let query = Subject.find({ batchIds: studentBatchId });
+    if (projection) query = query.select(projection);
+    if (Array.isArray(populate)) {
+        populate.forEach((entry) => {
+            if (entry) query = query.populate(entry);
+        });
+    }
+    if (lean) query = query.lean();
+
+    const primary = await query;
+    logSubjectDebug('findSubjectsForStudentBatch.primary', {
+        batchId: normalizeObjectIdString(studentBatchId),
+        count: Array.isArray(primary) ? primary.length : 0,
+        names: Array.isArray(primary) ? primary.map((item) => item?.name).filter(Boolean) : []
+    });
+
+    if (Array.isArray(primary) && primary.length > 0) {
+        return primary;
+    }
+
+    let fallbackQuery = Subject.find(getSubjectBatchQueryForStudent(studentBatchId));
+    if (projection) fallbackQuery = fallbackQuery.select(projection);
+    if (Array.isArray(populate)) {
+        populate.forEach((entry) => {
+            if (entry) fallbackQuery = fallbackQuery.populate(entry);
+        });
+    }
+    if (lean) fallbackQuery = fallbackQuery.lean();
+
+    const fallback = await fallbackQuery;
+    logSubjectDebug('findSubjectsForStudentBatch.fallback', {
+        batchId: normalizeObjectIdString(studentBatchId),
+        count: Array.isArray(fallback) ? fallback.length : 0,
+        names: Array.isArray(fallback) ? fallback.map((item) => item?.name).filter(Boolean) : []
+    });
+
+    return fallback;
+};
+
+const getSubjectLinkedBatchIds = (subjectDoc = {}) => {
+    const linked = new Set();
+    const add = (value) => {
+        const id = normalizeObjectIdString(value);
+        if (id) linked.add(id);
+    };
+
+    if (Array.isArray(subjectDoc.batchIds)) {
+        subjectDoc.batchIds.forEach(add);
+    }
+    add(subjectDoc.batchId);
+
+    return Array.from(linked);
+};
+
 const normalizeDeviceInfo = (payload = {}) => ({
     platform: String(payload.platform || '').trim(),
     model: String(payload.model || '').trim(),
@@ -130,6 +229,86 @@ exports.getSubjectAttendanceDetail = async (req, res) => {
     }
 };
 
+// Get student subjects directly (fallback-safe endpoint for student portal lists)
+exports.getStudentSubjects = async (req, res) => {
+    try {
+        const student = await Student.findById(req.user.id)
+            .populate('batchId', 'name')
+            .select('batchId');
+
+        if (!student) {
+            return res.status(404).json({ success: false, message: 'Student not found' });
+        }
+
+        if (!student.batchId?._id) {
+            return res.json({
+                success: true,
+                activeBatchId: null,
+                subjects: []
+            });
+        }
+
+        const batchId = student.batchId._id;
+        const batchName = student.batchId.name || '';
+
+        const subjectDocs = await findSubjectsForStudentBatch(batchId, {
+            projection: 'name code classLevel batchId batchIds isActive totalChapters chapters syllabus assignedTeacher teacherId',
+            populate: [
+                { path: 'teacherId', select: 'name profileImage' },
+                { path: 'batchIds', select: 'name' },
+                { path: 'batchId', select: 'name' }
+            ],
+            lean: true
+        });
+
+        const subjects = subjectDocs.map((subjectDoc) => {
+            const linkedBatchNames = Array.from(new Set([
+                ...(Array.isArray(subjectDoc.batchIds) ? subjectDoc.batchIds.map((batch) => batch?.name).filter(Boolean) : []),
+                subjectDoc.batchId?.name,
+                batchName
+            ].filter(Boolean)));
+
+            return {
+                _id: subjectDoc._id,
+                name: subjectDoc.name,
+                subject: subjectDoc.name,
+                code: subjectDoc.code || null,
+                classLevel: subjectDoc.classLevel || '',
+                batchId: subjectDoc.batchId?._id || subjectDoc.batchId || null,
+                batchIds: getSubjectLinkedBatchIds(subjectDoc),
+                batchNames: linkedBatchNames,
+                teacher: String(subjectDoc.assignedTeacher?.name || subjectDoc.teacherId?.name || 'Unassigned').trim() || 'Unassigned',
+                teacherProfileImage: subjectDoc.teacherId?.profileImage || null,
+                isActive: subjectDoc.isActive !== false,
+                totalChapters: Number.isFinite(Number(subjectDoc.totalChapters))
+                    ? Number(subjectDoc.totalChapters)
+                    : (Array.isArray(subjectDoc.chapters) ? subjectDoc.chapters.length : 0),
+                chapters: Array.isArray(subjectDoc.chapters) ? subjectDoc.chapters : [],
+                syllabus: subjectDoc.syllabus || {}
+            };
+        });
+
+        logSubjectDebug('getStudentSubjects.summary', {
+            studentId: normalizeObjectIdString(student._id),
+            batchId: normalizeObjectIdString(batchId),
+            batchName,
+            subjectDocsCount: Array.isArray(subjectDocs) ? subjectDocs.length : 0,
+            subjectsCount: subjects.length,
+            subjects: subjects.map((item) => item?.name).filter(Boolean)
+        });
+
+        return res.json({
+            success: true,
+            activeBatchId: batchId,
+            batchName,
+            subjects
+        });
+    } catch (error) {
+        console.error('Error in getStudentSubjects:', error);
+        sendApiError(res, error, 'Unable to fetch subjects right now.');
+    }
+};
+
 // Add Student (Admin Side)
 exports.addStudent = async (req, res) => {
     try {
@@ -231,6 +410,30 @@ exports.studentLogin = async (req, res) => {
 
         const needsSetup = student.isFirstLogin || !student.profileImage;
 
+        let resolvedSubjects = [];
+        if (student.batchId?._id) {
+            const loginSubjectDocs = await findSubjectsForStudentBatch(student.batchId._id, {
+                projection: 'name code classLevel batchId batchIds isActive totalChapters chapters syllabus',
+                lean: true
+            });
+
+            resolvedSubjects = loginSubjectDocs.map((subjectDoc) => ({
+                _id: subjectDoc._id,
+                name: subjectDoc.name,
+                subject: subjectDoc.name,
+                code: subjectDoc.code || null,
+                classLevel: subjectDoc.classLevel || '',
+                batchId: subjectDoc.batchId || null,
+                batchIds: getSubjectLinkedBatchIds(subjectDoc),
+                isActive: subjectDoc.isActive !== false,
+                totalChapters: Number.isFinite(Number(subjectDoc.totalChapters))
+                    ? Number(subjectDoc.totalChapters)
+                    : (Array.isArray(subjectDoc.chapters) ? subjectDoc.chapters.length : 0),
+                chapters: Array.isArray(subjectDoc.chapters) ? subjectDoc.chapters : [],
+                syllabus: subjectDoc.syllabus || {}
+            }));
+        }
+
         res.json({
             success: true,
             message: 'Login successful',
@@ -241,6 +444,9 @@ exports.studentLogin = async (req, res) => {
                 rollNo: student.rollNo,
                 class: student.className, // Frontend expects 'class' in its dashboard
                 batch: student.batchId ? student.batchId.name : 'N/A', // Return batch name instead of ID
+                activeBatchId: student.batchId ? student.batchId._id : null,
+                fullBatchData: student.batchId || null,
+                subjects: resolvedSubjects,
                 isFirstLogin: student.isFirstLogin,
                 profileImage: student.profileImage || null,
                 needsSetup
@@ -339,6 +545,7 @@ exports.trackActivity = async (req, res) => {
 exports.getStudentSubjectDetail = async (req, res) => {
     try {
         const { subjectName } = req.params;
+        const requestedSubjectId = normalizeObjectIdString(req.query?.subjectId);
         const student = await Student.findById(req.user.id)
             .populate('batchId')
             .select('batchId subjectTeachers roomAllocation')
@@ -353,14 +560,19 @@ exports.getStudentSubjectDetail = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Subject name is required.' });
         }
 
-        const subjectDocs = await Subject.find({
-            batchId: student.batchId._id,
-            isActive: true
-        })
-            .populate('teacherId', 'name profileImage status')
-            .lean();
+        const subjectDocs = await findSubjectsForStudentBatch(student.batchId._id, {
+            populate: [
+                { path: 'teacherId', select: 'name profileImage status' },
+                { path: 'batchIds', select: 'name' },
+                { path: 'batchId', select: 'name' }
+            ],
+            lean: true
+        });
 
         const subject = subjectDocs.find((item) => {
+            if (requestedSubjectId && item?._id?.toString() === requestedSubjectId) {
+                return true;
+            }
             const nameMatch = normalizeKey(item.name) === targetName;
             const codeMatch = normalizeCodeKey(item.code) === normalizeCodeKey(subjectName);
             return nameMatch || codeMatch;
@@ -496,12 +708,21 @@ exports.getStudentSubjectDetail = async (req, res) => {
             ? Math.round((completedChapters / totalChapters) * 100)
             : 0;
 
+        const linkedBatchIds = getSubjectLinkedBatchIds(subject);
+        const linkedBatchNames = Array.from(new Set([
+            ...(Array.isArray(subject.batchIds) ? subject.batchIds.map((batch) => batch?.name).filter(Boolean) : []),
+            subject.batchId?.name
+        ].filter(Boolean)));
+
         return res.json({
             success: true,
             subject: {
                 _id: subject._id,
                 name: subject.name,
                 code: subject.code,
+                batchId: subject.batchId?._id || subject.batchId || null,
+                batchIds: linkedBatchIds,
+                batchNames: linkedBatchNames,
                 teacher,
                 teacherProfileImage,
                 rooms: Array.from(rooms),
@@ -546,21 +767,40 @@ exports.getStudentProfile = async (req, res) => {
         const teacherProfileMap = new Map();
         const subjectSchedules = new Map(); // subjectName -> { timings: Set, rooms: Set }
         const subjectCodeMap = new Map();
+        const subjectActiveMap = new Map();
+        const subjectBatchIdsMap = new Map();
+        const subjectBatchNamesMap = new Map();
         
         let batchSubjectDocs = [];
         if (student.batchId?._id) {
-            batchSubjectDocs = await Subject.find({
-                batchId: student.batchId._id,
-                isActive: true
-            })
-                .populate('teacherId', 'name profileImage status')
-                .select('name code teacherId assignedTeacher totalChapters')
-                .lean();
+            batchSubjectDocs = await findSubjectsForStudentBatch(student.batchId._id, {
+                projection: 'name code teacherId assignedTeacher totalChapters chapters batchId batchIds',
+                populate: [
+                    { path: 'teacherId', select: 'name profileImage status' },
+                    { path: 'batchIds', select: 'name' },
+                    { path: 'batchId', select: 'name' }
+                ],
+                lean: true
+            });
 
             batchSubjectDocs.forEach((subjectDoc) => {
                 if (!subjectDoc?.name) return;
 
                 subjectCodeMap.set(subjectDoc.name, subjectDoc.code || null);
+                subjectActiveMap.set(subjectDoc.name, subjectDoc.isActive !== false);
+                subjectBatchIdsMap.set(subjectDoc.name, getSubjectLinkedBatchIds(subjectDoc));
+                subjectBatchNamesMap.set(
+                    subjectDoc.name,
+                    Array.from(new Set([
+                        ...(Array.isArray(subjectDoc.batchIds) ? subjectDoc.batchIds.map((batch) => batch?.name).filter(Boolean) : []),
+                        subjectDoc.batchId?.name
+                    ].filter(Boolean)))
+                );
+
+                // Always expose batch-linked subjects in student portal, even if teacher isn't assigned yet.
+                if (!teachersMap.has(subjectDoc.name)) {
+                    teachersMap.set(subjectDoc.name, 'Unassigned');
+                }
 
                 const assignedTeacherName = String(
                     subjectDoc.assignedTeacher?.name || subjectDoc.teacherId?.name || ''
@@ -660,16 +900,33 @@ exports.getStudentProfile = async (req, res) => {
                 ChapterCompletion.find({ batchId: batchObjId })
                     .sort({ updatedAt: -1, createdAt: -1 })
                     .lean(),
-                Subject.find({ batchId: batchObjId, isActive: true }).select('name totalChapters').lean(),
+                findSubjectsForStudentBatch(batchObjId, {
+                    projection: 'name totalChapters chapters',
+                    lean: true
+                }),
                 Syllabus.find({ batchId: batchObjId }).lean()
             ]);
 
             // Build a map: normalized subject -> total chapters from Subject collection
             const subjectTotalMap = new Map();
+            const subjectChapterSeedMap = new Map();
             batchSubjectDocs.forEach((subjectDoc) => {
                 const key = normalizeKey(subjectDoc.name);
                 if (!key) return;
                 subjectTotalMap.set(key, subjectDoc.totalChapters);
+                const seededChapters = Array.isArray(subjectDoc.chapters)
+                    ? subjectDoc.chapters.map((chapter) => ({
+                        name: String(chapter?.name || '').trim(),
+                        isCompleted: chapter?.status === 'completed',
+                        completedAt: chapter?.completedAt || null,
+                        isCompletionTracked: true,
+                        trackingSource: 'subjectCollection'
+                    }))
+                    : [];
+
+                if (seededChapters.length > 0) {
+                    subjectChapterSeedMap.set(key, seededChapters);
+                }
             });
 
             // Group latest ChapterCompletion status by subject + chapter.
@@ -722,6 +979,7 @@ exports.getStudentProfile = async (req, res) => {
 
                 const completedChapterMap = completionBySubject.get(subjectKey) || new Map();
                 const syllabusChapters = syllabusDataMap.get(subjectKey) || [];
+                const subjectSeedChapters = subjectChapterSeedMap.get(subjectKey) || [];
                 const totalFromSubjectCol = subjectTotalMap.get(subjectKey);
 
                 // Prefer existing teacher map subject casing if available.
@@ -736,8 +994,18 @@ exports.getStudentProfile = async (req, res) => {
                 const chapters = [];
                 const addedChapterKeys = new Set();
 
-                // Preserve syllabus order and override completion state from ChapterCompletion when present.
-                syllabusChapters.forEach(ch => {
+                // Prefer shared subject chapter state, then syllabus order, with completion overlays.
+                const baseChapters = subjectSeedChapters.length > 0
+                    ? subjectSeedChapters
+                    : syllabusChapters.map((chapter) => ({
+                        name: chapter.name,
+                        isCompleted: Boolean(chapter.isCompleted),
+                        completedAt: chapter.completedAt || null,
+                        isCompletionTracked: false,
+                        trackingSource: 'syllabus'
+                    }));
+
+                baseChapters.forEach(ch => {
                     const chapterKey = normalizeKey(ch.name);
                     if (!chapterKey || addedChapterKeys.has(chapterKey)) return;
 
@@ -746,8 +1014,8 @@ exports.getStudentProfile = async (req, res) => {
                         name: ch.name,
                         isCompleted: trackedChapter ? trackedChapter.isCompleted : Boolean(ch.isCompleted),
                         completedAt: trackedChapter ? trackedChapter.completedAt : (ch.completedAt || null),
-                        isCompletionTracked: Boolean(trackedChapter),
-                        trackingSource: trackedChapter ? trackedChapter.trackingSource : 'syllabus'
+                        isCompletionTracked: trackedChapter ? true : Boolean(ch.isCompletionTracked),
+                        trackingSource: trackedChapter ? trackedChapter.trackingSource : (ch.trackingSource || 'syllabus')
                     });
                     addedChapterKeys.add(chapterKey);
                 });
@@ -845,12 +1113,43 @@ exports.getStudentProfile = async (req, res) => {
                 teacherProfileImage: teacherProfileMap.get(teacher) || null,
                 averageMarks,
                 code: subjectCodeMap.get(subject) || null,
+                isActive: subjectActiveMap.has(subject) ? subjectActiveMap.get(subject) : true,
+                batchId: student.batchId ? student.batchId._id : null,
+                batchIds: subjectBatchIdsMap.get(subject) || (student.batchId ? [student.batchId._id.toString()] : []),
+                batchNames: subjectBatchNamesMap.get(subject) || (student.batchId?.name ? [student.batchId.name] : []),
                 rooms: schedule ? Array.from(schedule.rooms) : [],
                 timings: schedule ? Array.from(schedule.timings) : [],
                 syllabus,
                 exams
             };
         });
+
+        const resolvedSubjects = subjectTeachers.map((entry) => ({
+            _id: null,
+            name: entry.subject,
+            subject: entry.subject,
+            code: entry.code || null,
+            batchId: entry.batchId || null,
+            batchIds: entry.batchIds || [],
+            batchNames: entry.batchNames || [],
+            teacher: entry.teacher,
+            teacherProfileImage: entry.teacherProfileImage || null,
+            averageMarks: entry.averageMarks || 0,
+            isActive: entry.isActive !== false,
+            chapters: Array.isArray(entry.syllabus?.chapters) ? entry.syllabus.chapters : [],
+            totalChapters: Number.isFinite(Number(entry.syllabus?.totalChapters))
+                ? Number(entry.syllabus.totalChapters)
+                : (Array.isArray(entry.syllabus?.chapters) ? entry.syllabus.chapters.length : 0),
+            syllabus: entry.syllabus || {},
+            exams: Array.isArray(entry.exams) ? entry.exams : []
+        }));
+
+        const hydratedBatchData = student.batchId
+            ? (typeof student.batchId.toObject === 'function' ? student.batchId.toObject() : { ...student.batchId })
+            : null;
+        if (hydratedBatchData) {
+            hydratedBatchData.subjects = resolvedSubjects.map((subject) => subject.name);
+        }
 
         // Calculate Global Average
         let overallTotalObtained = 0;
@@ -873,7 +1172,7 @@ exports.getStudentProfile = async (req, res) => {
             className: student.className,
             batchName: student.batchId ? student.batchId.name : 'N/A',
             activeBatchId: student.batchId ? student.batchId._id : null,
-            fullBatchData: student.batchId || null,
+            fullBatchData: hydratedBatchData,
             fees: student.fees || 0,
             registrationFee: student.registrationFee || 0,
             feesPaid: student.feesPaid || 0,
@@ -886,10 +1185,21 @@ exports.getStudentProfile = async (req, res) => {
             admissionDate: student.admissionDate,
             session: student.session,
             status: student.status,
+            subjects: resolvedSubjects,
             subjectTeachers,
             roomAllocation,
             overallAverage
         };
+
+        logSubjectDebug('getStudentProfile.summary', {
+            studentId: normalizeObjectIdString(student._id),
+            rollNo: student.rollNo,
+            batchId: normalizeObjectIdString(student.batchId?._id),
+            batchSubjectDocsCount: Array.isArray(batchSubjectDocs) ? batchSubjectDocs.length : 0,
+            subjectTeachersCount: subjectTeachers.length,
+            resolvedSubjectsCount: resolvedSubjects.length,
+            resolvedSubjects: resolvedSubjects.map((item) => item?.name).filter(Boolean)
+        });
 
         const attendance = await getAttendanceSnapshot(student._id);
         profileData.attendanceSummary = attendance.summary;

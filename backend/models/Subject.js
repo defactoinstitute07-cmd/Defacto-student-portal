@@ -57,6 +57,11 @@ const assignedTeacherSchema = new mongoose.Schema({
 }, { _id: false });
 
 const subjectSchema = new mongoose.Schema({
+    classLevel: {
+        type: String,
+        trim: true,
+        default: ''
+    },
     name: {
         type: String,
         required: true,
@@ -71,8 +76,12 @@ const subjectSchema = new mongoose.Schema({
     batchId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Batch',
-        required: true,
+        default: null,
         index: true
+    },
+    batchIds: {
+        type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Batch' }],
+        default: []
     },
     // Legacy direct teacher reference retained for query compatibility.
     teacherId: {
@@ -95,6 +104,17 @@ const subjectSchema = new mongoose.Schema({
         type: [chapterSchema],
         default: []
     },
+    syllabus: {
+        originalName: { type: String, trim: true, default: '' },
+        url: { type: String, trim: true, default: '' },
+        mimeType: { type: String, trim: true, default: '' },
+        uploadedAt: { type: Date, default: null },
+        status: {
+            type: String,
+            enum: ['pending', 'completed'],
+            default: 'pending'
+        }
+    },
     isActive: {
         type: Boolean,
         default: true,
@@ -110,8 +130,47 @@ const subjectSchema = new mongoose.Schema({
     }
 });
 
+subjectSchema.pre('validate', function () {
+    if (!Array.isArray(this.chapters)) return;
+
+    this.chapters.forEach((chapter) => {
+        if (!chapter || typeof chapter.status !== 'string') return;
+        const normalized = chapter.status.trim().toLowerCase();
+        if (normalized === 'completed' || normalized === 'ongoing') {
+            chapter.status = normalized;
+        }
+    });
+});
+
 subjectSchema.pre('save', function () {
     this.updatedAt = new Date();
+
+    if (!Array.isArray(this.batchIds)) {
+        this.batchIds = [];
+    }
+
+    const seenBatchIds = new Set();
+    const normalizedBatchIds = [];
+
+    this.batchIds.forEach((batch) => {
+        const value = String(batch || '').trim();
+        if (!value || !mongoose.Types.ObjectId.isValid(value) || seenBatchIds.has(value)) return;
+        seenBatchIds.add(value);
+        normalizedBatchIds.push(new mongoose.Types.ObjectId(value));
+    });
+
+    const primaryBatchId = String(this.batchId || '').trim();
+    if (primaryBatchId && mongoose.Types.ObjectId.isValid(primaryBatchId) && !seenBatchIds.has(primaryBatchId)) {
+        normalizedBatchIds.push(new mongoose.Types.ObjectId(primaryBatchId));
+        seenBatchIds.add(primaryBatchId);
+    }
+
+    this.batchIds = normalizedBatchIds;
+
+    // Keep legacy field available for old flows by mirroring first linked batch.
+    if (!this.batchId && this.batchIds.length > 0) {
+        this.batchId = this.batchIds[0];
+    }
 
     if (!this.assignedTeacher || typeof this.assignedTeacher !== 'object') {
         this.assignedTeacher = {};
@@ -137,9 +196,17 @@ subjectSchema.pre('save', function () {
             .slice(0, 24)
             .toUpperCase();
     }
+
+    if (!this.classLevel && this.name) {
+        this.classLevel = 'General';
+    }
 });
 
-subjectSchema.index({ batchId: 1, name: 1 }, { unique: true });
-subjectSchema.index({ batchId: 1, code: 1 }, { unique: true, sparse: true });
+subjectSchema.index({ classLevel: 1, name: 1 });
+subjectSchema.index({ batchId: 1, name: 1 }, { sparse: true });
+subjectSchema.index({ batchId: 1, code: 1 }, { sparse: true });
+subjectSchema.index({ batchIds: 1, name: 1 });
+subjectSchema.index({ batchIds: 1, code: 1 }, { sparse: true });
+subjectSchema.index({ code: 1 }, { sparse: true });
 
 module.exports = mongoose.model('Subject', subjectSchema);
