@@ -172,7 +172,7 @@ const StudentProfile = () => {
                 {/* Skeleton Header */}
                 <div className="bg-white px-6 pt-10 pb-8 rounded-b-[40px] shadow-sm border-b border-slate-100 mb-8">
                     <div className="flex flex-col items-center text-center max-w-lg mx-auto">
-                        <Skeleton className="w-24 h-24 rounded-[32px] mb-5" />
+                        <Skeleton className="w-24 h-24 rounded-[15px] mb-5" />
                         <Skeleton className="h-8 w-48 mb-2" />
                         <Skeleton className="h-4 w-64" />
                     </div>
@@ -201,13 +201,13 @@ const StudentProfile = () => {
         <div className="mx-auto max-w-2xl p0">
             
             {/* 1. Header Card - Avatar & Primary Info */}
-            <div className="relative overflow-hidden rounded-[32px] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] sm:p-8">
+            <div className="relative overflow-hidden rounded-[15px] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] sm:p-8">
                 {/* Decorative Background Pattern */}
                 <div className="absolute -right-8 -top-8 h-40 w-40   rounded-[10px] bg-indigo-50/50" />
                 
                 <div className="relative flex flex-col items-center gap-5 sm:flex-row sm:text-left">
                     <div className="relative h-24 w-24 shrink-0">
-                        <div className="h-full w-full overflow-hidden rounded-[32px] border-4 border-white bg-slate-50 shadow-md">
+                        <div className="h-full w-full overflow-hidden rounded-[15px] border-4 border-white bg-slate-50 shadow-md">
                             <img
                                 src={student.profileImage || DEFAULT_PROFILE_IMAGE}
                                 alt={student.name || 'Student profile'}

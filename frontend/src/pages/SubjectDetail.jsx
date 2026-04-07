@@ -13,6 +13,60 @@ import { useQuery } from '@tanstack/react-query';
 import { setCached } from '../utils/offlineCache';
 import { useLanguage } from '../context/LanguageContext';
 
+const resolvePassingMarks = (exam = {}) => {
+    const passingMarks = Number(exam?.passingMarks);
+    if (Number.isFinite(passingMarks) && passingMarks >= 0) {
+        return passingMarks;
+    }
+
+    const totalMarks = Number(exam?.totalMarks);
+    if (Number.isFinite(totalMarks) && totalMarks > 0) {
+        return totalMarks * 0.4;
+    }
+
+    return 40;
+};
+
+const hasExamPassed = (exam = {}) => {
+    if (typeof exam?.hasPassed === 'boolean') return exam.hasPassed;
+
+    const marksObtained = Number(exam?.marksObtained);
+    if (Number.isFinite(marksObtained)) {
+        return marksObtained >= resolvePassingMarks(exam);
+    }
+
+    const totalMarks = Number(exam?.totalMarks);
+    if (Number.isFinite(totalMarks) && totalMarks > 0) {
+        return Number(exam?.percentage || 0) >= (resolvePassingMarks(exam) / totalMarks) * 100;
+    }
+
+    return Number(exam?.percentage || 0) >= 40;
+};
+
+const getExamSubjectLabel = (exam = {}, fallbackSubject = '') => {
+    const label = String(exam?.subject || fallbackSubject || '').trim();
+    return label || '---';
+};
+
+const formatExamDate = (value, language) => {
+    if (!value) return '---';
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '---';
+
+    return date.toLocaleDateString(language === 'hi' ? 'hi-IN' : 'en-GB', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric'
+    });
+};
+
+const formatMarksValue = (value) => {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return '---';
+    return Number.isInteger(numeric) ? String(numeric) : String(Number(numeric.toFixed(2)));
+};
+
 const SubjectDetail = () => {
     const { subjectName } = useParams();
     const navigate = useNavigate();
@@ -125,7 +179,7 @@ const SubjectDetail = () => {
     }, [subjectData?.teacherProfileImage, faculty]);
 
     const teacherAvatar = useMemo(() => {
-        const fallback = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(faculty || 'faculty')}`;
+        const fallback = `https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_640.png`;
         if (teacherImageFailed) return fallback;
 
         const raw = String(subjectData?.teacherProfileImage || '').trim();
@@ -195,11 +249,7 @@ const SubjectDetail = () => {
     };
 
     const hasPassedTest = (exam) => {
-        if (typeof exam?.hasPassed === 'boolean') return exam.hasPassed;
-        if (Number(exam?.totalMarks) > 0) {
-            return Number(exam?.marksObtained || 0) / Number(exam.totalMarks) >= 0.4;
-        }
-        return Number(exam?.percentage || 0) >= 40;
+        return hasExamPassed(exam);
     };
 
     const hasDeclaredResult = (exam) => {
@@ -231,7 +281,7 @@ const SubjectDetail = () => {
         return (
             <StudentLayout title={resolvedSubjectName}>
                 <div className="flex min-h-[60vh] items-center justify-center px-4">
-                    <div className="w-full max-w-[420px] rounded-[24px] border border-red-200 bg-red-50 p-6 text-center">
+                    <div className="w-full max-w-[420px] rounded-[15px] border border-red-200 bg-red-50 p-6 text-center">
                         <p className="text-sm font-bold text-red-700">
                             {unauthorized
                                 ? t('You are not authorized to view this subject.')
@@ -398,7 +448,7 @@ const SubjectDetail = () => {
                             return (
                                 <>
                                     {/* Chapter Tracking Dashboard */}
-                                    <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_12px_28px_rgba(15,23,42,0.06)]">
+                                    <div className="overflow-hidden rounded-[15px] border border-slate-200 bg-white shadow-[0_12px_28px_rgba(15,23,42,0.06)]">
                                         <div className="border-b border-slate-100 bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-900 px-4 py-4 text-white">
                                             <div className="flex items-start justify-between gap-3">
                                                 <div>
@@ -490,7 +540,7 @@ const SubjectDetail = () => {
                                     </div>
 
                                     {/* Chapter List */}
-                                    <div className="rounded-[24px] border border-slate-200 bg-white p-3 shadow-[0_10px_24px_rgba(15,23,42,0.05)]">
+                                    <div className="rounded-[15px] border border-slate-200 bg-white p-3 shadow-[0_10px_24px_rgba(15,23,42,0.05)]">
                                         <div className="mb-3 flex items-center justify-between px-1">
                                             <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">{t('Upcoming Chapters')}</p>
                                             <span className="   rounded-[10px] bg-slate-100 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.15em] text-slate-600">
@@ -586,7 +636,7 @@ const SubjectDetail = () => {
                                                 </div>
                                             </div>
                                         )) : (
-                                            <div className="rounded-[24px] border border-amber-200 bg-amber-50 p-4">
+                                            <div className="rounded-[15px] border border-amber-200 bg-amber-50 p-4">
                                                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-amber-700">{t('Upcoming Chapters')}</p>
                                                 <p className="mt-1 text-xs font-semibold text-amber-700">
                                                     {t('Chapter list is not available yet, but overall chapter targets are active for this subject.')}
@@ -646,18 +696,26 @@ const SubjectDetail = () => {
                                         (() => {
                                             const isScheduled = !hasDeclaredResult(e) && isScheduledTest(e);
                                             const hasPassed = hasPassedTest(e);
+                                            const subjectLabel = getExamSubjectLabel(e, subjectData?.name || resolvedSubjectName);
+                                            const scheduledDateLabel = formatExamDate(e.date, language);
+                                            const totalMarksLabel = formatMarksValue(e.totalMarks);
+                                            const passingMarksLabel = formatMarksValue(resolvePassingMarks(e));
                                             return (
                                                 <div
-                                                    key={idx}
-                                                    onClick={() => setSelectedTest(e)}
-                                                    className={`p-5   rounded-[10px] border shadow-sm flex items-center justify-between group cursor-pointer transition-all active:scale-[0.98] ${isScheduled
+                                                    key={e._id || idx}
+                                                    onClick={() => setSelectedTest({
+                                                        ...e,
+                                                        subject: subjectLabel,
+                                                        passingMarks: resolvePassingMarks(e)
+                                                    })}
+                                                    className={`p-5   rounded-[10px] border shadow-sm flex items-start justify-between gap-4 group cursor-pointer transition-all active:scale-[0.98] ${isScheduled
                                                             ? 'bg-blue-50/60 border-blue-300 ring-1 ring-blue-200 hover:shadow-[0_15px_30px_rgba(37,99,235,0.18)]'
                                                             : hasPassed
                                                                 ? 'bg-emerald-50/40 border-emerald-200 hover:shadow-[0_15px_30px_rgba(16,185,129,0.15)]'
                                                                 : 'bg-rose-50/35 border-rose-200 hover:shadow-[0_15px_30px_rgba(244,63,94,0.14)]'
                                                         }`}
                                                 >
-                                                    <div className="flex items-center gap-4">
+                                                    <div className="flex min-w-0 flex-1 items-start gap-4">
                                                         <div className={`p-3   rounded-[10px] border ${isScheduled
                                                                 ? 'bg-blue-100 text-blue-700 border-blue-200'
                                                                 : hasPassed
@@ -666,17 +724,20 @@ const SubjectDetail = () => {
                                                             }`}>
                                                             {isScheduled ? <Clock size={20} /> : <Award size={20} />}
                                                         </div>
-                                                        <div>
-                                                            <h4 className="text-sm font-bold text-[#191838]">{e.name}</h4>
+                                                        <div className="min-w-0 flex-1">
+                                                            <h4 className="text-sm font-bold text-[#191838] break-words">{e.name}</h4>
                                                             <p className={`text-[10px] font-medium uppercase tracking-tight ${isScheduled ? 'text-blue-600' : 'text-slate-400'}`}>
                                                                 {isScheduled ? t('Scheduled on') : ''}{isScheduled ? ' ' : ''}
                                                                 {new Date(e.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })} • {e.chapter}
                                                             </p>
                                                             {isScheduled && (
-                                                                <div className="mt-2 inline-flex items-center gap-1.5   rounded-[10px] border border-blue-200 bg-white/80 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-blue-700">
-                                                                    <Calendar size={11} />
-                                                                    {t('Result Pending')}
-                                                                </div>
+                                                                <>
+                                                                  
+                                                                    <div className="mt-2 inline-flex items-center gap-1.5   rounded-[10px] border border-blue-200 bg-white/80 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-blue-700">
+                                                                        <Calendar size={11} />
+                                                                        {t('Result Pending')}
+                                                                    </div>
+                                                                </>
                                                             )}
                                                             {import.meta.env.DEV && resultViewTab === 'Scheduled' && (
                                                                 <div className="mt-2 rounded-[12px] border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-semibold text-amber-800">
@@ -727,9 +788,9 @@ const SubjectDetail = () => {
                     {activeTab === 'Info' && (
                         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
                             {/* Faculty Profile Card */}
-                            <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#1e2a58] via-[#1f356f] to-[#191838] p-6 text-white shadow-xl">
+                            <div className="relative overflow-hidden rounded-[15px] bg-gradient-to-br from-[#1e2a58] via-[#1f356f] to-[#191838] p-6 text-white shadow-xl">
                                 <div className="flex items-center gap-5">
-                                    <div className="h-20 w-20 overflow-hidden rounded-[24px] border-2 border-white/20 bg-white/10">
+                                    <div className="h-20 w-20 overflow-hidden rounded-[15px] border-2 border-white/20 bg-white/10">
                                         <img
                                             src={teacherAvatar}
                                             alt="Faculty"
@@ -740,16 +801,7 @@ const SubjectDetail = () => {
                                     <div>
                                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">{t('Lead Faculty')}</p>
                                         <p className="text-xl font-bold">{faculty}</p>
-                                        <div className="mt-2 flex items-center gap-3">
-                                            <div className="flex items-center gap-1.5 py-1 px-3 bg-white/10   rounded-[10px] border border-white/5">
-                                                <MapPin size={10} className="text-white/60" />
-                                                <span className="text-[10px] font-bold">{subjectData?.rooms?.[0] || 'TBD'}</span>
-                                            </div>
-                                            <div className="flex items-center gap-1.5 py-1 px-3 bg-white/10   rounded-[10px] border border-white/5">
-                                                <Clock size={10} className="text-white/60" />
-                                                <span className="text-[10px] font-bold">{subjectData?.timings?.[0] || 'TBD'}</span>
-                                            </div>
-                                        </div>
+                                  
                                     </div>
                                 </div>
                             </div>
@@ -773,7 +825,7 @@ const SubjectDetail = () => {
                             </div>
 
                             {/* Attendance Detail (Simplified Calendar) */}
-                            <div className="p-6 rounded-[32px] bg-white border border-slate-100 shadow-sm">
+                            <div className="p-6 rounded-[15px] bg-white border border-slate-100 shadow-sm">
                                 <div className="flex items-center gap-2 mb-4">
                                     <Calendar size={18} className="text-slate-400" />
                                     <h4 className="text-sm font-bold text-[#191838]">{t('Detailed Logs')}</h4>
@@ -794,6 +846,7 @@ const SubjectDetail = () => {
                     onClose={() => setSelectedTest(null)}
                     t={t}
                     language={language}
+                    fallbackSubjectName={subjectData?.name || resolvedSubjectName}
                 />
             </div>
         </StudentLayout>
@@ -801,21 +854,23 @@ const SubjectDetail = () => {
 };
 
 // --- Test Detail Modal Component ---
-const TestDetailModal = ({ test, onClose, t, language }) => {
+const TestDetailModal = ({ test, onClose, t, language, fallbackSubjectName }) => {
     if (!test) return null;
     const testDate = test?.date ? new Date(test.date) : null;
     const hasDeclaredResult = test?.marksObtained !== null && test?.marksObtained !== undefined;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const isScheduled = !hasDeclaredResult && testDate && !Number.isNaN(testDate.getTime()) && testDate.getTime() > today.getTime();
-    const hasPassed = hasDeclaredResult && ((Number(test?.totalMarks) > 0
-        ? Number(test?.marksObtained || 0) / Number(test.totalMarks) >= 0.4
-        : Number(test?.percentage || 0) >= 40));
+    const hasPassed = hasDeclaredResult && hasExamPassed(test);
+    const subjectLabel = getExamSubjectLabel(test, fallbackSubjectName);
+    const formattedDate = formatExamDate(test.date, language);
+    const totalMarksLabel = formatMarksValue(test.totalMarks);
+    const passingMarksLabel = formatMarksValue(resolvePassingMarks(test));
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={onClose}>
             <div
-                className="bg-white rounded-[34px] w-full max-w-sm overflow-hidden shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300"
+                className="bg-white rounded-[15px] w-full max-w-sm overflow-hidden shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
@@ -836,7 +891,7 @@ const TestDetailModal = ({ test, onClose, t, language }) => {
                 <div className="p-8 space-y-8">
                     {/* Summary Metrics */}
                     {isScheduled ? (
-                        <div className="rounded-[24px] border border-blue-200 bg-blue-50/70 p-5">
+                        <div className="rounded-[15px] border border-blue-200 bg-blue-50/70 p-5">
                             <div className="flex items-center gap-2 text-blue-700">
                                 <Clock size={16} />
                                 <p className="text-[10px] font-black uppercase tracking-[0.2em]">{t('Scheduled Test')}</p>
@@ -847,17 +902,18 @@ const TestDetailModal = ({ test, onClose, t, language }) => {
                             <p className="mt-1 text-xs text-blue-600">
                                 {t('Scores and percentage will be visible after evaluation is completed.')}
                             </p>
+                           
                         </div>
                     ) : (
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="p-5 rounded-[24px] bg-slate-50 border border-slate-100 space-y-1">
+                            <div className="p-5 rounded-[15px] bg-slate-50 border border-slate-100 space-y-1">
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('Score')}</p>
                                 <div className="flex items-baseline gap-1">
                                     <span className="text-2xl font-black text-[#191838]">{test.marksObtained}</span>
                                     <span className="text-sm font-bold text-slate-400">/ {test.totalMarks}</span>
                                 </div>
                             </div>
-                            <div className="p-5 rounded-[24px] bg-slate-50 border border-slate-100 space-y-1">
+                            <div className="p-5 rounded-[15px] bg-slate-50 border border-slate-100 space-y-1">
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('Percentage')}</p>
                                 <div className="flex items-center gap-2">
                                     <span className={`text-2xl font-black ${hasPassed ? 'text-emerald-600' : 'text-rose-600'}`}>{`${test.percentage}%`}</span>
@@ -874,11 +930,25 @@ const TestDetailModal = ({ test, onClose, t, language }) => {
                             <span className="text-sm font-bold text-[#191838]">{test.chapter}</span>
                         </div>
                         <div className="flex items-center justify-between py-2 border-b border-slate-50">
-                            <span className="text-sm font-medium text-slate-500">{t('Date')}</span>
-                            <span className="text-sm font-bold text-[#191838]">
-                                {new Date(test.date).toLocaleDateString(language === 'hi' ? 'hi-IN' : 'en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}
-                            </span>
+                            <span className="text-sm font-medium text-slate-500">{t('Subject')}</span>
+                            <span className="text-sm font-bold text-[#191838] text-right max-w-[60%] break-words">{subjectLabel}</span>
                         </div>
+                        <div className="flex items-center justify-between py-2 border-b border-slate-50">
+                            <span className="text-sm font-medium text-slate-500">{t('Date')}</span>
+                            <span className="text-sm font-bold text-[#191838]">{formattedDate}</span>
+                        </div>
+                        {isScheduled && (
+                            <>
+                                <div className="flex items-center justify-between py-2 border-b border-slate-50">
+                                    <span className="text-sm font-medium text-slate-500">{t('Total Marks')}</span>
+                                    <span className="text-sm font-bold text-[#191838]">{totalMarksLabel}</span>
+                                </div>
+                                <div className="flex items-center justify-between py-2 border-b border-slate-50">
+                                    <span className="text-sm font-medium text-slate-500">{t('Passing Marks')}</span>
+                                    <span className="text-sm font-bold text-[#191838]">{passingMarksLabel}</span>
+                                </div>
+                            </>
+                        )}
                         <div className="flex items-center justify-between py-2">
                             <span className="text-sm font-medium text-slate-500">{t('Status')}</span>
                             <span className={`text-[10px] font-black uppercase px-3 py-1   rounded-[10px] ${isScheduled ? 'bg-blue-50 text-blue-700' : hasPassed ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
@@ -892,7 +962,7 @@ const TestDetailModal = ({ test, onClose, t, language }) => {
                 <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-center">
                     <button
                         onClick={onClose}
-                        className="w-full py-4 bg-[#191838] text-white text-xs font-black uppercase tracking-widest rounded-[24px] hover:bg-[#2a2a5a] transition-all active:scale-95 shadow-xl shadow-indigo-100"
+                        className="w-full py-4 bg-[#191838] text-white text-xs font-black uppercase tracking-widest rounded-[15px] hover:bg-[#2a2a5a] transition-all active:scale-95 shadow-xl shadow-indigo-100"
                     >
                         {t('Close')}
                     </button>

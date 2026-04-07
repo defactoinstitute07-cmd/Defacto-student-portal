@@ -154,7 +154,7 @@ const StudentDashboard = () => {
   if (isStudentLoading || isFeesLoading) {
     return (
       <div className="mx-auto max-w-6xl space-y-6">
-        <Skeleton className="h-72 w-full rounded-[32px]" />
+        <Skeleton className="h-72 w-full rounded-[15px]" />
         <div className="grid gap-4 md:grid-cols-3">
           {[1, 2, 3].map((item) => (
             <Skeleton key={item} className="h-44 w-full rounded-[15px]" />
@@ -259,7 +259,7 @@ const StudentDashboard = () => {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       {/* LIGHT THEME HERO SECTION */}
-      <section className="relative overflow-hidden rounded-[32px] border border-gray-200 bg-gradient-to-r from-gray-50 via-white to-gray-50 shadow-sm">
+      <section className="relative overflow-hidden rounded-[15px] border border-gray-200 bg-gradient-to-r from-gray-50 via-white to-gray-50 shadow-sm">
         {/* Light mode dot pattern */}
         <div className="absolute inset-0 opacity-10 [background-image:radial-gradient(circle_at_1px_1px,rgba(0,0,0,0.5)_1px,transparent_0)] [background-size:18px_18px]" />
 

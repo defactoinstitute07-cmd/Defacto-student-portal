@@ -53,7 +53,7 @@ export default function ContactSupport() {
             <div className="pointer-events-none absolute -right-16 top-28 h-56 w-56 rounded-full bg-amber-300/25 blur-3xl" />
 
             <section className="relative px-5 pt-8 sm:px-6 sm:pt-10">
-                <div className="mx-auto max-w-3xl rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-[0_25px_60px_-35px_rgba(15,23,42,0.45)] backdrop-blur-md sm:p-8">
+                <div className="mx-auto max-w-3xl rounded-[15px] border border-white/70 bg-white/85 p-5 shadow-[0_25px_60px_-35px_rgba(15,23,42,0.45)] backdrop-blur-md sm:p-8">
                     <div className="mb-4 flex items-center justify-between">
                         <button
                             type="button"
@@ -71,7 +71,7 @@ export default function ContactSupport() {
                     </div>
 
                     <div className="flex flex-col items-center text-center">
-                        <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-[24px] bg-[linear-gradient(145deg,#1e40af_0%,#4338ca_55%,#0f172a_100%)] text-white shadow-[0_18px_35px_-20px_rgba(30,64,175,0.75)]">
+                        <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-[15px] bg-[linear-gradient(145deg,#1e40af_0%,#4338ca_55%,#0f172a_100%)] text-white shadow-[0_18px_35px_-20px_rgba(30,64,175,0.75)]">
                             <LifeBuoy size={38} strokeWidth={1.6} />
                         </div>
                         <h1 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">

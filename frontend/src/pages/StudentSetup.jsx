@@ -114,7 +114,7 @@ const StudentSetup = () => {
             <div className="absolute bottom-[-10%] left-[-5%] w-[350px] h-[350px] bg-emerald-100   rounded-[10px] blur-[100px] opacity-40 pointer-events-none" />
 
             {/* --- MAIN CARD --- */}
-            <div className="relative z-10 w-full max-w-[440px] bg-white rounded-[24px] sm:   rounded-[10px] shadow-[0_20px_60px_rgba(0,0,0,0.08)] border border-gray-200 overflow-hidden">
+            <div className="relative z-10 w-full max-w-[440px] bg-white rounded-[15px] sm:   rounded-[10px] shadow-[0_20px_60px_rgba(0,0,0,0.08)] border border-gray-200 overflow-hidden">
 
                 {/* Step Indicator */}
                 <div className="px-6 pt-6 sm:px-8 sm:pt-8">

@@ -25,6 +25,20 @@ const normalizeObjectIdString = (value) => {
     return normalized || null;
 };
 
+const resolvePassingMarks = (exam = {}) => {
+    const passingMarks = Number(exam?.passingMarks);
+    if (Number.isFinite(passingMarks) && passingMarks >= 0) {
+        return passingMarks;
+    }
+
+    const totalMarks = Number(exam?.totalMarks);
+    if (Number.isFinite(totalMarks) && totalMarks > 0) {
+        return totalMarks * 0.4;
+    }
+
+    return 40;
+};
+
 const shouldLogSubjectDebug = process.env.SUBJECT_DEBUG === '1' || process.env.NODE_ENV !== 'production';
 
 const logSubjectDebug = (label, payload) => {
@@ -664,6 +678,7 @@ exports.getStudentSubjectDetail = async (req, res) => {
         const exams = allExams.map((exam) => {
             const result = resultMap.get(exam._id.toString());
             const hasDeclaredResult = Boolean(result && result.isPresent);
+            const passingMarks = resolvePassingMarks(exam);
             const percentage = hasDeclaredResult && Number(exam.totalMarks) > 0
                 ? Math.round((Number(result.marksObtained || 0) / Number(exam.totalMarks)) * 100)
                 : null;
@@ -671,17 +686,18 @@ exports.getStudentSubjectDetail = async (req, res) => {
             return {
                 _id: exam._id,
                 name: exam.name,
+                subject: exam.subject || subject.name,
                 chapter: exam.chapter,
                 date: exam.date,
                 totalMarks: exam.totalMarks,
-                passingMarks: exam.passingMarks,
+                passingMarks,
                 type: exam.type || 'Exam',
                 status: exam.status,
                 marksObtained: hasDeclaredResult ? result.marksObtained : null,
                 isPresent: result ? result.isPresent : true,
                 percentage,
                 hasPassed: hasDeclaredResult && Number(exam.totalMarks) > 0
-                    ? (Number(result.marksObtained || 0) / Number(exam.totalMarks)) >= 0.4
+                    ? Number(result.marksObtained || 0) >= passingMarks
                     : null
             };
         });

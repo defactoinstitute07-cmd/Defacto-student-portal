@@ -394,7 +394,7 @@ const StudentSubjects = () => {
                 </div>
                 <div className="space-y-5">
                     {[1, 2, 3, 4].map(i => (
-                        <Skeleton key={i} className="h-32 w-full rounded-[24px]" />
+                        <Skeleton key={i} className="h-32 w-full rounded-[15px]" />
                     ))}
                 </div>
             </div>
@@ -491,7 +491,7 @@ const StudentSubjects = () => {
                     {(() => {
                         if (!error && subjects.length === 0) {
                             return (
-                                <div className="rounded-[24px] border border-dashed border-slate-300 bg-white/70 p-10 text-center">
+                                <div className="rounded-[15px] border border-dashed border-slate-300 bg-white/70 p-10 text-center">
                                     <div className="flex justify-center mb-3">
                                         <BookOpen size={32} className="text-slate-300" />
                                     </div>
@@ -510,7 +510,7 @@ const StudentSubjects = () => {
 
                         if (filteredSubjects.length === 0) {
                             return (
-                                <div className="rounded-[24px] border border-dashed border-slate-300 bg-white/70 p-10 text-center">
+                                <div className="rounded-[15px] border border-dashed border-slate-300 bg-white/70 p-10 text-center">
                                     <div className="flex justify-center mb-3">
                                         {activeTab === 'Completed'
                                             ? <CheckCircle2 size={32} className="text-slate-300" />
@@ -620,31 +620,9 @@ const StudentSubjects = () => {
                                                 <span className="font-medium tracking-tight">{teacherName}</span>
                                             </p>
 
-                                            <p className="mt-1 text-[12px] text-slate-500">
-                                                <span className="font-semibold text-slate-400">{t('Batch')}: </span>
-                                                <span className="font-semibold text-slate-700">{assignedBatchLabel}</span>
-                                            </p>
+                                            
 
-                                            <div className="mt-3 flex items-center gap-3   rounded-[10px] border border-slate-200 bg-slate-50 px-3 py-2">
-                                                <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden   rounded-[10px] border border-white bg-white">
-                                                    {teacherName === t('Unassigned') ? (
-                                                        <User size={18} className="text-slate-400" />
-                                                    ) : (
-                                                        <img
-                                                            src={teacherAvatar}
-                                                            alt={teacherName}
-                                                            className="h-full w-full object-cover"
-                                                            onError={(event) => {
-                                                                event.currentTarget.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(s.teacher || s.subject || 'teacher')}`;
-                                                            }}
-                                                        />
-                                                    )}
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">{t('Assigned Teacher')}</p>
-                                                    <p className="truncate text-sm font-bold text-[#191838]">{teacherName}</p>
-                                                </div>
-                                            </div>
+                                           
 
                              
 

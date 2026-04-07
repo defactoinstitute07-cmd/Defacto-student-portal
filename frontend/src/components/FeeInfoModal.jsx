@@ -144,15 +144,17 @@ const FeeInfoModal = ({ isOpen, onClose, fee, student }) => {
                             </div>
                             
                             <div className="bg-slate-50 px-4 py-4 space-y-3">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <div className={`grid grid-cols-1 gap-2 ${discountAmount > 0 ? 'sm:grid-cols-2' : ''}`}>
                                     <div className="   rounded-[10px] border border-amber-200 bg-amber-50 px-3 py-2">
                                         <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-600">{t('Gross Charges')}</p>
                                         <p className="mt-1 text-sm font-black text-amber-900">₹{fmt(grossPayable)}</p>
                                     </div>
-                                    <div className="   rounded-[10px] border border-emerald-200 bg-emerald-50 px-3 py-2">
+                                    {discountAmount > 0 && (
+                                        <div className="   rounded-[10px] border border-emerald-200 bg-emerald-50 px-3 py-2">
                                         <p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-600">{t('Discount Applied')}</p>
                                         <p className="mt-1 text-sm font-black text-emerald-700">- ₹{fmt(discountAmount)}</p>
-                                    </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {discountAmount > 0 && (

@@ -85,7 +85,7 @@ const Leaderboard = () => {
     if (isLoading) return (
         <StudentLayout title="Leaderboard">
             <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-                <Skeleton className="h-48 w-full rounded-[32px]" />
+                <Skeleton className="h-48 w-full rounded-[15px]" />
                 <div className="space-y-3">
                     {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-20 w-full rounded-[15px]" />)}
                 </div>
@@ -98,7 +98,7 @@ const Leaderboard = () => {
             <div className="max-w-4xl mx-auto p0">
 
                 {/* Fixed Header Card */}
-                <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#1e293b] to-[#0f172a] p-8 text-white shadow-xl mb-8">
+                <div className="relative overflow-hidden rounded-[15px] bg-gradient-to-br from-[#1e293b] to-[#0f172a] p-8 text-white shadow-xl mb-8">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/10   rounded-[10px] -mr-20 -mt-20 blur-3xl" />
                     <div className="relative flex items-center justify-between">
                         <div className="space-y-2">
@@ -161,7 +161,7 @@ const Leaderboard = () => {
                     )}
 
                     {topThreeLeaderboard.length === 0 && !showRefreshing ? (
-                        <div className="text-center py-20 bg-white rounded-[32px] border-2 border-dashed border-slate-100">
+                        <div className="text-center py-20 bg-white rounded-[15px] border-2 border-dashed border-slate-100">
                             <Medal size={48} className="mx-auto text-slate-200 mb-4" />
                             <p className="text-sm font-bold text-slate-400">{t('No rankings available.')}</p>
                         </div>
