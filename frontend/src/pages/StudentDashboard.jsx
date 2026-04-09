@@ -259,43 +259,60 @@ const StudentDashboard = () => {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       {/* LIGHT THEME HERO SECTION */}
-      <section className="relative overflow-hidden rounded-[15px] border border-gray-200 bg-gradient-to-r from-gray-50 via-white to-gray-50 shadow-sm">
-        {/* Light mode dot pattern */}
-        <div className="absolute inset-0 opacity-10 [background-image:radial-gradient(circle_at_1px_1px,rgba(0,0,0,0.5)_1px,transparent_0)] [background-size:18px_18px]" />
+<section className="relative overflow-hidden rounded-2xl sm:rounded-[24px] border border-slate-200 bg-gradient-to-br from-white to-slate-50 shadow-sm">
+    
+    {/* Subtle dot pattern background */}
+    <div className="absolute inset-0 opacity-[0.03] pointer-events-none [background-image:radial-gradient(circle_at_1px_1px,black_1px,transparent_0)] [background-size:20px_20px]" />
 
-        <div className="relative px-5 pb-6 pt-6 sm:px-8 sm:pb-8 sm:pt-8">
-          <div className="min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-gray-500">{t('Student Dashboard')}</p>
-            <h1 className="mt-3 break-words text-3xl font-black tracking-tight text-gray-900 sm:text-4xl">
-              {t('Welcome back')}, {student.name}
+    <div className="relative p-5 sm:p-8">
+        <div className="min-w-0">
+            
+            {/* Top Label Badge */}
+            <span className="inline-block px-3 py-1 bg-indigo-50 border border-indigo-100 rounded-full text-[10px] font-bold uppercase tracking-widest text-indigo-600 mb-3 sm:mb-4 shadow-sm">
+                {t('Student Dashboard')}
+            </span>
+            
+            {/* Welcome Text with Gradient Name */}
+            <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-slate-900 leading-tight">
+                {t('Welcome back')}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">{student.name}</span>
             </h1>
-            <p className="mt-3 max-w-2xl text-sm font-medium text-gray-600 sm:text-base">
-              {t('Track your academic progress, attendance, and fee status from one clean dashboard.')}
+            
+            <p className="mt-2 sm:mt-3 max-w-2xl text-sm font-medium text-slate-500 sm:text-base leading-relaxed">
+                {t('Track your academic progress, attendance, and fee status from one clean dashboard.')}
             </p>
 
-            <div className="mt-5 flex flex-wrap gap-2">
-              <span className="inline-flex max-w-full items-center gap-2   rounded-[10px] border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 shadow-sm">
-                <Hash size={14} className="text-gray-400" />
-                <span className="break-all">{student.rollNo || '-'}</span>
-              </span>
-              <span className="inline-flex max-w-full items-center gap-2   rounded-[10px] border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 shadow-sm">
-                <BookOpen size={14} className="text-gray-400" />
-                <span className="break-words">{student.className || student.batchName || 'N/A'}</span>
-              </span>
-              <span className="inline-flex max-w-full items-center gap-2   rounded-[10px] border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 shadow-sm">
-                <Building2 size={14} className="text-gray-400" />
-                <span className="break-words">{t('Batch')}: {batchName}</span>
-              </span>
-              <span className="inline-flex max-w-full items-center gap-2   rounded-[10px] border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 shadow-sm">
-                <User size={14} className="text-gray-400" />
-                <span className="break-words">{subjectCount} {t('Subjects')}</span>
-              </span>
+            {/* Info Chips - Now with subtle colorful icons */}
+            <div className="mt-5 sm:mt-6 flex flex-wrap gap-2.5">
+                
+                {/* Roll Number */}
+                <span className="inline-flex max-w-full items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition-all hover:border-indigo-200 hover:shadow-md">
+                    <Hash size={16} className="text-indigo-400" />
+                    <span className="truncate">{student.rollNo || '-'}</span>
+                </span>
+                
+                {/* Class / Batch Name */}
+                <span className="inline-flex max-w-full items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition-all hover:border-emerald-200 hover:shadow-md">
+                    <BookOpen size={16} className="text-emerald-400" />
+                    <span className="truncate">{student.className || student.batchName || 'N/A'}</span>
+                </span>
+                
+                {/* Batch Number */}
+                <span className="inline-flex max-w-full items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition-all hover:border-amber-200 hover:shadow-md">
+                    <Building2 size={16} className="text-amber-400" />
+                    <span className="truncate">{t('Batch')}: {batchName}</span>
+                </span>
+                
+                {/* Subjects */}
+                <span className="inline-flex max-w-full items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition-all hover:border-rose-200 hover:shadow-md">
+                    <User size={16} className="text-rose-400" />
+                    <span className="truncate">{subjectCount} {t('Subjects')}</span>
+                </span>
+                
             </div>
 
-           
-          </div>
         </div>
-      </section>
+    </div>
+</section>
 
       {error ? (
         <div className="flex items-center gap-2   rounded-[10px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">

@@ -552,25 +552,28 @@ const StudentSubjects = () => {
                                 : studentBatchName;
 
                             return (
-                                <button
-                                    key={s.subjectId || `${s.subject}-${s.code || idx}`}
-                                    onClick={() => {
-                                        const encodedSubjectName = encodeURIComponent(String(s.subject || ''));
-                                        const query = new URLSearchParams();
-                                        if (s.subjectId) query.set('subjectId', s.subjectId);
-                                        if (studentBatchId) query.set('batchId', studentBatchId);
+                               <button
+    key={s.subjectId || `${s.subject}-${s.code || idx}`}
+    onClick={() => {
+        const encodedSubjectName = encodeURIComponent(String(s.subject || ''));
+        const query = new URLSearchParams();
+        if (s.subjectId) query.set('subjectId', s.subjectId);
+        if (studentBatchId) query.set('batchId', studentBatchId);
 
-                                        const qs = query.toString();
-                                        navigate(`/student/results/subject/${encodedSubjectName}${qs ? `?${qs}` : ''}`);
-                                    }}
-                                    className={`group relative w-full overflow-hidden   rounded-[10px] bg-white p-5 text-left transition-all duration-300 active:scale-[0.98] hover:-translate-y-0.5 ${
-                                        isFullyCompleted
-                                            ? 'border border-emerald-200 shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:shadow-[0_16px_32px_rgba(16,185,129,0.12)]'
-                                            : theme.showBorder 
-                                                ? 'border-[1.5px] border-red-100 shadow-sm hover:shadow-[0_16px_30px_rgba(239,68,68,0.14)]' 
-                                                : 'border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:shadow-[0_16px_32px_rgba(15,23,42,0.12)]'
-                                    }`}
-                                >
+        const qs = query.toString();
+        navigate(`/student/results/subject/${encodedSubjectName}${qs ? `?${qs}` : ''}`);
+    }}
+    // 👇 Responsive aur clean classes yahan hain
+    className={`group relative w-full overflow-hidden text-left bg-white p-4 sm:p-5 rounded-2xl transition-all duration-300 active:scale-[0.98] sm:hover:-translate-y-1 border ${
+        isFullyCompleted
+            ? 'border-emerald-200 shadow-sm sm:hover:shadow-xl sm:hover:shadow-emerald-100/60'
+            : theme.showBorder 
+                ? 'border-rose-200 shadow-sm sm:hover:shadow-xl sm:hover:shadow-rose-100/60' 
+                : 'border-slate-200 shadow-sm sm:hover:shadow-xl sm:hover:shadow-slate-200/60 sm:hover:border-blue-200'
+    }`}
+>
+    {/* Aapke button ka inner content (Text, Icons) yahan aayega */}
+
                                     {/* Right edge color strip for "Needs Focus" */}
                                     {!isFullyCompleted && theme.showBorder && (
                                         <div className="absolute bottom-0 right-0 top-0 w-1.5 bg-red-500" />

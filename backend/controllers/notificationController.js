@@ -71,7 +71,7 @@ exports.broadcastToAllStudents = async (req, res) => {
             totalDevices: tokens.length
         });
     } catch (error) {
-        console.error('Error in broadcastToAllStudents:', error);
+        // console.error('Error in broadcastToAllStudents:', error);
         sendApiError(res, error, 'Failed to send broadcast notification.');
     }
 };
@@ -141,7 +141,7 @@ exports.sendToSpecificStudents = async (req, res) => {
             targetedStudents: studentIds.length
         });
     } catch (error) {
-        console.error('Error in sendToSpecificStudents:', error);
+        // console.error('Error in sendToSpecificStudents:', error);
         sendApiError(res, error, 'Failed to send targeted notifications.');
     }
 };

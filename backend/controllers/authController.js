@@ -25,6 +25,72 @@ const normalizeObjectIdString = (value) => {
     return normalized || null;
 };
 
+const buildStudentExamScopeClauses = ({ studentBatchId, subjectDoc = null, subjectDocs = [] } = {}) => {
+    const clauses = [];
+    if (studentBatchId) {
+        clauses.push({ batchId: studentBatchId });
+        clauses.push({ batchIds: studentBatchId });
+    }
+
+    const sharedSubjectIds = [
+        ...(subjectDoc?._id ? [subjectDoc._id] : []),
+        ...subjectDocs.map((doc) => doc?._id).filter(Boolean)
+    ];
+
+    if (sharedSubjectIds.length > 0) {
+        clauses.push({
+            subjectId: { $in: sharedSubjectIds },
+            linkedBatchCount: { $gt: 1 }
+        });
+    }
+
+    return clauses;
+};
+
+const buildStudentSubjectExamQuery = ({ studentBatchId, subjectDoc } = {}) => {
+    const scopeClauses = buildStudentExamScopeClauses({ studentBatchId, subjectDoc });
+    const subjectClauses = [];
+
+    if (subjectDoc?._id) {
+        subjectClauses.push({ subjectId: subjectDoc._id });
+    }
+
+    const subjectName = String(subjectDoc?.name || '').trim();
+    if (subjectName) {
+        subjectClauses.push({ subject: new RegExp(`^${escapeRegex(subjectName)}$`, 'i') });
+    }
+
+    const query = {
+        status: { $ne: 'cancelled' }
+    };
+
+    if (subjectClauses.length > 0 && scopeClauses.length > 0) {
+        query.$and = [
+            { $or: subjectClauses },
+            { $or: scopeClauses }
+        ];
+        return query;
+    }
+
+    if (subjectClauses.length > 0) {
+        query.$or = subjectClauses;
+        return query;
+    }
+
+    if (scopeClauses.length > 0) {
+        query.$or = scopeClauses;
+    }
+
+    return query;
+};
+
+const buildStudentExamCollectionQuery = ({ studentBatchId, subjectDocs = [] } = {}) => {
+    const scopeClauses = buildStudentExamScopeClauses({ studentBatchId, subjectDocs });
+    return scopeClauses.length > 0
+        ? { status: { $ne: 'cancelled' }, $or: scopeClauses }
+        : { status: { $ne: 'cancelled' } };
+};
+
 const resolvePassingMarks = (exam = {}) => {
     const passingMarks = Number(exam?.passingMarks);
     if (Number.isFinite(passingMarks) && passingMarks >= 0) {
@@ -44,9 +110,9 @@ const shouldLogSubjectDebug = process.env.SUBJECT_DEBUG === '1' || process.env.N
 const logSubjectDebug = (label, payload) => {
     if (!shouldLogSubjectDebug) return;
     try {
-        console.log(`[SUBJECT_DEBUG] ${label}`, JSON.stringify(payload));
+        // console.log(`[SUBJECT_DEBUG] ${label}`, JSON.stringify(payload));
     } catch {
-        console.log(`[SUBJECT_DEBUG] ${label}`, payload);
+        // console.log(`[SUBJECT_DEBUG] ${label}`, payload);
     }
 };
 
@@ -238,7 +304,7 @@ exports.getSubjectAttendanceDetail = async (req, res) => {
 
         res.json({ success: true, records });
     } catch (error) {
-        console.error('Error in getSubjectAttendanceDetail:', error);
+        // console.error('Error in getSubjectAttendanceDetail:', error);
         sendApiError(res, error, 'Server error');
     }
 };
@@ -318,7 +384,7 @@ exports.getStudentSubjects = async (req, res) => {
             subjects
         });
     } catch (error) {
-        console.error('Error in getStudentSubjects:', error);
+        // console.error('Error in getStudentSubjects:', error);
         sendApiError(res, error, 'Unable to fetch subjects right now.');
     }
 };
@@ -357,7 +423,7 @@ exports.addStudent = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Error in addStudent:', error);
+        // console.error('Error in addStudent:', error);
         sendApiError(res, error, 'Unable to add student right now.');
     }
 };
@@ -467,12 +533,7 @@ exports.studentLogin = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Error in studentLogin:', {
-            name: error?.name,
-            message: error?.message,
-            stack: error?.stack,
-            code: error?.code
-        });
+        // console.error('Error in studentLogin:', error);
         sendApiError(res, error, 'Login failed. Please try again.');
     }
 };
@@ -502,7 +563,7 @@ exports.registerDevice = async (req, res) => {
 
         res.json({ success: true, message: 'Device registered', registeredAt: now.toISOString() });
     } catch (error) {
-        console.error('Error in registerDevice:', error);
+        // console.error('Error in registerDevice:', error);
         sendApiError(res, error, 'Unable to register this device right now.');
     }
 };
@@ -551,7 +612,7 @@ exports.trackActivity = async (req, res) => {
 
         res.json({ success: true, message: 'Activity recorded', updated: result.modifiedCount > 0 });
     } catch (error) {
-        console.error('[authController.trackActivity] CRITICAL ERROR:', error);
+        // console.error('[authController.trackActivity] CRITICAL ERROR:', error);
         sendApiError(res, error, 'Unable to record activity right now.');
     }
 };
@@ -623,7 +684,10 @@ exports.getStudentSubjectDetail = async (req, res) => {
                     { batchId: student.batchId._id }
                 ]
             }).select('name assignments profileImage batchId subjectIds').lean(),
-            Exam.find({ batchId: student.batchId._id, subject: subject.name, status: { $ne: 'cancelled' } })
+            Exam.find(buildStudentSubjectExamQuery({
+                studentBatchId: student.batchId._id,
+                subjectDoc: subject
+            }))
                 .sort({ date: -1 })
                 .lean(),
             ExamResult.find({ studentId: student._id }).lean()
@@ -761,7 +825,7 @@ exports.getStudentSubjectDetail = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Error fetching student subject detail:', error);
+        // console.error('Error fetching student subject detail:', error);
         sendApiError(res, error, 'Unable to fetch subject detail right now.');
     }
 };
@@ -933,8 +997,11 @@ exports.getStudentProfile = async (req, res) => {
                 const seededChapters = Array.isArray(subjectDoc.chapters)
                     ? subjectDoc.chapters.map((chapter) => ({
                         name: String(chapter?.name || '').trim(),
+                        status: String(chapter?.status || '').trim().toLowerCase() || null,
                         isCompleted: chapter?.status === 'completed',
                         completedAt: chapter?.completedAt || null,
+                        projectedStartDate: chapter?.projectedStartDate || null,
+                        projectedCompletionDate: chapter?.projectedCompletionDate || null,
                         isCompletionTracked: true,
                         trackingSource: 'subjectCollection'
                     }))
@@ -977,8 +1044,11 @@ exports.getStudentProfile = async (req, res) => {
                 if (!subjectKey) return;
                 syllabusDataMap.set(subjectKey, (s.chapters || []).map((chapter) => ({
                     name: String(chapter?.name || '').trim(),
+                    status: chapter?.isCompleted ? 'completed' : null,
                     isCompleted: Boolean(chapter?.isCompleted),
-                    completedAt: chapter?.completedAt || null
+                    completedAt: chapter?.completedAt || null,
+                    projectedStartDate: chapter?.projectedStartDate || null,
+                    projectedCompletionDate: chapter?.projectedCompletionDate || null
                 })));
             });
 
@@ -1015,8 +1085,11 @@ exports.getStudentProfile = async (req, res) => {
                     ? subjectSeedChapters
                     : syllabusChapters.map((chapter) => ({
                         name: chapter.name,
+                        status: chapter.status || null,
                         isCompleted: Boolean(chapter.isCompleted),
                         completedAt: chapter.completedAt || null,
+                        projectedStartDate: chapter.projectedStartDate || null,
+                        projectedCompletionDate: chapter.projectedCompletionDate || null,
                         isCompletionTracked: false,
                         trackingSource: 'syllabus'
                     }));
@@ -1028,8 +1101,11 @@ exports.getStudentProfile = async (req, res) => {
                     const trackedChapter = completedChapterMap.get(chapterKey);
                     chapters.push({
                         name: ch.name,
+                        status: trackedChapter?.isCompleted ? 'completed' : (ch.status || null),
                         isCompleted: trackedChapter ? trackedChapter.isCompleted : Boolean(ch.isCompleted),
                         completedAt: trackedChapter ? trackedChapter.completedAt : (ch.completedAt || null),
+                        projectedStartDate: ch.projectedStartDate || null,
+                        projectedCompletionDate: ch.projectedCompletionDate || null,
                         isCompletionTracked: trackedChapter ? true : Boolean(ch.isCompletionTracked),
                         trackingSource: trackedChapter ? trackedChapter.trackingSource : (ch.trackingSource || 'syllabus')
                     });
@@ -1041,8 +1117,11 @@ exports.getStudentProfile = async (req, res) => {
                     if (addedChapterKeys.has(trackedKey)) return;
                     chapters.push({
                         name: trackedChapter.name,
+                        status: trackedChapter.isCompleted ? 'completed' : 'ongoing',
                         isCompleted: trackedChapter.isCompleted,
                         completedAt: trackedChapter.completedAt,
+                        projectedStartDate: null,
+                        projectedCompletionDate: null,
                         isCompletionTracked: true,
                         trackingSource: trackedChapter.trackingSource
                     });
@@ -1072,7 +1151,16 @@ exports.getStudentProfile = async (req, res) => {
         let examDetailsMap = new Map();
         let subjectStatsMap = new Map();
         if (student.batchId) {
-            const allExams = await Exam.find({ batchId: student.batchId._id, status: { $ne: 'cancelled' } })
+            const subjectNameById = new Map(
+                batchSubjectDocs
+                    .map((doc) => [normalizeObjectIdString(doc?._id), doc?.name])
+                    .filter(([id, name]) => Boolean(id && name))
+            );
+
+            const allExams = await Exam.find(buildStudentExamCollectionQuery({
+                studentBatchId: student.batchId._id,
+                subjectDocs: batchSubjectDocs
+            }))
                 .sort({ date: -1 })
                 .lean();
                 
@@ -1082,21 +1170,25 @@ exports.getStudentProfile = async (req, res) => {
             const resultMap = new Map(allResults.map(r => [r.examId.toString(), r]));
 
             allExams.forEach(e => {
-                if (!examDetailsMap.has(e.subject)) {
-                    examDetailsMap.set(e.subject, []);
+                const canonicalSubject = subjectNameById.get(normalizeObjectIdString(e.subjectId))
+                    || Array.from(teachersMap.keys()).find((subjectName) => normalizeKey(subjectName) === normalizeKey(e.subject))
+                    || e.subject;
+
+                if (!examDetailsMap.has(canonicalSubject)) {
+                    examDetailsMap.set(canonicalSubject, []);
                 }
                 const result = resultMap.get(e._id.toString());
 
                 if (result && result.isPresent) {
-                    if (!subjectStatsMap.has(e.subject)) {
-                        subjectStatsMap.set(e.subject, { totalObtained: 0, totalPossible: 0 });
+                    if (!subjectStatsMap.has(canonicalSubject)) {
+                        subjectStatsMap.set(canonicalSubject, { totalObtained: 0, totalPossible: 0 });
                     }
-                    const stats = subjectStatsMap.get(e.subject);
+                    const stats = subjectStatsMap.get(canonicalSubject);
                     stats.totalObtained += result.marksObtained;
                     stats.totalPossible += e.totalMarks;
                 }
 
-                examDetailsMap.get(e.subject).push({
+                examDetailsMap.get(canonicalSubject).push({
                     _id: e._id,
                     name: e.name,
                     chapter: e.chapter,
@@ -1224,7 +1316,7 @@ exports.getStudentProfile = async (req, res) => {
 
         res.json({ success: true, student: profileData });
     } catch (error) {
-        console.error('Error fetching student profile:', error);
+        // console.error('Error fetching student profile:', error);
         sendApiError(res, error, 'Unable to fetch student profile right now.');
     }
 };
@@ -1256,7 +1348,7 @@ exports.resetPassword = async (req, res) => {
 
         res.json({ success: true, message: 'Password updated successfully.' });
     } catch (error) {
-        console.error('Error in resetPassword:', error);
+        // console.error('Error in resetPassword:', error);
         sendApiError(res, error, 'Unable to reset password right now.');
     }
 };
@@ -1308,7 +1400,7 @@ exports.completeSetup = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('CRITICAL ERROR in completeSetup:', error);
+        // console.error('CRITICAL ERROR in completeSetup:', error);
         sendApiError(res, error, 'Unable to complete setup right now.');
     }
 };

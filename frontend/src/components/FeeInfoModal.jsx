@@ -56,52 +56,54 @@ const FeeInfoModal = ({ isOpen, onClose, fee, student }) => {
     return (
         <div className="fixed inset-0 z-[1200] flex items-center justify-center p-0 md:p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
             <div 
-                className="bg-white w-full h-full md:h-auto md:max-h-[90vh] md:max-w-3xl md:   rounded-[10px] shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-8 duration-300"
+                className="bg-white w-full h-full md:h-auto md:max-h-[90vh] md:max-w-3xl md:   rounded-[0px] shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-8 duration-300"
                 onClick={e => e.stopPropagation()}
             >
-                {/* Header */}
-               <div className="bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 px-6 py-5 flex items-center justify-between text-gray-900 shadow-md sticky top-0 z-20 border-b border-indigo-400/30">
-    <div className="flex items-center gap-4">
+ {/* Header */}
+<div className="bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 px-4 py-3.5 sm:px-6 sm:py-5 flex items-center justify-between text-white shadow-md sticky top-0 z-20 border-b border-indigo-400/30">
+    
+    {/* Left Section (Icon + Titles) */}
+    <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
         {/* Glassmorphism Icon Container */}
-        <div className="bg-white/15 backdrop-blur-md p-2.5   rounded-[10px] border border-white/20 shadow-sm shrink-0">
-            <IndianRupee size={22} className="text-white drop-shadow-sm" />
+        <div className="bg-white/15 backdrop-blur-md p-2 sm:p-2.5 rounded-xl border border-white/20 shadow-sm shrink-0">
+            <IndianRupee size={20} className="text-white drop-shadow-sm sm:w-[22px] sm:h-[22px]" />
         </div>
         
-        <div className="flex flex-col justify-center">
-            <p className="text-xl font-bold tracking-tight text-white mb-1.5 leading-none">
+        <div className="flex flex-col justify-center min-w-0">
+            <p className="text-lg sm:text-xl font-bold tracking-tight text-white mb-1 leading-none truncate">
                 {t('Fee Details')}
             </p>
             
             {/* Upgraded Info Pill */}
             <div className="flex items-center">
-                <p className="text-indigo-50 text-[11px] font-semibold tracking-wide bg-black/15 px-3 py-1   rounded-[10px] border border-gray-200 flex items-center gap-1.5 shadow-inner">
-                    {/* Optional indicator dot - makes the status pop */}
-                    <span className="w-1.5 h-1.5   rounded-[10px] bg-indigo-400 shadow-[0_0_5px_rgba(74,222,128,0.5)]"></span>
-                    <span>{fee.month} {fee.year}</span>
-                    <span className="opacity-40 font-normal px-0.5">|</span>
-                    <span className="uppercase tracking-wider">{t(fee.status)}</span>
+                <p className="text-indigo-50 text-[10px] sm:text-xs font-semibold tracking-wide bg-black/15 px-2.5 sm:px-3 py-1 rounded-full border border-white/10 flex items-center gap-1.5 shadow-inner max-w-full">
+                    {/* Indicator dot - emerald/green color for better pop on purple */}
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_5px_rgba(52,211,153,0.5)] shrink-0"></span>
+                    <span className="truncate">{fee.month} {fee.year}</span>
+                    <span className="opacity-40 font-normal px-0.5 shrink-0">|</span>
+                    <span className="uppercase tracking-wider shrink-0">{t(fee.status)}</span>
                 </p>
             </div>
         </div>
     </div>
     
-    <div className="flex items-center gap-2">
+    {/* Right Section (Controls) */}
+    <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 pl-2">
         <LanguageToggleButton
             variant="topbar"
-            className="bg-white/15 border-white/25 text-white hover:bg-white/20"
+            className="bg-white/10 border-white/20 text-white hover:bg-white/20 text-xs sm:text-sm"
         />
 
         {/* Refined Close Button */}
         <button 
             onClick={onClose}
-            className="p-2.5 bg-black/5 hover:bg-black/20   rounded-[10px] transition-all duration-200 active:scale-90 border border-transparent hover:border-gray-200 group"
+            className="p-2 sm:p-2.5 bg-black/10 hover:bg-black/20 rounded-xl transition-all duration-200 active:scale-90 border border-transparent hover:border-white/20 group"
             aria-label="Close"
         >
-            <X size={20} className="text-indigo-100 group-hover:text-gray-900 transition-colors" />
+            <X size={18} className="text-indigo-100 group-hover:text-white transition-colors sm:w-[20px] sm:h-[20px]" />
         </button>
     </div>
 </div>
-
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto bg-slate-50">
                   

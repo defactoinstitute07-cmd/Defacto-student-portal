@@ -22,10 +22,8 @@ const captureLog = (type, args) => {
     logBuffer.push(msg);
     if (logBuffer.length > 100) logBuffer.shift();
 };
-const originalLog = console.log;
-const originalError = console.error;
-console.log = (...args) => { captureLog('LOG', args); originalLog(...args); };
-console.error = (...args) => { captureLog('ERROR', args); originalError(...args); };
+// Logging disabled for production
+    if (logBuffer.length > 100) logBuffer.shift(); // Logging disabled
 
 app.get('/api/debug/logs', (req, res) => {
     res.type('text/plain').send(logBuffer.join('\n'));
@@ -74,7 +72,7 @@ app.get('/api/health', async (req, res) => {
             await connectToDatabase();
             database = getDatabaseHealth();
         } catch (mErr) {
-            console.error('Mongo Health Fix failed:', mErr.message);
+            // console.error('Mongo Health Fix failed:', mErr.message);
         }
     }
 
@@ -100,7 +98,7 @@ app.use('/api', async (req, res, next) => {
         }
         return next();
     } catch (error) {
-        console.error('Mongo connect middleware error:', error.message || error);
+        // console.error('Mongo connect middleware error:', error.message || error);
         return sendDatabaseUnavailable(res);
     }
 });
@@ -114,11 +112,11 @@ app.use('/api', notificationRoutes);
 app.use('/api/student/fees', feeRoutes);
 app.use('/api/student/results', resultRoutes);
 
-const PORT = process.env.PORT || 5005;
+const PORT = process.env.PORT || 5006;
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
-    console.error('GLOBAL ERROR:', err);
+    // console.error('GLOBAL ERROR:', err);
     res.status(err.status || 500).json({
         success: false,
         message: err.message || 'Internal Server Error',
@@ -128,7 +126,7 @@ app.use((err, req, res, next) => {
 
 if (require.main === module) {
     connectToDatabase()
-        .catch((err) => console.error('MongoDB connection error:', err.message));
+        .catch((err) => {/* console.error('MongoDB connection error:', err.message); */});
 
     app.listen(PORT);
 }

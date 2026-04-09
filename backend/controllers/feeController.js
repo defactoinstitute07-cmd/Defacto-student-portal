@@ -181,7 +181,7 @@ exports.getStudentFees = async (req, res) => {
         const studentId = req.user?.id || req.user?._id;
 
         if (!studentId) {
-            console.error('[Fees] No student ID found in request user.');
+            // console.error('[Fees] No student ID found in request user.');
             return res.status(401).json({ success: false, message: 'Authentication failed: Student ID missing.' });
         }
 
@@ -190,14 +190,14 @@ exports.getStudentFees = async (req, res) => {
             .lean();
 
         if (!student) {
-            console.error(`[Fees] Student ${studentId} not found in MongoDB.`);
+            // console.error(`[Fees] Student ${studentId} not found in MongoDB.`);
             return res.status(404).json({ success: false, message: 'Student record not found.' });
         }
 
         const fees = await fetchStudentFees(String(studentId), student);
         res.json({ success: true, fees });
     } catch (error) {
-        console.error('CRITICAL ERROR in getStudentFees:', error);
+        // console.error('CRITICAL ERROR in getStudentFees:', error);
         sendApiError(res, error, 'Unable to fetch fees right now.');
     }
 };

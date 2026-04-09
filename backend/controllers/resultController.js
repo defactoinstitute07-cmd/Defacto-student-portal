@@ -145,7 +145,7 @@ exports.getStudentResults = async (req, res) => {
             nextCursor: hasMore ? results[results.length - 1]._id : null
         });
     } catch (error) {
-        console.error('Error fetching student results:', error);
+        // console.error('Error fetching student results:', error);
         sendApiError(res, error, 'Unable to fetch results right now.');
     }
 };
@@ -272,7 +272,7 @@ exports.getLeaderboard = async (req, res) => {
 
         res.json({ success: true, leaderboard });
     } catch (error) {
-        console.error('Error fetching leaderboard:', error);
+        // console.error('Error fetching leaderboard:', error);
         sendApiError(res, error, 'Unable to fetch leaderboard right now.');
     }
 };

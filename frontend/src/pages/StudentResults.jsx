@@ -41,88 +41,111 @@ const TestDetailModal = ({ test, onClose }) => {
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-0 bg-gray-900/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={onClose}>
-            <div
-                className="bg-white rounded-md w-full max-w-xl m-5 overflow-hidden shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300"
-                onClick={(e) => e.stopPropagation()}
-            >
-                {/* Header */}
-                <div className={`p-6 sm:p-8 flex items-center justify-between text-white ${test.hasPassed ? 'bg-gradient-to-br from-indigo-500 to-teal-600' : 'bg-gradient-to-br from-rose-500 to-orange-600'}`}>
-                    <div className="space-y-1">
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">{test.subject} • {t('Assessment')}</span>
-                        <p className="text-xl sm:text-2xl font-bold text-white tracking-tight">{test.examName}</p>
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className="h-10 w-10 rounded-md bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
-                    >
-                        <ChevronDown size={24} className="rotate-90 sm:rotate-0" />
-                    </button>
-                </div>
+<div
+    className="bg-white rounded-2xl sm:rounded-[24px] w-full max-w-md sm:max-w-lg mx-4 sm:mx-auto overflow-hidden shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300"
+    onClick={(e) => e.stopPropagation()}
+>
+    {/* Header */}
+    <div className={`p-5 sm:p-7 flex items-start justify-between text-white ${
+        test.hasPassed 
+            ? 'bg-gradient-to-br from-emerald-500 to-teal-600' 
+            : 'bg-gradient-to-br from-rose-500 to-rose-700'
+    }`}>
+        <div className="space-y-1.5 flex-1 min-w-0 pr-4">
+            <span className="inline-block px-2.5 py-0.5 bg-white/20 rounded-full text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm shadow-sm">
+                {test.subject} • {t('Assessment')}
+            </span>
+            <p className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-tight break-words">
+                {test.examName}
+            </p>
+        </div>
+        <button
+            onClick={onClose}
+            className="h-9 w-9 shrink-0 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors active:scale-90"
+        >
+            <ChevronDown size={20} />
+        </button>
+    </div>
 
-                {/* Content */}
-                <div className="p-6 sm:p-8 space-y-8 max-h-[70vh] overflow-y-auto">
+    {/* Content */}
+    <div className="p-5 sm:p-7 space-y-6 sm:space-y-8 max-h-[75vh] overflow-y-auto custom-scrollbar">
 
-                    {/* Summary Metrics */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="p-4 rounded-md bg-gray-50 border border-gray-100 space-y-1">
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('Score Obtained')}</p>
-                            <div className="flex items-baseline gap-1">
-                                <span className="text-2xl font-black text-gray-900">{test.marksObtained}</span>
-                                <span className="text-sm font-bold text-gray-400">/ {test.totalMarks}</span>
-                            </div>
-                        </div>
-                        <div className="p-4 rounded-md bg-gray-50 border border-gray-100 space-y-1">
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('Percentage')}</p>
-                            <div className="flex items-center gap-2">
-                                <span className={`text-2xl font-black ${test.hasPassed ? 'text-indigo-700' : 'text-rose-700'}`}>{test.percentage}%</span>
-                                {test.hasPassed ? <Award size={20} className="text-indigo-500" /> : <TrendingDown size={20} className="text-rose-500" />}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Details Table */}
-                    <div className="space-y-4">
-                        <h4 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{t('Detailed Assessment')}</h4>
-                        <div className="space-y-3">
-                            <div className="flex items-center justify-between py-2 border-b border-gray-50">
-                                <span className="text-sm font-bold text-gray-500">{t('Chapter')}</span>
-                                <span className="text-sm font-black text-gray-800">{test.chapter}</span>
-                            </div>
-                            <div className="flex items-center justify-between py-2 border-b border-gray-50">
-                                <span className="text-sm font-bold text-gray-500">{t('Test Date')}</span>
-                                <span className="text-sm font-black text-gray-800">{new Date(test.date).toLocaleDateString(language === 'hi' ? 'hi-IN' : 'en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
-                            </div>
-                            <div className="flex items-center justify-between py-2 border-b border-gray-50">
-                                <span className="text-sm font-bold text-gray-500">{t('Status')}</span>
-                                <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-lg ${test.hasPassed ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}>
-                                    {test.hasPassed ? t('Pass / Excellent') : t('Needs Re-revision')}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Teacher Remarks */}
-                    <div className="space-y-4 bg-blue-50/50 p-6 rounded-md border border-blue-100/50">
-                        <div className="flex items-center gap-2 text-blue-600">
-                            <Award size={18} />
-                            <h4 className="text-xs font-black uppercase tracking-[0.2em]">{t("Teacher's Remarks")}</h4>
-                        </div>
-                        <p className="text-sm text-gray-700 italic font-medium leading-relaxed">
-                            {test.remarks || t('No specific feedback provided for this assessment.')}
-                        </p>
-                    </div>
-                </div>
-
-                {/* Footer Action */}
-                <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-end">
-                    <button
-                        onClick={onClose}
-                        className="px-8 py-3 bg-gray-900 text-white text-xs font-black uppercase tracking-widest rounded-md hover:bg-gray-800 transition-all active:scale-95 shadow-xl shadow-gray-200"
-                    >
-                        {t('Close Details')}
-                    </button>
+        {/* Summary Metrics */}
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            <div className="p-4 sm:p-5 rounded-xl bg-slate-50 border border-slate-100 flex flex-col justify-center shadow-sm">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">{t('Score Obtained')}</p>
+                <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-black text-slate-900">{test.marksObtained}</span>
+                    <span className="text-sm font-bold text-slate-400">/ {test.totalMarks}</span>
                 </div>
             </div>
+            <div className={`p-4 sm:p-5 rounded-xl border shadow-sm flex flex-col justify-center ${
+                test.hasPassed ? 'bg-emerald-50 border-emerald-100' : 'bg-rose-50 border-rose-100'
+            }`}>
+                <p className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${
+                    test.hasPassed ? 'text-emerald-700' : 'text-rose-700'
+                }`}>
+                    {t('Percentage')}
+                </p>
+                <div className="flex items-center gap-2">
+                    <span className={`text-3xl font-black ${test.hasPassed ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        {test.percentage}%
+                    </span>
+                    {test.hasPassed ? <Award size={24} className="text-emerald-500" /> : <TrendingDown size={24} className="text-rose-500" />}
+                </div>
+            </div>
+        </div>
+
+        {/* Details Table */}
+        <div className="space-y-2">
+            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 pl-1">
+                {t('Detailed Assessment')}
+            </h4>
+            <div className="bg-white rounded-xl border border-slate-100 p-1">
+                <div className="flex items-center justify-between py-3 px-3 border-b border-slate-50">
+                    <span className="text-sm font-medium text-slate-500">{t('Chapter')}</span>
+                    <span className="text-sm font-bold text-slate-900 text-right max-w-[60%] truncate" title={test.chapter}>{test.chapter}</span>
+                </div>
+                <div className="flex items-center justify-between py-3 px-3 border-b border-slate-50">
+                    <span className="text-sm font-medium text-slate-500">{t('Test Date')}</span>
+                    <span className="text-sm font-bold text-slate-900">
+                        {new Date(test.date).toLocaleDateString(language === 'hi' ? 'hi-IN' : 'en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </span>
+                </div>
+                <div className="flex items-center justify-between py-3 px-3">
+                    <span className="text-sm font-medium text-slate-500">{t('Status')}</span>
+                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md border ${
+                        test.hasPassed ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'
+                    }`}>
+                        {test.hasPassed ? t('Pass / Excellent') : t('Needs Re-revision')}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        {/* Teacher Remarks */}
+        <div className="bg-indigo-50/60 p-5 sm:p-6 rounded-xl border border-indigo-100">
+            <div className="flex items-center gap-2 text-indigo-600 mb-2.5">
+                <Award size={18} />
+                <h4 className="text-[11px] font-bold uppercase tracking-widest">{t("Teacher's Remarks")}</h4>
+            </div>
+            <p className="text-sm text-slate-700 italic font-medium leading-relaxed">
+                {test.remarks || t('No specific feedback provided for this assessment.')}
+            </p>
+        </div>
+        
+    </div>
+
+    {/* Footer Action */}
+    <div className="p-4 sm:p-5 bg-slate-50/80 border-t border-slate-100 flex justify-end">
+        <button
+            onClick={onClose}
+            className="w-full sm:w-auto px-8 py-3.5 bg-slate-900 text-white text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-slate-800 transition-all active:scale-[0.98] shadow-md hover:shadow-lg"
+        >
+            {t('Close Details')}
+        </button>
+    </div>
+</div>
         </div>
 
     );
@@ -471,281 +494,260 @@ const StudentResults = () => {
                         </div>
                     )}
 
-                    {/* Results Table Section */}
-                    <div className="bg-white   rounded-[10px] shadow-sm border border-gray-100 overflow-hidden">
+                  {/* Results Table Section */}
+<div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mt-6">
 
-                        <div className="p-4 sm:p-6 border-b border-gray-100 bg-slate-50/60">
+    {/* Header & Filters */}
+    <div className="p-4 sm:p-6 border-b border-slate-200 bg-slate-50/50">
+        
+        <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-4 sm:mb-5">
+            {t('Complete Test History')}
+        </h3>
 
-                            <h3 className="text-sm sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">
-                                {t('Complete Test History')}
-                            </h3>
+        <div className="flex flex-col gap-3 sm:gap-4">
+            
+            {/* Top Row: Search & Subject */}
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                {/* Search */}
+                <div className="relative flex-1">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                    <input
+                        type="text"
+                        placeholder={t('Search by test name or chapter...')}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-400 font-medium"
+                    />
+                </div>
 
-                            {/* Filters Row 1 */}
-                            <div className="flex flex-col gap-3 sm:flex-row sm:gap-4 mb-3 sm:mb-4">
+                {/* Subject Filter */}
+                <div className="relative w-full sm:w-[220px] shrink-0">
+                    <Filter className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                    <select
+                        value={subjectFilter}
+                        onChange={(e) => setSubjectFilter(e.target.value)}
+                        className="w-full pl-10 pr-10 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none bg-white font-medium text-slate-700 cursor-pointer"
+                    >
+                        {subjects.map(sub => (
+                            <option key={sub} value={sub}>{sub}</option>
+                        ))}
+                    </select>
+                    <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                </div>
+            </div>
 
-                                {/* Search */}
-                                <div className="relative flex-1">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-                                    <input
-                                        type="text"
-                                        placeholder={t('Search by test name or chapter...')}
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-                                </div>
+            {/* Bottom Row: Status & Sort (Grid on mobile for better fit) */}
+            <div className="grid grid-cols-2 sm:flex gap-3 sm:gap-4">
+                {/* Status Filter */}
+                <div className="relative w-full sm:w-[200px]">
+                    <Award className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="w-full pl-10 pr-10 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none bg-white font-medium text-slate-700 cursor-pointer"
+                    >
+                        <option value="All">{t('All Statuses')}</option>
+                        <option value="Passed">{t('Passed')}</option>
+                        <option value="Needs Work">{t('Needs Work')}</option>
+                    </select>
+                    <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                </div>
 
-                                {/* Subject Filter */}
-                                <div className="relative w-full sm:w-auto sm:min-w-[150px]">
-                                    <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-                                    <select
-                                        value={subjectFilter}
-                                        onChange={(e) => setSubjectFilter(e.target.value)}
-                                        className="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white"
-                                    >
-                                        {subjects.map(sub => (
-                                            <option key={sub} value={sub}>{sub}</option>
-                                        ))}
-                                    </select>
+                {/* Sort Filter */}
+                <div className="relative w-full sm:w-[200px]">
+                    <Clock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                    <select
+                        value={sortOrder}
+                        onChange={(e) => setSortOrder(e.target.value)}
+                        className="w-full pl-10 pr-10 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none bg-white font-medium text-slate-700 cursor-pointer"
+                    >
+                        <option value="desc">{t('Newest First')}</option>
+                        <option value="asc">{t('Oldest First')}</option>
+                    </select>
+                    <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                </div>
+            </div>
+        </div>
+    </div>
 
-                                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
-                                </div>
 
+    {/* Mobile Card View (Appears only on small screens) */}
+    <div className="block sm:hidden bg-slate-50/50">
+        {filteredResults.length === 0 ? (
+            <div className="px-4 py-12 text-center text-slate-500 text-sm font-medium">
+                {t('No results match your criteria.')}
+            </div>
+        ) : (
+            <div className="p-3 space-y-3">
+                {paginatedResults.map((r, idx) => (
+                    <div
+                        key={r._id || r.id || idx}
+                        className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm cursor-pointer transition-all active:scale-[0.98] hover:border-indigo-200 hover:shadow-md"
+                        onClick={() => setSelectedTest(r)}
+                    >
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                            <div className="min-w-0 flex-1">
+                                <h4 className="font-bold text-slate-900 text-sm truncate pr-2">
+                                    {r.examName}
+                                </h4>
+                                <p className="text-xs font-medium text-slate-500 truncate mt-0.5">
+                                    {r.subject} • {r.chapter}
+                                </p>
                             </div>
-
-
-                            {/* Filters Row 2 */}
-                            <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
-
-                                {/* Status Filter */}
-                                <div className="relative flex-1 sm:max-w-[200px]">
-                                    <Award className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-                                    <select
-                                        value={statusFilter}
-                                        onChange={(e) => setStatusFilter(e.target.value)}
-                                        className="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white font-medium"
-                                    >
-                                        <option value="All">{t('All Statuses')}</option>
-                                        <option value="Passed">{t('Passed')}</option>
-                                        <option value="Needs Work">{t('Needs Work')}</option>
-                                    </select>
-
-                                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
-                                </div>
-
-
-                                {/* Sort Filter */}
-                                <div className="relative flex-1 sm:max-w-[200px]">
-                                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-                                    <select
-                                        value={sortOrder}
-                                        onChange={(e) => setSortOrder(e.target.value)}
-                                        className="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white font-medium"
-                                    >
-                                        <option value="desc">{t('Newest First')}</option>
-                                        <option value="asc">{t('Oldest First')}</option>
-                                    </select>
-
-                                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
-                                </div>
-
-                            </div>
-
+                            <span className={`shrink-0 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${
+                                r.hasPassed ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'
+                            }`}>
+                                {r.hasPassed ? t('Passed') : t('Needs Work')}
+                            </span>
                         </div>
 
-
-                        {/* Mobile Card View */}
-                        <div className="block sm:hidden divide-y divide-gray-100">
-
-                            {filteredResults.length === 0 ? (
-                                <div className="px-4 py-8 text-center text-gray-500 text-sm">
-                                    {t('No results match your criteria.')}
-                                </div>
-                            ) : (
-
-                                paginatedResults.map((r, idx) => (
-                                    <div
-                                        key={r._id || r.id || idx}
-                                        className="m-3   rounded-[10px] border border-gray-100 bg-white p-4 space-y-3 cursor-pointer hover:bg-gray-50 active:bg-gray-100 transition-colors"
-                                        onClick={() => setSelectedTest(r)}
-                                    >
-
-                                        <div className="flex items-start justify-between gap-2">
-
-                                            <div className="min-w-0 flex-1">
-                                                <div className="font-semibold text-gray-800 text-sm truncate">
-                                                    {r.examName}
-                                                </div>
-
-                                                <div className="text-xs text-gray-500 truncate">
-                                                    {r.subject} • {r.chapter}
-                                                </div>
-                                            </div>
-
-                                            <span
-                                                className={`px-2 py-1 rounded-lg text-xs font-medium border shrink-0 ${r.hasPassed
-                                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                                    : 'bg-red-50 text-red-700 border-red-200'
-                                                    }`}
-                                            >
-                                                {r.hasPassed ? t('Passed') : t('Needs Work')}
-                                            </span>
-
-                                        </div>
-
-
-                                        <div className="flex items-center justify-between text-sm">
-
-                                            <div className="flex items-center gap-1.5 text-gray-500">
-                                                <Clock size={12} />
-                                                <span className="text-xs">
-                                                    {new Date(r.date).toLocaleDateString(language === 'hi' ? 'hi-IN' : 'en-GB', {
-                                                        day: '2-digit',
-                                                        month: 'short',
-                                                        year: 'numeric'
-                                                    })}
-                                                </span>
-                                            </div>
-
-                                            <div className="text-right">
-                                                <span className="font-bold text-gray-800">
-                                                    {r.marksObtained}
-                                                </span>
-
-                                                <span className="text-xs text-gray-500">
-                                                    /{r.totalMarks}
-                                                </span>
-
-                                                <span className="text-xs text-gray-500 ml-1">
-                                                    ({r.percentage}%)
-                                                </span>
-                                            </div>
-
-                                        </div>
-
-
-                                        {r.remarks && (
-                                            <div className="bg-gray-50 p-2 rounded-lg border border-gray-100 mt-1">
-
-                                                <p className="text-[10px] text-gray-500 italic flex gap-1 items-start">
-                                                    <span className="font-bold text-blue-600 not-italic shrink-0">
-                                                        {t('Remark:')}
-                                                    </span>
-
-                                                    {r.remarks}
-
-                                                </p>
-
-                                            </div>
-                                        )}
-
-                                    </div>
-                                ))
-
-                            )}
-
-                        </div>
-
-
-                        {filteredResults.length > 0 && (
-                            <div className="p-4 sm:p-6 border-t border-gray-100 flex items-center justify-between gap-3 bg-slate-50/70">
-                                <button
-                                    type="button"
-                                    onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-                                    disabled={currentPage === 1}
-                                    className="px-4 py-2 rounded-xl border border-gray-200 text-xs font-black uppercase tracking-wider text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {t('Previous')}
-                                </button>
-
-                                <span className="text-xs font-bold text-gray-500">
-                                    {t('Page')} {currentPage} {t('of')} {totalPages}
+                        <div className="flex items-end justify-between mt-4">
+                            <div className="flex items-center gap-1.5 text-slate-500 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-100">
+                                <Clock size={12} />
+                                <span className="text-[11px] font-semibold">
+                                    {new Date(r.date).toLocaleDateString(language === 'hi' ? 'hi-IN' : 'en-GB', {
+                                        day: '2-digit', month: 'short', year: 'numeric'
+                                    })}
                                 </span>
-
-                                <button
-                                    type="button"
-                                    onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
-                                    disabled={currentPage === totalPages}
-                                    className="px-4 py-2 rounded-xl border border-gray-200 text-xs font-black uppercase tracking-wider text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {t('Next')}
-                                </button>
                             </div>
-                        )}
 
-
-                        {/* Desktop Table View */}
-                        <div className="hidden sm:block overflow-x-auto">
-                            {filteredResults.length === 0 ? (
-                                <div className="px-6 py-10 text-center text-gray-500 text-sm">
-                                    {t('No results match your criteria.')}
-                                </div>
-                            ) : (
-                                <table className="w-full text-sm">
-                                    <thead className="bg-slate-50 border-y border-gray-100">
-                                        <tr>
-                                            <th className="px-6 py-3 text-left text-[11px] font-black uppercase tracking-wider text-gray-500">{t('Exam')}</th>
-                                            <th className="px-4 py-3 text-left text-[11px] font-black uppercase tracking-wider text-gray-500">{t('Subject')}</th>
-                                            <th className="px-4 py-3 text-left text-[11px] font-black uppercase tracking-wider text-gray-500">{t('Date')}</th>
-                                            <th className="px-4 py-3 text-left text-[11px] font-black uppercase tracking-wider text-gray-500">{t('Score')}</th>
-                                            <th className="px-4 py-3 text-left text-[11px] font-black uppercase tracking-wider text-gray-500">{t('Status')}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {paginatedResults.map((r, idx) => (
-                                            <tr
-                                                key={r._id || r.id || idx}
-                                                className="border-b border-gray-100 hover:bg-slate-50 cursor-pointer"
-                                                onClick={() => setSelectedTest(r)}
-                                            >
-                                                <td className="px-6 py-4">
-                                                    <p className="font-semibold text-gray-800">{r.examName}</p>
-                                                    <p className="text-xs text-gray-500 truncate max-w-[280px]">{r.chapter}</p>
-                                                </td>
-                                                <td className="px-4 py-4 text-gray-700 font-medium">{r.subject}</td>
-                                                <td className="px-4 py-4 text-gray-600">
-                                                    {new Date(r.date).toLocaleDateString(language === 'hi' ? 'hi-IN' : 'en-GB', {
-                                                        day: '2-digit',
-                                                        month: 'short',
-                                                        year: 'numeric'
-                                                    })}
-                                                </td>
-                                                <td className="px-4 py-4 text-gray-700 font-semibold">
-                                                    {r.marksObtained}/{r.totalMarks} <span className="text-gray-500">({r.percentage}%)</span>
-                                                </td>
-                                                <td className="px-4 py-4">
-                                                    <span
-                                                        className={`px-2 py-1 rounded-lg text-xs font-medium border ${r.hasPassed
-                                                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                                            : 'bg-red-50 text-red-700 border-red-200'
-                                                            }`}
-                                                    >
-                                                        {r.hasPassed ? t('Passed') : t('Needs Work')}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            )}
+                            <div className="text-right">
+                                <span className="text-lg font-black text-slate-900 leading-none">
+                                    {r.marksObtained}
+                                </span>
+                                <span className="text-xs font-bold text-slate-400">
+                                    /{r.totalMarks}
+                                </span>
+                                <span className={`text-xs font-bold ml-1.5 ${r.hasPassed ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                    ({r.percentage}%)
+                                </span>
+                            </div>
                         </div>
 
-
-                        {hasNextPage && (
-                            <div className="p-4 sm:p-6 border-t border-gray-100 flex justify-center">
-
-                                <button
-                                    onClick={() => fetchNextPage()}
-                                    disabled={isFetchingNextPage}
-                                    className="px-6 py-3 rounded-xl bg-gray-900 text-white text-xs font-black uppercase tracking-widest hover:bg-gray-800 disabled:opacity-60 disabled:cursor-not-allowed"
-                                >
-                                    {isFetchingNextPage ? t('Loading more...') : t('Load more results')}
-                                </button>
-
+                        {r.remarks && (
+                            <div className="mt-3 bg-indigo-50/50 p-2.5 rounded-lg border border-indigo-100/50">
+                                <p className="text-[11px] text-slate-600 flex gap-1.5 items-start leading-snug">
+                                    <span className="font-bold text-indigo-700 shrink-0 uppercase tracking-wide text-[9px] mt-0.5">
+                                        {t('Remark')}
+                                    </span>
+                                    <span className="italic font-medium">{r.remarks}</span>
+                                </p>
                             </div>
                         )}
-
                     </div>
+                ))}
+            </div>
+        )}
+    </div>
+
+
+    {/* Desktop Table View (Appears on sm and larger) */}
+    <div className="hidden sm:block overflow-x-auto">
+        {filteredResults.length === 0 ? (
+            <div className="px-6 py-16 text-center text-slate-500 font-medium">
+                {t('No results match your criteria.')}
+            </div>
+        ) : (
+            <table className="w-full text-left border-collapse">
+                <thead className="bg-slate-50 border-y border-slate-200">
+                    <tr>
+                        <th className="px-6 py-3.5 text-xs font-bold uppercase tracking-widest text-slate-500">{t('Exam Details')}</th>
+                        <th className="px-4 py-3.5 text-xs font-bold uppercase tracking-widest text-slate-500">{t('Subject')}</th>
+                        <th className="px-4 py-3.5 text-xs font-bold uppercase tracking-widest text-slate-500">{t('Date')}</th>
+                        <th className="px-4 py-3.5 text-xs font-bold uppercase tracking-widest text-slate-500">{t('Score')}</th>
+                        <th className="px-6 py-3.5 text-xs font-bold uppercase tracking-widest text-slate-500">{t('Status')}</th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                    {paginatedResults.map((r, idx) => (
+                        <tr
+                            key={r._id || r.id || idx}
+                            className="hover:bg-indigo-50/40 transition-colors cursor-pointer group"
+                            onClick={() => setSelectedTest(r)}
+                        >
+                            <td className="px-6 py-4">
+                                <p className="text-sm font-bold text-slate-900 group-hover:text-indigo-700 transition-colors">{r.examName}</p>
+                                <p className="text-xs font-medium text-slate-500 truncate max-w-[280px] mt-0.5">{r.chapter}</p>
+                            </td>
+                            <td className="px-4 py-4 text-sm font-semibold text-slate-700">{r.subject}</td>
+                            <td className="px-4 py-4 text-sm font-medium text-slate-600">
+                                {new Date(r.date).toLocaleDateString(language === 'hi' ? 'hi-IN' : 'en-GB', {
+                                    day: '2-digit', month: 'short', year: 'numeric'
+                                })}
+                            </td>
+                            <td className="px-4 py-4">
+                                <span className="text-sm font-black text-slate-900">{r.marksObtained}</span>
+                                <span className="text-xs font-bold text-slate-400">/{r.totalMarks}</span>
+                                <span className={`text-xs font-bold ml-1.5 ${r.hasPassed ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                    ({r.percentage}%)
+                                </span>
+                            </td>
+                            <td className="px-6 py-4">
+                                <span className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${
+                                    r.hasPassed ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'
+                                }`}>
+                                    {r.hasPassed ? t('Passed') : t('Needs Work')}
+                                </span>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        )}
+    </div>
+
+    {/* Local Pagination Controls */}
+    {filteredResults.length > 0 && (
+        <div className="px-4 sm:px-6 py-4 border-t border-slate-200 flex items-center justify-between gap-3 bg-slate-50/50">
+            <button
+                type="button"
+                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 rounded-xl border border-slate-200 bg-white text-xs font-bold uppercase tracking-wider text-slate-700 hover:bg-slate-100 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm active:scale-95"
+            >
+                {t('Previous')}
+            </button>
+
+            <span className="text-xs font-bold text-slate-500 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm">
+                {t('Page')} {currentPage} {t('of')} {totalPages}
+            </span>
+
+            <button
+                type="button"
+                onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 rounded-xl border border-slate-200 bg-white text-xs font-bold uppercase tracking-wider text-slate-700 hover:bg-slate-100 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm active:scale-95"
+            >
+                {t('Next')}
+            </button>
+        </div>
+    )}
+
+    {/* Load More Button (If handling API pagination) */}
+    {hasNextPage && (
+        <div className="p-4 sm:p-6 border-t border-slate-200 bg-white flex justify-center">
+            <button
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+                className="px-6 py-3 rounded-xl bg-slate-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed transition-all active:scale-95 shadow-md hover:shadow-lg"
+            >
+                {isFetchingNextPage ? (
+                    <span className="flex items-center gap-2">
+                        <Clock size={14} className="animate-spin" /> {t('Loading more...')}
+                    </span>
+                ) : (
+                    t('Load more results')
+                )}
+            </button>
+        </div>
+    )}
+
+</div>
+
+
+
+
+
                 </div>
 
 

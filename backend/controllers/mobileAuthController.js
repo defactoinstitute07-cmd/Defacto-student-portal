@@ -89,7 +89,7 @@ exports.mobileLogin = async (req, res) => {
             student: buildStudentLoginResponse(student)
         });
     } catch (error) {
-        console.error('Error in mobileLogin:', error);
+        // console.error('Error in mobileLogin:', error);
         sendApiError(res, error, 'Login failed. Please try again.');
     }
 };
@@ -137,7 +137,7 @@ exports.mobileRefresh = async (req, res) => {
             student: buildStudentLoginResponse(student)
         });
     } catch (error) {
-        console.error('Error in mobileRefresh:', error);
+        // console.error('Error in mobileRefresh:', error);
         sendApiError(res, error, 'Unable to refresh the session right now.');
     }
 };
@@ -164,7 +164,7 @@ exports.mobileLogout = async (req, res) => {
 
         res.json({ success: true, message: 'Logout successful.' });
     } catch (error) {
-        console.error('Error in mobileLogout:', error);
+        // console.error('Error in mobileLogout:', error);
         sendApiError(res, error, 'Unable to log out right now.');
     }
 };
@@ -186,7 +186,7 @@ exports.mobileSession = [
                     : null
             });
         } catch (error) {
-            console.error('Error in mobileSession:', error);
+            // console.error('Error in mobileSession:', error);
             sendApiError(res, error, 'Unable to validate the session right now.');
         }
     }

@@ -101,7 +101,7 @@ const SubjectDetail = () => {
 
     const normalizeSubjectKey = (value = '') => String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
     const [activeTab, setActiveTab] = useState('Results');
-    const [resultViewTab, setResultViewTab] = useState('All');
+    const [resultViewTab, setResultViewTab] = useState('Upcoming');
     const [selectedTest, setSelectedTest] = useState(null);
     const [teacherImageFailed, setTeacherImageFailed] = useState(false);
     const token = localStorage.getItem('studentToken');
@@ -256,17 +256,17 @@ const SubjectDetail = () => {
         return exam?.marksObtained !== null && exam?.marksObtained !== undefined;
     };
 
-    const scheduledResults = useMemo(
+    const upcomingResults = useMemo(
         () => filteredResults.filter((e) => !hasDeclaredResult(e) && isScheduledTest(e)),
         [filteredResults]
     );
 
     const completedResults = useMemo(
-        () => filteredResults.filter((e) => hasDeclaredResult(e)),
+        () => filteredResults.filter((e) => !( !hasDeclaredResult(e) && isScheduledTest(e) )),
         [filteredResults]
     );
 
-    const visibleResults = resultViewTab === 'Scheduled' ? scheduledResults : filteredResults;
+    const visibleResults = resultViewTab === 'Upcoming' ? upcomingResults : completedResults;
 
     if (studentLoading || (subjectLoading && !subjectData)) return (
         <StudentLayout title={resolvedSubjectName}>
@@ -301,7 +301,7 @@ const SubjectDetail = () => {
     }
 
     const tabs = [
-        { id: 'Results', label: t('Results'), icon: Award },
+        { id: 'Results', label: t('Exam'), icon: Award },
         { id: 'Syllabus', label: t('Syllabus'), icon: BookOpen },
         { id: 'Info', label: t('Info'), icon: Info }
     ];
@@ -409,7 +409,42 @@ const SubjectDetail = () => {
                             const trackedChapters = syllabus?.tracking?.trackedChapters ?? chapters.filter(c => c.isCompletionTracked).length;
                             const untrackedChapters = syllabus?.tracking?.untrackedChapters ?? Math.max(totalChapters - trackedChapters, 0);
                             const remainingChapters = Math.max(totalChapters - completedChapters, 0);
-                            const nextChapter = chapters.find((chapter) => !chapter.isCompleted);
+                            const now = Date.now();
+                            const getChapterTime = (value) => {
+                                if (!value) return null;
+                                const parsed = new Date(value).getTime();
+                                return Number.isNaN(parsed) ? null : parsed;
+                            };
+                            const getChapterRawStatus = (chapter) => String(chapter?.status || '').trim().toLowerCase();
+                            const isChapterCompleted = (chapter) => {
+                                const rawStatus = getChapterRawStatus(chapter);
+                                return chapter?.isCompleted === true || rawStatus === 'completed';
+                            };
+                            const activeChapterIndex = (() => {
+                                const explicitOngoingIndex = chapters.findIndex((chapter) => {
+                                    if (isChapterCompleted(chapter)) return false;
+                                    return getChapterRawStatus(chapter) === 'ongoing';
+                                });
+                                if (explicitOngoingIndex !== -1) return explicitOngoingIndex;
+
+                                const scheduledActiveIndex = chapters.findIndex((chapter) => {
+                                    if (isChapterCompleted(chapter)) return false;
+                                    const projectedStart = getChapterTime(chapter?.projectedStartDate);
+                                    return projectedStart === null || projectedStart <= now;
+                                });
+                                if (scheduledActiveIndex !== -1) return scheduledActiveIndex;
+
+                                return chapters.findIndex((chapter) => !isChapterCompleted(chapter));
+                            })();
+                            const getChapterDisplayState = (chapter, index) => {
+                                if (isChapterCompleted(chapter)) return 'completed';
+
+                                if (index === activeChapterIndex) {
+                                    return 'ongoing';
+                                }
+
+                                return 'upcoming';
+                            };
 
                             const completionDates = chapters
                                 .filter((chapter) => chapter.isCompleted && chapter.completedAt)
@@ -449,31 +484,7 @@ const SubjectDetail = () => {
                                 <>
                                     {/* Chapter Tracking Dashboard */}
                                     <div className="overflow-hidden rounded-[15px] border border-slate-200 bg-white shadow-[0_12px_28px_rgba(15,23,42,0.06)]">
-                                        <div className="border-b border-slate-100 bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-900 px-4 py-4 text-white">
-                                            <div className="flex items-start justify-between gap-3">
-                                                <div>
-                                                    <p className="flex items-center gap-2 text-[12px] font-white uppercase tracking-[0.16em] text-indigo-100">
-                                                        <Target size={15} className="text-indigo-200" />
-                                                        {t('Chapter Tracking Dashboard')}
-                                                    </p>
-                                                    <p className="mt-1 text-xs font-semibold text-indigo-100/85">
-                                                        {completedChapters} {t('of')} {totalChapters} {t('chapters completed')}
-                                                    </p>
-                                                </div>
-                                                <span className="   rounded-[10px] border border-white/25 bg-white/15 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-white">
-                                                    {completionPct}% {t('Done')}
-                                                </span>
-                                            </div>
-
-                                            <div className="mt-3">
-                                                <div className="h-2.5 w-full overflow-hidden   rounded-[10px] bg-white/20">
-                                                    <div
-                                                        className="h-full   rounded-[10px] bg-gradient-to-r from-cyan-300 to-emerald-300 transition-all duration-1000"
-                                                        style={{ width: `${completionPct}%` }}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
+             
 
                                         <div className="p-4">
                                             <div className="grid grid-cols-2 gap-2.5">
@@ -497,45 +508,9 @@ const SubjectDetail = () => {
                                                 </div>
                                             </div>
 
-                                            <div className="mt-3   rounded-[10px] border border-indigo-100 bg-indigo-50/70 p-3">
-                                                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-indigo-600">{t('Completion Analytics')}</p>
-                                                <p className="mt-1 text-xs font-semibold text-indigo-700">
-                                                    {trackedChapters} {t('tracked')} {t('of')} {totalChapters}
-                                                    {untrackedChapters > 0 ? ` (${untrackedChapters} ${t('pending tracking')})` : ''}
-                                                </p>
-                                            </div>
+                                           
 
-                                            <div className={`mt-3   rounded-[10px] border px-3 py-2.5 ${
-                                                completionPct === 100
-                                                    ? 'border-emerald-200 bg-emerald-50'
-                                                    : remainingChapters <= 2
-                                                        ? 'border-amber-200 bg-amber-50'
-                                                        : 'border-rose-200 bg-rose-50'
-                                            }`}>
-                                                <div className="flex items-start gap-2">
-                                                    <AlertTriangle className={`mt-0.5 ${
-                                                        completionPct === 100
-                                                            ? 'text-emerald-600'
-                                                            : remainingChapters <= 2
-                                                                ? 'text-amber-600'
-                                                                : 'text-rose-600'
-                                                    }`} size={15} />
-                                                    <p className={`text-xs font-semibold leading-relaxed ${
-                                                        completionPct === 100
-                                                            ? 'text-emerald-700'
-                                                            : remainingChapters <= 2
-                                                                ? 'text-amber-700'
-                                                                : 'text-rose-700'
-                                                    }`}>
-                                                        {completionPct === 100
-                                                            ? t('Entire syllabus has been covered. Great consistency!')
-                                                            : nextChapter
-                                                                ? `${t('Next focus')}: ${nextChapter.name}. ${t('Estimated completion')}: ${nextChapterEstimateDays} ${t('days')}.`
-                                                                : `${remainingChapters} ${t('chapters remaining')}. ${t('Keep your pace steady to improve completion analytics.')}`
-                                                        }
-                                                    </p>
-                                                </div>
-                                            </div>
+                                          
                                         </div>
                                     </div>
 
@@ -550,92 +525,105 @@ const SubjectDetail = () => {
 
                                         <div className="space-y-2.5">
                                         {chapters.length > 0 ? chapters.map((chapter, idx) => (
-                                            <div
-                                                key={chapter._id || idx}
-                                                className={`p-3.5   rounded-[10px] border transition-all ${
-                                                    chapter.isCompleted
-                                                        ? 'bg-emerald-50/60 border-emerald-200 shadow-sm'
-                                                        : chapter.name === nextChapter?.name
-                                                            ? 'bg-blue-50/65 border-blue-200 shadow-sm'
-                                                            : 'bg-slate-50 border-slate-200'
-                                                }`}
-                                            >
-                                                <div className="flex items-start gap-2.5">
-                                                    {/* Status Circle */}
-                                                    <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center   rounded-[10px] border ${
-                                                        chapter.isCompleted
-                                                            ? 'bg-emerald-100 border-emerald-200 text-emerald-600'
-                                                            : chapter.name === nextChapter?.name
-                                                                ? 'bg-blue-100 border-blue-200 text-blue-600'
-                                                                : 'bg-slate-100 border-slate-200 text-slate-500'
-                                                    }`}>
-                                                        {chapter.isCompleted
-                                                            ? <CheckCircle size={16} />
-                                                            : <span className={`text-[11px] font-black ${chapter.name === nextChapter?.name ? 'text-blue-600' : 'text-slate-500'}`}>{idx + 1}</span>
-                                                        }
-                                                    </div>
+                                          (() => {
+                                              const chapterDisplayState = getChapterDisplayState(chapter, idx);
+                                              const isCompletedChapter = chapterDisplayState === 'completed';
+                                              const isOngoingChapter = chapterDisplayState === 'ongoing';
 
-                                                    {/* Chapter Info */}
-                                                    <div className="min-w-0 flex-1">
-                                                        <h4 className={`text-[13px] font-bold leading-snug ${
-                                                            chapter.isCompleted ? 'text-emerald-800' : chapter.name === nextChapter?.name ? 'text-blue-800' : 'text-slate-800'
-                                                        }`}>
-                                                            {chapter.name}
-                                                        </h4>
-                                                        <p className={`mt-0.5 text-[9px] font-bold uppercase tracking-[0.14em] ${
-                                                            chapter.isCompleted ? 'text-emerald-600' : chapter.name === nextChapter?.name ? 'text-blue-600' : 'text-slate-500'
-                                                        }`}>
-                                                            {chapter.isCompleted
-                                                                ? `${t('Completed')} ${chapter.completedAt
-                                                                    ? new Date(chapter.completedAt).toLocaleDateString(language === 'hi' ? 'hi-IN' : 'en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-                                                                    : ''}`
-                                                                : chapter.name === nextChapter?.name
-                                                                    ? t('Upcoming')
-                                                                    : t('Pending')
-                                                            }
-                                                        </p>
-                                                        <div className="mt-2 flex flex-wrap gap-1.5">
-                                                            <span className="inline-flex items-center   rounded-[10px] border border-slate-200 bg-white px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em] text-slate-500">
-                                                                {t('Assigned')}: {Number(chapter.durationDays || 0)} {t('days')}
-                                                            </span>
-                                                            <span className={`inline-flex items-center   rounded-[10px] border px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em] ${
-                                                                chapter.isCompleted
-                                                                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                                                                    : chapter.projectedCompletionDate
-                                                                        ? 'border-blue-200 bg-blue-50 text-blue-700'
-                                                                        : 'border-slate-200 bg-slate-50 text-slate-500'
-                                                            }`}>
-                                                                {chapter.isCompleted
-                                                                    ? t('Completed')
-                                                                    : chapter.projectedCompletionDate
-                                                                        ? `${t('Completes in')} ${Math.max(Math.ceil((new Date(chapter.projectedCompletionDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)), 0)} ${t('days')}`
-                                                                        : `${t('Completes in')} ${Number(chapter.durationDays || 0)} ${t('days')}`
-                                                                }
-                                                            </span>
-                                                        </div>
-                                                    </div>
+                                              return (
+                                          <div
+    key={chapter._id || idx}
+    className={`p-4 rounded-xl border transition-all hover:shadow-md ${
+        isCompletedChapter
+            ? 'bg-emerald-50/40 border-emerald-200'
+            : isOngoingChapter
+                ? 'bg-blue-50/50 border-blue-200 shadow-sm ring-1 ring-blue-100'
+                : 'bg-white border-slate-200'
+    }`}
+>
+    {/* Main Container: Column on mobile, Row on tablet/desktop */}
+    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+        
+        {/* Left Section: Status Circle & Chapter Name */}
+        <div className="flex items-start gap-3.5 flex-1 min-w-0">
+            {/* Status Circle */}
+            <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 ${
+                isCompletedChapter
+                    ? 'bg-emerald-100 border-emerald-200 text-emerald-600'
+                    : isOngoingChapter
+                        ? 'bg-blue-100 border-blue-200 text-blue-600'
+                        : 'bg-slate-50 border-slate-200 text-slate-500'
+            }`}>
+                {isCompletedChapter
+                    ? <CheckCircle size={20} />
+                    : <span className="text-sm font-bold">{idx + 1}</span>
+                }
+            </div>
 
-                                                    {/* Status Badge */}
-                                                    <span className={`flex-shrink-0   rounded-[10px] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em] border ${
-                                                        chapter.isCompleted
-                                                            ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
-                                                            : chapter.name === nextChapter?.name
-                                                                ? 'bg-blue-50 text-blue-600 border-blue-200'
-                                                                : 'bg-slate-100 text-slate-600 border-slate-200'
-                                                    }`}>
-                                                        {chapter.isCompleted ? t('Done') : chapter.name === nextChapter?.name ? t('Upcoming') : t('Pending')}
-                                                    </span>
+            {/* Chapter Info */}
+            <div className="flex-1 min-w-0 pt-0.5">
+                <h4 className={`text-sm sm:text-base font-semibold leading-tight truncate ${
+                    isCompletedChapter ? 'text-emerald-900' : isOngoingChapter ? 'text-blue-900' : 'text-slate-800'
+                }`}>
+                    {chapter.name}
+                </h4>
+                
+                <p className={`mt-1 text-xs font-medium ${
+                    isCompletedChapter ? 'text-emerald-600' : isOngoingChapter ? 'text-blue-600' : 'text-slate-500'
+                }`}>
+                    {isCompletedChapter
+                        ? `${t('Completed')} ${chapter.completedAt ? new Date(chapter.completedAt).toLocaleDateString(language === 'hi' ? 'hi-IN' : 'en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : ''}`
+                        : isOngoingChapter
+                            ? t('Ongoing')
+                            : t('Upcoming')
+                    }
+                </p>
+            </div>
+        </div>
 
-                                                    <span className={`flex-shrink-0   rounded-[10px] px-2.5 py-1 text-[9px] font-black uppercase tracking-wider border ${
-                                                        chapter.isCompletionTracked
-                                                            ? 'bg-indigo-50 text-indigo-600 border-indigo-200'
-                                                            : 'bg-white text-slate-400 border-slate-200'
-                                                    }`}>
-                                                        {chapter.isCompletionTracked ? t('Tracked') : t('Not tracked')}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        )) : (
+        {/* Right/Bottom Section: Badges (Wraps nicely on mobile) */}
+        <div className="flex flex-wrap items-center gap-2 pl-[54px] sm:pl-0 sm:justify-end">
+            {/* Duration / Assigned Badge */}
+            <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 shadow-sm">
+                ⏱️ {Number(chapter.durationDays || 0)} {t('days')}
+            </span>
+
+            {/* Projected Completion Badge */}
+            <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium shadow-sm ${
+                isCompletedChapter
+                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                    : isOngoingChapter
+                        ? 'border-blue-200 bg-blue-50 text-blue-700'
+                        : chapter.projectedCompletionDate
+                        ? 'border-blue-200 bg-blue-50 text-blue-700'
+                        : 'border-slate-200 bg-slate-50 text-slate-600'
+            }`}>
+                {isCompletedChapter
+                    ? t('Done')
+                    : isOngoingChapter && chapter.projectedCompletionDate
+                        ? `${t('In')} ${Math.max(Math.ceil((new Date(chapter.projectedCompletionDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)), 0)} ${t('days')}`
+                        : isOngoingChapter
+                            ? t('Ongoing')
+                            : chapter.projectedCompletionDate
+                        ? `${t('In')} ${Math.max(Math.ceil((new Date(chapter.projectedCompletionDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)), 0)} ${t('days')}`
+                        : `${t('In')} ${Number(chapter.durationDays || 0)} ${t('days')}`
+                }
+            </span>
+
+            {/* Tracking Badge */}
+            <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium shadow-sm hidden sm:inline-flex ${
+                chapter.isCompletionTracked
+                    ? 'bg-indigo-50 text-indigo-600 border-indigo-200'
+                    : 'bg-slate-50 text-slate-400 border-slate-200'
+            }`}>
+                {chapter.isCompletionTracked ? t('Tracked') : t('Not tracked')}
+            </span>
+        </div>
+    </div>
+</div>
+                                              );
+                                          })()
+)) : (
                                             <div className="rounded-[15px] border border-amber-200 bg-amber-50 p-4">
                                                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-amber-700">{t('Upcoming Chapters')}</p>
                                                 <p className="mt-1 text-xs font-semibold text-amber-700">
@@ -658,27 +646,27 @@ const SubjectDetail = () => {
                             <div className="flex gap-2 mb-6   rounded-[10px] border border-slate-200 bg-white p-1 shadow-sm">
                                 <button
                                     type="button"
-                                    onClick={() => setResultViewTab('All')}
-                                    className={`flex-1 py-2.5   rounded-[10px] text-[10px] font-black uppercase tracking-wider transition-all ${resultViewTab === 'All'
+                                    onClick={() => setResultViewTab('Upcoming')}
+                                    className={`flex-1 py-2.5   rounded-[10px] text-[10px] font-black uppercase tracking-wider transition-all ${resultViewTab === 'Upcoming'
                                             ? 'bg-[#191838] text-white shadow-lg shadow-indigo-100'
                                             : 'text-slate-500'
                                         }`}
                                 >
-                                    {t('All')}
+                                    {t('Upcoming')}
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => setResultViewTab('Scheduled')}
-                                    className={`flex-1 py-2.5   rounded-[10px] text-[10px] font-black uppercase tracking-wider transition-all ${resultViewTab === 'Scheduled'
+                                    onClick={() => setResultViewTab('Completed')}
+                                    className={`flex-1 py-2.5   rounded-[10px] text-[10px] font-black uppercase tracking-wider transition-all ${resultViewTab === 'Completed'
                                             ? 'bg-[#191838] text-white shadow-lg shadow-indigo-100'
                                             : 'text-slate-500'
                                         }`}
                                 >
-                                    {t('Scheduled')}
+                                    {t('Completed')}
                                 </button>
                             </div>
 
-                            {resultViewTab === 'Scheduled' && visibleResults.length > 0 && (
+                            {resultViewTab === 'Upcoming' && visibleResults.length > 0 && (
                                 <div className="mb-4   rounded-[10px] border border-blue-200 bg-blue-50/70 p-4">
                                     <div className="flex items-center gap-2 text-blue-700">
                                         <Clock size={16} />
@@ -694,74 +682,117 @@ const SubjectDetail = () => {
                                 {visibleResults.length > 0 ? (
                                     visibleResults.map((e, idx) => (
                                         (() => {
-                                            const isScheduled = !hasDeclaredResult(e) && isScheduledTest(e);
+                                            const isUpcoming = !hasDeclaredResult(e) && isScheduledTest(e);
+                                            const isResultPending = !isUpcoming && !hasDeclaredResult(e);
                                             const hasPassed = hasPassedTest(e);
                                             const subjectLabel = getExamSubjectLabel(e, subjectData?.name || resolvedSubjectName);
                                             const scheduledDateLabel = formatExamDate(e.date, language);
                                             const totalMarksLabel = formatMarksValue(e.totalMarks);
                                             const passingMarksLabel = formatMarksValue(resolvePassingMarks(e));
                                             return (
-                                                <div
-                                                    key={e._id || idx}
-                                                    onClick={() => setSelectedTest({
-                                                        ...e,
-                                                        subject: subjectLabel,
-                                                        passingMarks: resolvePassingMarks(e)
-                                                    })}
-                                                    className={`p-5   rounded-[10px] border shadow-sm flex items-start justify-between gap-4 group cursor-pointer transition-all active:scale-[0.98] ${isScheduled
-                                                            ? 'bg-blue-50/60 border-blue-300 ring-1 ring-blue-200 hover:shadow-[0_15px_30px_rgba(37,99,235,0.18)]'
-                                                            : hasPassed
-                                                                ? 'bg-emerald-50/40 border-emerald-200 hover:shadow-[0_15px_30px_rgba(16,185,129,0.15)]'
-                                                                : 'bg-rose-50/35 border-rose-200 hover:shadow-[0_15px_30px_rgba(244,63,94,0.14)]'
-                                                        }`}
-                                                >
-                                                    <div className="flex min-w-0 flex-1 items-start gap-4">
-                                                        <div className={`p-3   rounded-[10px] border ${isScheduled
-                                                                ? 'bg-blue-100 text-blue-700 border-blue-200'
-                                                                : hasPassed
-                                                                    ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
-                                                                    : 'bg-rose-100 text-rose-700 border-rose-200'
-                                                            }`}>
-                                                            {isScheduled ? <Clock size={20} /> : <Award size={20} />}
-                                                        </div>
-                                                        <div className="min-w-0 flex-1">
-                                                            <h4 className="text-sm font-bold text-[#191838] break-words">{e.name}</h4>
-                                                            <p className={`text-[10px] font-medium uppercase tracking-tight ${isScheduled ? 'text-blue-600' : 'text-slate-400'}`}>
-                                                                {isScheduled ? t('Scheduled on') : ''}{isScheduled ? ' ' : ''}
-                                                                {new Date(e.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })} • {e.chapter}
-                                                            </p>
-                                                            {isScheduled && (
-                                                                <>
-                                                                  
-                                                                    <div className="mt-2 inline-flex items-center gap-1.5   rounded-[10px] border border-blue-200 bg-white/80 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-blue-700">
-                                                                        <Calendar size={11} />
-                                                                        {t('Result Pending')}
-                                                                    </div>
-                                                                </>
-                                                            )}
-                                                            {import.meta.env.DEV && resultViewTab === 'Scheduled' && (
-                                                                <div className="mt-2 rounded-[12px] border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-semibold text-amber-800">
-                                                                    DBG: Type: {String(e?.type || 'N/A')} | Status: {String(e?.status || 'N/A')} | Date: {e?.date ? new Date(e.date).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        {isScheduled ? (
-                                                            <>
-                                                                <p className="text-[11px] font-black uppercase tracking-wider text-blue-700">{t('Scheduled')}</p>
-                                                                <p className="text-[10px] font-bold text-blue-500">{t('Upcoming')}</p>
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <p className="text-sm font-black text-[#191838]">{e.marksObtained}/{e.totalMarks}</p>
-                                                                <p className={`text-[10px] font-bold uppercase ${hasPassed ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                                                    {e.percentage}% • {hasPassed ? t('Passed') : t('Failed')}
-                                                                </p>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                </div>
+                                            <div
+    key={e._id || idx}
+    onClick={() => setSelectedTest({
+        ...e,
+        subject: subjectLabel,
+        passingMarks: resolvePassingMarks(e)
+    })}
+    className={`p-4 sm:p-5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 group cursor-pointer transition-all active:scale-[0.98] shadow-sm ${
+        isUpcoming
+            ? 'bg-blue-50/60 border-blue-200 ring-1 ring-blue-100 sm:hover:shadow-md sm:hover:border-blue-300'
+            : isResultPending
+                ? 'bg-amber-50/55 border-amber-200 sm:hover:shadow-md sm:hover:border-amber-300'
+            : hasPassed
+                ? 'bg-emerald-50/40 border-emerald-200 sm:hover:shadow-md sm:hover:border-emerald-300'
+                : 'bg-rose-50/35 border-rose-200 sm:hover:shadow-md sm:hover:border-rose-300'
+    }`}
+>
+{/* Left Section: Icon & Details */}
+<div className="flex min-w-0 flex-1 items-start gap-3 sm:gap-4">
+    
+    {/* Icon */}
+    <div className={`p-2.5 sm:p-3 shrink-0 rounded-xl border ${
+        isUpcoming
+            ? 'bg-blue-100 text-blue-700 border-blue-200'
+            : isResultPending
+                ? 'bg-amber-100 text-amber-700 border-amber-200'
+            : hasPassed
+                ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
+                : 'bg-rose-100 text-rose-700 border-rose-200'
+    }`}>
+        {isUpcoming ? <Calendar size={20} /> : isResultPending ? <CheckCircle2 size={20} /> : <Award size={20} />}
+    </div>
+    
+    {/* Details */}
+    <div className="min-w-0 flex-1 pt-0.5">
+        <h4 className="text-sm sm:text-base font-bold text-slate-900 truncate pr-2">
+            {e.name}
+        </h4>
+        <p className={`mt-0.5 text-xs font-medium truncate ${
+            isUpcoming ? 'text-blue-600' : isResultPending ? 'text-amber-600' : 'text-slate-500'
+        }`}>
+            {/* Added logic for 'Attempted on' if result is pending */}
+            {isUpcoming ? `${t('Scheduled on')} ` : isResultPending ? `${t('Attempted on')} ` : ''}
+            {new Date(e.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })} • {e.chapter}
+        </p>
+        
+        {/* Status Pills / Debug */}
+        <div className="flex flex-wrap gap-2 mt-2">
+            
+            {/* FIX: Changed text from 'Result Pending' to 'Upcoming' */}
+            {isUpcoming && (
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-blue-700 shadow-sm">
+                    <Clock size={12} />
+                    {t('Upcoming')}
+                </div>
+            )}
+
+            {isResultPending && (
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-700 shadow-sm">
+                    <CheckCircle2 size={12} />
+                    {t('Result Pending')}
+                </div>
+            )}
+
+            {import.meta.env.DEV && resultViewTab === 'Upcoming' && (
+                <div className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-semibold text-amber-800 shadow-sm">
+                    DBG: {String(e?.type || 'N/A')} | {String(e?.status || 'N/A')}
+                </div>
+            )}
+            
+        </div>
+    </div>
+</div>
+
+    {/* Right Section: Scores/Status (Moves to bottom-left on mobile) */}
+    <div className="pl-[52px] sm:pl-0 sm:text-right shrink-0 flex sm:flex-col items-center sm:items-end justify-between sm:justify-center mt-1 sm:mt-0">
+        {isUpcoming ? (
+            <>
+                <p className="text-xs font-bold uppercase tracking-wider text-blue-700">{t('Upcoming')}</p>
+                <p className="text-[11px] font-semibold text-blue-500 mt-0.5">{t('Upcoming')}</p>
+            </>
+        ) : isResultPending ? (
+            <>
+                <p className="text-xs font-bold uppercase tracking-wider text-amber-700">{t('Completed')}</p>
+                <p className="text-[11px] font-semibold text-amber-600 mt-0.5">{t('Result Pending')}</p>
+            </>
+        ) : (
+            <>
+                <div className="flex items-baseline gap-1 sm:block">
+                    <p className="text-base sm:text-lg font-black text-slate-900">{e.marksObtained}</p>
+                    <p className="text-xs font-bold text-slate-500 sm:hidden">/ {e.totalMarks}</p>
+                </div>
+                <p className="hidden sm:block text-xs font-bold text-slate-500 mt-0.5">
+                    {t('Out of')} {e.totalMarks}
+                </p>
+                
+                <p className={`text-xs font-bold uppercase tracking-wide mt-1 ${hasPassed ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    {e.percentage}% • {hasPassed ? t('Passed') : t('Failed')}
+                </p>
+            </>
+        )}
+    </div>
+</div>
                                             );
                                         })()
                                     ))
@@ -771,12 +802,12 @@ const SubjectDetail = () => {
                                             <FileText size={28} />
                                         </div>
                                         <h4 className="text-lg font-bold text-[#191838]">
-                                            {resultViewTab === 'Scheduled' ? t('No Scheduled Tests') : t('No Declared Results')}
+                                            {resultViewTab === 'Upcoming' ? t('No Upcoming Tests') : t('No Completed Tests')}
                                         </h4>
                                         <p className="mt-2 text-sm font-medium text-slate-400 leading-relaxed max-w-[200px]">
-                                            {resultViewTab === 'Scheduled'
+                                            {resultViewTab === 'Upcoming'
                                                 ? t('Upcoming tests will appear here once they are scheduled.')
-                                                : t('Declared exam results will appear here once published by faculty.')}
+                                                : t('Completed tests will appear here once the exam cycle finishes.')}
                                         </p>
                                     </div>
                                 )}
@@ -861,6 +892,7 @@ const TestDetailModal = ({ test, onClose, t, language, fallbackSubjectName }) =>
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const isScheduled = !hasDeclaredResult && testDate && !Number.isNaN(testDate.getTime()) && testDate.getTime() > today.getTime();
+    const isResultPending = !hasDeclaredResult && !isScheduled;
     const hasPassed = hasDeclaredResult && hasExamPassed(test);
     const subjectLabel = getExamSubjectLabel(test, fallbackSubjectName);
     const formattedDate = formatExamDate(test.date, language);
@@ -869,105 +901,170 @@ const TestDetailModal = ({ test, onClose, t, language, fallbackSubjectName }) =>
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={onClose}>
-            <div
-                className="bg-white rounded-[15px] w-full max-w-sm overflow-hidden shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300"
-                onClick={(e) => e.stopPropagation()}
-            >
-                {/* Header */}
-                <div className={`p-7 flex items-center justify-between text-white ${isScheduled ? 'bg-gradient-to-br from-blue-600 to-indigo-700' : hasPassed ? 'bg-gradient-to-br from-emerald-600 to-emerald-700' : 'bg-gradient-to-br from-rose-600 to-rose-800'}`}>
-                    <div className="space-y-1">
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">{test.type || t('Test')} • {t('Assessment')}</span>
-                        <p className="text-xl font-bold tracking-tight">{test.name}</p>
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className="h-10 w-10   rounded-[10px] bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
-                    >
-                        <ChevronDown size={24} />
-                    </button>
+<div
+    // 👇 Yahan width badha di gayi hai (max-w-md sm:max-w-lg)
+    className="bg-white rounded-2xl w-full max-w-md sm:max-w-lg overflow-hidden shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 mx-4 sm:mx-auto"
+    onClick={(e) => e.stopPropagation()}
+>
+    {/* Header */}
+    <div className={`p-5 sm:p-6 flex items-start justify-between text-white ${
+        isScheduled 
+            ? 'bg-gradient-to-br from-blue-600 to-indigo-700' 
+            : isResultPending
+                ? 'bg-gradient-to-br from-amber-500 to-orange-600'
+            : hasPassed 
+                ? 'bg-gradient-to-br from-emerald-600 to-emerald-700' 
+                : 'bg-gradient-to-br from-rose-600 to-rose-800'
+    }`}>
+        <div className="space-y-1.5 flex-1 min-w-0 pr-4">
+            <span className="inline-block px-2 py-0.5 bg-white/20 rounded-full text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm shadow-sm">
+                {test.type || t('Test')} • {t('Assessment')}
+            </span>
+            <p className="text-lg sm:text-xl font-bold tracking-tight leading-tight break-words">
+                {test.name}
+            </p>
+        </div>
+        <button
+            onClick={onClose}
+            className="h-9 w-9 shrink-0 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors active:scale-90"
+        >
+            <ChevronDown size={20} />
+        </button>
+    </div>
+
+    {/* Content */}
+    <div className="p-5 sm:p-7 space-y-6 sm:space-y-8">
+        
+        {/* Summary Metrics */}
+        {isScheduled ? (
+            <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 sm:p-5 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                    <Clock size={64} />
                 </div>
-
-                {/* Content */}
-                <div className="p-8 space-y-8">
-                    {/* Summary Metrics */}
-                    {isScheduled ? (
-                        <div className="rounded-[15px] border border-blue-200 bg-blue-50/70 p-5">
-                            <div className="flex items-center gap-2 text-blue-700">
-                                <Clock size={16} />
-                                <p className="text-[10px] font-black uppercase tracking-[0.2em]">{t('Scheduled Test')}</p>
-                            </div>
-                            <p className="mt-3 text-sm font-semibold text-blue-800">
-                                {t('Result not declared yet for this test.')}
-                            </p>
-                            <p className="mt-1 text-xs text-blue-600">
-                                {t('Scores and percentage will be visible after evaluation is completed.')}
-                            </p>
-                           
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="p-5 rounded-[15px] bg-slate-50 border border-slate-100 space-y-1">
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('Score')}</p>
-                                <div className="flex items-baseline gap-1">
-                                    <span className="text-2xl font-black text-[#191838]">{test.marksObtained}</span>
-                                    <span className="text-sm font-bold text-slate-400">/ {test.totalMarks}</span>
-                                </div>
-                            </div>
-                            <div className="p-5 rounded-[15px] bg-slate-50 border border-slate-100 space-y-1">
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('Percentage')}</p>
-                                <div className="flex items-center gap-2">
-                                    <span className={`text-2xl font-black ${hasPassed ? 'text-emerald-600' : 'text-rose-600'}`}>{`${test.percentage}%`}</span>
-                                    {hasPassed ? <Award size={20} className="text-emerald-500" /> : <TrendingDown size={20} className="text-rose-500" />}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Details */}
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between py-2 border-b border-slate-50">
-                            <span className="text-sm font-medium text-slate-500">{t('Chapter')}</span>
-                            <span className="text-sm font-bold text-[#191838]">{test.chapter}</span>
-                        </div>
-                        <div className="flex items-center justify-between py-2 border-b border-slate-50">
-                            <span className="text-sm font-medium text-slate-500">{t('Subject')}</span>
-                            <span className="text-sm font-bold text-[#191838] text-right max-w-[60%] break-words">{subjectLabel}</span>
-                        </div>
-                        <div className="flex items-center justify-between py-2 border-b border-slate-50">
-                            <span className="text-sm font-medium text-slate-500">{t('Date')}</span>
-                            <span className="text-sm font-bold text-[#191838]">{formattedDate}</span>
-                        </div>
-                        {isScheduled && (
-                            <>
-                                <div className="flex items-center justify-between py-2 border-b border-slate-50">
-                                    <span className="text-sm font-medium text-slate-500">{t('Total Marks')}</span>
-                                    <span className="text-sm font-bold text-[#191838]">{totalMarksLabel}</span>
-                                </div>
-                                <div className="flex items-center justify-between py-2 border-b border-slate-50">
-                                    <span className="text-sm font-medium text-slate-500">{t('Passing Marks')}</span>
-                                    <span className="text-sm font-bold text-[#191838]">{passingMarksLabel}</span>
-                                </div>
-                            </>
-                        )}
-                        <div className="flex items-center justify-between py-2">
-                            <span className="text-sm font-medium text-slate-500">{t('Status')}</span>
-                            <span className={`text-[10px] font-black uppercase px-3 py-1   rounded-[10px] ${isScheduled ? 'bg-blue-50 text-blue-700' : hasPassed ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-                                {isScheduled ? t('Scheduled') : hasPassed ? t('Passed') : t('Needs Work')}
-                            </span>
-                        </div>
+                <div className="relative z-10">
+                    <div className="flex items-center gap-2 text-blue-700">
+                        <Clock size={18} className="animate-pulse" />
+                        <p className="text-xs font-black uppercase tracking-wider">{t('Scheduled Test')}</p>
                     </div>
-                </div>
-
-                {/* Footer */}
-                <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-center">
-                    <button
-                        onClick={onClose}
-                        className="w-full py-4 bg-[#191838] text-white text-xs font-black uppercase tracking-widest rounded-[15px] hover:bg-[#2a2a5a] transition-all active:scale-95 shadow-xl shadow-indigo-100"
-                    >
-                        {t('Close')}
-                    </button>
+                    <p className="mt-3 text-sm font-semibold text-blue-900 leading-snug">
+                        {t('Result not declared yet for this test.')}
+                    </p>
+                    <p className="mt-1.5 text-xs text-blue-600 font-medium">
+                        {t('Scores and percentage will be visible after evaluation is completed.')}
+                    </p>
                 </div>
             </div>
+        ) : isResultPending ? (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 sm:p-5 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                    <CheckCircle2 size={64} />
+                </div>
+                <div className="relative z-10">
+                    <div className="flex items-center gap-2 text-amber-700">
+                        <CheckCircle2 size={18} />
+                        <p className="text-xs font-black uppercase tracking-wider">{t('Completed')}</p>
+                    </div>
+                    <p className="mt-3 text-sm font-semibold text-amber-900 leading-snug">
+                        {t('Result not declared yet for this test.')}
+                    </p>
+                    <p className="mt-1.5 text-xs text-amber-700 font-medium">
+                        {t('Scores and percentage will be visible after evaluation is completed.')}
+                    </p>
+                </div>
+            </div>
+        ) : (
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                <div className="p-4 sm:p-5 rounded-xl bg-slate-50 border border-slate-100 shadow-sm flex flex-col justify-center">
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">{t('Score')}</p>
+                    <div className="flex items-baseline gap-1">
+                        <span className="text-3xl font-black text-slate-900">{test.marksObtained}</span>
+                        <span className="text-sm font-bold text-slate-400">/ {test.totalMarks}</span>
+                    </div>
+                </div>
+                <div className={`p-4 sm:p-5 rounded-xl border shadow-sm flex flex-col justify-center ${
+                    hasPassed ? 'bg-emerald-50 border-emerald-100' : 'bg-rose-50 border-rose-100'
+                }`}>
+                    <p className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${
+                        hasPassed ? 'text-emerald-700' : 'text-rose-700'
+                    }`}>
+                        {t('Percentage')}
+                    </p>
+                    <div className="flex items-center gap-2">
+                        <span className={`text-3xl font-black ${hasPassed ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            {test.percentage}%
+                        </span>
+                        {hasPassed ? <Award size={24} className="text-emerald-500" /> : <TrendingDown size={24} className="text-rose-500" />}
+                    </div>
+                </div>
+            </div>
+        )}
+
+        {/* Highlighted Key Info Card (Date & Subject) */}
+        <div className="bg-indigo-50/50 border border-indigo-100 rounded-xl p-4">
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <span className="block text-[11px] font-semibold text-indigo-400 uppercase tracking-wider mb-1">{t('Date')}</span>
+                    <span className="text-sm sm:text-base font-bold text-indigo-900 flex items-center gap-1.5">
+                        <Calendar size={14} className="text-indigo-500" />
+                        {formattedDate}
+                    </span>
+                </div>
+                <div>
+                    <span className="block text-[11px] font-semibold text-indigo-400 uppercase tracking-wider mb-1">{t('Subject')}</span>
+                    <span className="text-sm sm:text-base font-bold text-indigo-900 truncate block" title={subjectLabel}>
+                        {subjectLabel}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        {/* Other Details List */}
+        <div className="space-y-0 text-sm">
+            <div className="flex items-center justify-between py-3 border-b border-slate-100">
+                <span className="font-medium text-slate-500">{t('Chapter')}</span>
+                <span className="font-bold text-slate-900 text-right max-w-[60%] truncate" title={test.chapter}>{test.chapter}</span>
+            </div>
+            
+            {isScheduled && (
+                <>
+                    <div className="flex items-center justify-between py-3 border-b border-slate-100">
+                        <span className="font-medium text-slate-500">{t('Total Marks')}</span>
+                        <span className="font-bold bg-slate-100 text-slate-800 px-2.5 py-1 rounded-md">{totalMarksLabel}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-3 border-b border-slate-100">
+                        <span className="font-medium text-slate-500">{t('Passing Marks')}</span>
+                        <span className="font-bold bg-amber-100 text-amber-800 px-2.5 py-1 rounded-md">{passingMarksLabel}</span>
+                    </div>
+                </>
+            )}
+            
+            <div className="flex items-center justify-between py-3">
+                <span className="font-medium text-slate-500">{t('Status')}</span>
+                <span className={`text-[11px] font-bold uppercase px-3 py-1.5 rounded-full ${
+                    isScheduled 
+                        ? 'bg-blue-100 text-blue-700' 
+                        : isResultPending
+                            ? 'bg-amber-100 text-amber-700'
+                        : hasPassed 
+                            ? 'bg-emerald-100 text-emerald-700' 
+                            : 'bg-rose-100 text-rose-700'
+                }`}>
+                    {isScheduled ? t('Upcoming') : isResultPending ? t('Result Pending') : hasPassed ? t('Passed') : t('Needs Work')}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    {/* Footer */}
+    <div className="p-4 sm:p-5 bg-slate-50/80 border-t border-slate-200">
+        <button
+            onClick={onClose}
+            className="w-full py-3.5 bg-slate-900 text-white text-sm font-bold uppercase tracking-wider rounded-xl hover:bg-slate-800 transition-all active:scale-[0.98] shadow-md"
+        >
+            {t('Close')}
+        </button>
+    </div>
+</div>
         </div>
     );
 };
