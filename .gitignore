@@ -25,3 +25,5 @@ android-defacto-erp/.gradle/
 android-defacto-erp/gradle-8.7/
 android-defacto-erp/gradle-8.7-bin.zip
 android-defacto-erp/app/build/
+
+.vercel

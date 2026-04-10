@@ -24,7 +24,7 @@ class AppFirebaseMessagingService : FirebaseMessagingService() {
 
         val title = remoteMessage.notification?.title
             ?: remoteMessage.data["title"]
-            ?: "DeFacto ERP"
+            ?: "Defacto Erp"
         val body = remoteMessage.notification?.body
             ?: remoteMessage.data["body"]
             ?: "You have a new update."

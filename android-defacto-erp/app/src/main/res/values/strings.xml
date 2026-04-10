@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">DeFacto ERP</string>
+    <string name="app_name">Defacto Erp</string>
     <string name="default_notification_channel_id">defacto_general</string>
     <string name="default_notification_channel_name">General Notifications</string>
     <string name="roll_no_hint">Roll Number</string>
