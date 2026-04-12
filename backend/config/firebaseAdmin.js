@@ -38,8 +38,12 @@ const initFirebaseAdmin = () => {
         firebaseApp = admin.initializeApp({
             credential: admin.credential.cert(credentialConfig)
         });
+        console.log('[firebaseAdmin] Firebase Admin initialized successfully for project:', credentialConfig.project_id);
     } catch (err) {
         console.error('[firebaseAdmin] Failed to initialize Firebase Admin:', err.message);
+        if (err.message.includes('invalid-credential')) {
+            console.error('[firebaseAdmin] HINT: Check if your FIREBASE_PRIVATE_KEY or CLIENT_EMAIL is correct.');
+        }
         firebaseApp = null;
     }
 

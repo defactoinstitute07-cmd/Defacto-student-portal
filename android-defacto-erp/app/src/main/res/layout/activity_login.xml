@@ -97,37 +97,61 @@
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
-            <EditText
-                android:id="@+id/passwordInput"
+
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/bg_input"
-                android:hint="@string/password_hint"
-                android:inputType="textPassword"
-                android:paddingHorizontal="14dp"
-                android:textColor="#111827"
-                android:textColorHint="#9CA3AF" />
+                android:layout_marginTop="8dp">
+                <EditText
+                    android:id="@+id/passwordInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_input"
+                    android:hint="@string/password_hint"
+                    android:inputType="textPassword"
+                    android:paddingHorizontal="14dp"
+                    android:textColor="#111827"
+                    android:textColorHint="#9CA3AF"
+                    android:paddingEnd="44dp" />
+                <ImageButton
+                    android:id="@+id/showPasswordBtn"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:background="@android:color/transparent"
+                    android:src="@android:drawable/ic_menu_view"
+                    android:contentDescription="Show/Hide Password"
+                    android:padding="6dp"
+                    android:focusable="false"
+                    android:clickable="true" />
+            </RelativeLayout>
 
-            <Button
-                android:id="@+id/loginButton"
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="54dp"
-                android:layout_marginTop="22dp"
-                android:background="@drawable/bg_button_gradient"
-                android:text="Secure Login Access"
-                android:textAllCaps="false"
-                android:textColor="@android:color/white"
-                android:textSize="15sp"
-                android:textStyle="bold" />
+                android:layout_marginTop="22dp">
 
-            <ProgressBar
-                android:id="@+id/loginProgress"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="14dp"
-                android:visibility="gone" />
+                <Button
+                    android:id="@+id/loginButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_button_gradient"
+                    android:text="@string/secure_login_access"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/white"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <ProgressBar
+                    android:id="@+id/loginProgress"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center_vertical|end"
+                    android:layout_marginEnd="18dp"
+                    android:indeterminateTint="@android:color/white"
+                    android:visibility="gone" />
+            </FrameLayout>
 
             <TextView
                 android:layout_width="match_parent"

@@ -63,6 +63,7 @@ This project is pre-configured for **Vercel**.
 
 - The backend entry point is `api/index.js`.
 - The frontend is built into `frontend/dist/`.
+- If an installable APK exists during build, it is published as `https://student.defactoinstitute.in/defacto-student-erp.apk` and also aliased at `https://student.defactoinstitute.in/app-debug.apk`.
 
 ---
 

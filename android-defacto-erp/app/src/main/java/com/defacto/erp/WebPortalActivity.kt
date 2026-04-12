@@ -46,6 +46,8 @@ class WebPortalActivity : AppCompatActivity() {
             return
         }
 
+        PushTokenSyncer.syncCurrentToken(this, token)
+
         webView = findViewById(R.id.webView)
         pageLoading = findViewById(R.id.pageLoading)
 
@@ -93,12 +95,12 @@ class WebPortalActivity : AppCompatActivity() {
 
                 if (!didReloadAfterInject) {
                     didReloadAfterInject = true
-                    webView.loadUrl(BASE_URL)
+                    webView.loadUrl(Config.BASE_URL)
                     return
                 }
 
                 if (currentUrl.contains("/student/login")) {
-                    webView.loadUrl(BASE_URL)
+                    webView.loadUrl(Config.BASE_URL)
                     return
                 }
 
@@ -141,7 +143,7 @@ class WebPortalActivity : AppCompatActivity() {
             }
         }
 
-        webView.loadUrl(BASE_URL)
+        webView.loadUrl(Config.BASE_URL)
     }
 
     private fun redirectToLogin() {
@@ -150,9 +152,19 @@ class WebPortalActivity : AppCompatActivity() {
         finish()
     }
 
+    object Config {
+        // Change this to your local IP (e.g., "http://192.168.1.5:5005/") when testing locally.
+        const val BASE_URL = "https://student.defactoinstitute.in/"
+        
+        fun getApiUrl(endpoint: String): String {
+            val base = BASE_URL.removeSuffix("/")
+            val cleanEndpoint = endpoint.removePrefix("/")
+            return "$base/$cleanEndpoint"
+        }
+    }
+
     companion object {
         const val EXTRA_TOKEN = "extra_token"
         const val EXTRA_STUDENT_JSON = "extra_student_json"
-        private const val BASE_URL = "https://defacto-student-erp-new.vercel.app/"
     }
 }

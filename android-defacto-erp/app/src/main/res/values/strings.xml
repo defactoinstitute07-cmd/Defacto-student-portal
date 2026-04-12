@@ -5,6 +5,7 @@
     <string name="roll_no_hint">Roll Number</string>
     <string name="password_hint">Password</string>
     <string name="login">Login</string>
+    <string name="secure_login_access">Secure Login Access</string>
     <string name="logging_in">Logging in...</string>
     <string name="login_failed">Login failed. Please try again.</string>
     <string name="invalid_credentials">Invalid credentials</string>

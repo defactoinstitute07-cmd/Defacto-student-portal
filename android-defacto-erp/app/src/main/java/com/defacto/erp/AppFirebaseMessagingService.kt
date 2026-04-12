@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -13,6 +14,7 @@ import com.google.firebase.messaging.RemoteMessage
 class AppFirebaseMessagingService : FirebaseMessagingService() {
     override fun onNewToken(token: String) {
         super.onNewToken(token)
+        Log.d("FCM", "New token generated: $token")
         val authToken = SessionManager(this).getToken().orEmpty()
         if (authToken.isNotBlank() && token.isNotBlank()) {
             PushTokenRegistrar(this).registerToken(authToken, token)
@@ -21,6 +23,9 @@ class AppFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
+        
+        Log.d("FCM", "Message received from: ${remoteMessage.from}")
+        Log.d("FCM", "Message data payload: ${remoteMessage.data}")
 
         val title = remoteMessage.notification?.title
             ?: remoteMessage.data["title"]
@@ -28,6 +33,11 @@ class AppFirebaseMessagingService : FirebaseMessagingService() {
         val body = remoteMessage.notification?.body
             ?: remoteMessage.data["body"]
             ?: "You have a new update."
+
+        if (!NotificationManagerCompat.from(this).areNotificationsEnabled()) {
+            Log.w("FCM", "Notifications are disabled for this app. Cannot show: $title")
+            return
+        }
 
         ensureNotificationChannel()
         showNotification(title, body)

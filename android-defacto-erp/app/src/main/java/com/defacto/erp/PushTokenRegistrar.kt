@@ -2,6 +2,7 @@ package com.student.erp
 
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -15,10 +16,15 @@ class PushTokenRegistrar(private val context: Context) {
     private val jsonType = "application/json; charset=utf-8".toMediaType()
 
     fun registerToken(authToken: String, fcmToken: String) {
-        if (authToken.isBlank() || fcmToken.isBlank()) return
+        if (authToken.isBlank() || fcmToken.isBlank()) {
+            Log.w("PushTokenRegistrar", "Cannot register token: authToken or fcmToken is blank")
+            return
+        }
 
         executor.execute {
             try {
+                val registerUrl = WebPortalActivity.Config.getApiUrl("api/student/device")
+                
                 val body = JSONObject()
                     .put("fcmToken", fcmToken)
                     .put("platform", "android")
@@ -31,16 +37,22 @@ class PushTokenRegistrar(private val context: Context) {
                     .toRequestBody(jsonType)
 
                 val request = Request.Builder()
-                    .url(DEVICE_REGISTER_URL)
+                    .url(registerUrl)
                     .addHeader("Authorization", "Bearer $authToken")
                     .post(body)
                     .build()
 
-                client.newCall(request).execute().use { _ ->
-                    // Best-effort token sync; response is intentionally ignored.
+                Log.i("PushTokenRegistrar", "Registering device token to: $registerUrl")
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        Log.i("PushTokenRegistrar", "Device token registered successfully.")
+                    } else {
+                        val errBody = response.body?.string() ?: ""
+                        Log.e("PushTokenRegistrar", "Failed to register device token. code=${response.code} body=$errBody")
+                    }
                 }
-            } catch (_: Exception) {
-                // Ignore transient failures; token will be retried on next app open/login.
+            } catch (e: Exception) {
+                Log.e("PushTokenRegistrar", "Exception during token registration: ${e.message}", e)
             }
         }
     }
@@ -50,9 +62,5 @@ class PushTokenRegistrar(private val context: Context) {
             val info = context.packageManager.getPackageInfo(context.packageName, 0)
             info.versionName ?: ""
         }.getOrDefault("")
-    }
-
-    companion object {
-        private const val DEVICE_REGISTER_URL = "https://defacto-student-portal.vercel.app/api/student/device"
     }
 }

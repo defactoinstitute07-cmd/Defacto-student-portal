@@ -73,6 +73,6 @@ class LoginRepository {
     }
 
     companion object {
-        private const val LOGIN_URL = "https://defacto-student-portal.vercel.app/api/student/login"
+        private val LOGIN_URL = WebPortalActivity.Config.getApiUrl("api/student/login")
     }
 }

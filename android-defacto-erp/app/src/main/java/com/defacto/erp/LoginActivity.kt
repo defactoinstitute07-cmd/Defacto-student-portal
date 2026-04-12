@@ -13,7 +13,6 @@ import android.widget.TextView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.appcompat.app.AppCompatActivity
-import com.google.firebase.messaging.FirebaseMessaging
 import java.util.concurrent.Executors
 
 class LoginActivity : AppCompatActivity() {
@@ -26,8 +25,8 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var loginButton: Button
     private lateinit var loginProgress: ProgressBar
     private lateinit var errorText: TextView
-
-    private val tokenRegistrar by lazy { PushTokenRegistrar(this) }
+    private lateinit var showPasswordBtn: android.widget.ImageButton
+    private var isPasswordVisible = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,6 +39,19 @@ class LoginActivity : AppCompatActivity() {
         loginButton = findViewById(R.id.loginButton)
         loginProgress = findViewById(R.id.loginProgress)
         errorText = findViewById(R.id.errorText)
+        showPasswordBtn = findViewById(R.id.showPasswordBtn)
+
+        showPasswordBtn.setOnClickListener {
+            isPasswordVisible = !isPasswordVisible
+            if (isPasswordVisible) {
+                passwordInput.inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                showPasswordBtn.setImageResource(android.R.drawable.ic_menu_view)
+            } else {
+                passwordInput.inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+                showPasswordBtn.setImageResource(android.R.drawable.ic_menu_view)
+            }
+            passwordInput.setSelection(passwordInput.text?.length ?: 0)
+        }
 
         requestNotificationPermissionIfNeeded()
 
@@ -89,7 +101,10 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun setLoading(isLoading: Boolean) {
+        rollNoInput.isEnabled = !isLoading
+        passwordInput.isEnabled = !isLoading
         loginButton.isEnabled = !isLoading
+        loginButton.text = getString(if (isLoading) R.string.logging_in else R.string.secure_login_access)
         loginProgress.visibility = if (isLoading) View.VISIBLE else View.GONE
     }
 
@@ -102,12 +117,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun syncPushTokenIfPossible(authToken: String) {
-        FirebaseMessaging.getInstance().token
-            .addOnSuccessListener { fcmToken ->
-                if (!fcmToken.isNullOrBlank()) {
-                    tokenRegistrar.registerToken(authToken, fcmToken)
-                }
-            }
+        PushTokenSyncer.syncCurrentToken(this, authToken)
     }
 
     private fun requestNotificationPermissionIfNeeded() {

@@ -107,6 +107,8 @@ app.use('/api', async (req, res, next) => {
 
 // Routes
 // app.use('/api', ensureDatabase); // Remove ensureDatabase if it's Postgres specific or redundant with connectToDatabase
+const testRoutes = require('./routes/testRoutes');
+app.use('/api', testRoutes);
 app.use('/api', authRoutes);
 app.use('/api', notificationRoutes);
 app.use('/api/student/fees', feeRoutes);

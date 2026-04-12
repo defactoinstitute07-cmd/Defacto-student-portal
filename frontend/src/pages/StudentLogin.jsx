@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-react';
+import { ShieldCheck, Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle, Download } from 'lucide-react';
 import axios from 'axios';
 import api from '../services/api';
 import { getFcmToken } from '../firebase';
@@ -8,6 +8,8 @@ import instituteLogo from '../assets/icon.png';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageToggleButton from '../components/LanguageToggleButton';
 import WelcomeModal from '../components/WelcomeModal';
+
+const APK_DOWNLOAD_PATH = '/defacto-student-erp.apk';
 
 
 const StudentLogin = () => {
@@ -126,7 +128,7 @@ const StudentLogin = () => {
             try {
                 response = await api.post('/student/login', { rollNo: normalizedRollNo, password });
             } catch (primaryError) {
-                const fallbackBase = String(import.meta.env.VITE_API_BASE_URL || 'https://defacto-student-portal.vercel.app').trim().replace(/\/$/, '');
+                const fallbackBase = String(import.meta.env.VITE_API_BASE_URL || 'https://student.defactoinstitute.in').trim().replace(/\/$/, '');
                 const isNetworkError = !primaryError?.response;
 
                 if (!isNetworkError) {
@@ -508,6 +510,39 @@ const StudentLogin = () => {
                         transform: translateX(4px);
                     }
 
+                    .sl-download-link {
+                        width: 100%;
+                        min-height: 52px;
+                        margin-top: 12px;
+                        border-radius: 18px;
+                        border: 1px solid rgba(25, 24, 56, 0.12);
+                        background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+                        color: #191838;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 10px;
+                        text-decoration: none;
+                        font-size: 14px;
+                        font-weight: 700;
+                        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+                        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+                    }
+
+                    .sl-download-link:hover {
+                        transform: translateY(-1px);
+                        border-color: rgba(25, 24, 56, 0.24);
+                        box-shadow: 0 10px 24px rgba(25, 24, 56, 0.08);
+                    }
+
+                    .sl-download-note {
+                        margin: 10px 4px 0;
+                        text-align: center;
+                        font-size: 11px;
+                        color: #6b7280;
+                        line-height: 1.5;
+                    }
+
                     /* ═══ FOOTER ═══ */
                     .sl-footer {
                         display: flex;
@@ -687,6 +722,14 @@ const StudentLogin = () => {
                             </>
                         )}
                     </button>
+
+                    <a href={APK_DOWNLOAD_PATH} className="sl-download-link" download>
+                        <Download size={18} />
+                        <span>{t('Download Android APK')}</span>
+                    </a>
+                    <p className="sl-download-note">
+                        {t('Use this if you want to install the Android app directly on your phone.')}
+                    </p>
                 </form>
 
                 {/* Footer */}

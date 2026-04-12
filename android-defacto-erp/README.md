@@ -4,7 +4,7 @@ This Android project creates an APK named **DeFacto ERP** with:
 
 - Native login screen (roll number + password)
 - WebView shell for all remaining portal content
-- API calls sent to `https://defacto-student-portal.vercel.app/`
+- API calls sent to `https://student.defactoinstitute.in/`
 - User-friendly errors such as:
   - `Invalid credentials`
   - `Link not found`
@@ -14,11 +14,11 @@ This Android project creates an APK named **DeFacto ERP** with:
 
 Native login calls:
 
-- `POST https://defacto-student-portal.vercel.app/api/student/login`
+- `POST https://student.defactoinstitute.in/api/student/login`
 
 Web content loads from:
 
-- `https://defacto-student-erp-new.vercel.app/`
+- `https://student.defactoinstitute.in/`
 
 ## Build APK
 
@@ -28,6 +28,8 @@ Web content loads from:
    - `Build > Build Bundle(s) / APK(s) > Build APK(s)`
 4. Find the APK under:
    - `app/build/outputs/apk/debug/app-debug.apk`
+5. Browser download URL after web build/deploy:
+   - `https://student.defactoinstitute.in/defacto-student-erp.apk`
 
 ## Notes
 
@@ -58,7 +60,7 @@ Manual steps required:
     - `app/google-services.json`
 3. Keep backend Firebase env vars configured (`FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`).
 4. Login in the Android app once so the FCM token is registered to:
-    - `POST https://defacto-student-portal.vercel.app/api/student/device`
+    - `POST https://student.defactoinstitute.in/api/student/device`
 
 To send a broadcast notification from backend:
 
