@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle, Download } from 'lucide-react';
+import { ShieldCheck, Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle, Download, LifeBuoy } from 'lucide-react';
 import axios from 'axios';
 import api from '../services/api';
 import { getFcmToken } from '../firebase';
@@ -543,6 +543,32 @@ const StudentLogin = () => {
                         line-height: 1.5;
                     }
 
+                    /* ═══ HELP BUTTON ═══ */
+                    .sl-help-btn {
+                        width: 100%;
+                        height: 52px;
+                        margin-top: 12px;
+                        border: 1.5px solid #e2e8f0;
+                        border-radius: 18px;
+                        background: transparent;
+                        color: #64748b;
+                        font-size: 14px;
+                        font-weight: 700;
+                        font-family: inherit;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 8px;
+                        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+                    }
+                    .sl-help-btn:hover {
+                        background: #f8fafc;
+                        color: #0f172a;
+                        border-color: #cbd5e1;
+                        transform: translateY(-1px);
+                    }
+
                     /* ═══ FOOTER ═══ */
                     .sl-footer {
                         display: flex;
@@ -723,6 +749,15 @@ const StudentLogin = () => {
                         )}
                     </button>
 
+                    {/* Help Button */}
+                    <button
+                        type="button"
+                        onClick={() => navigate('/student/setup-help')}
+                        className="sl-help-btn"
+                    >
+                        <LifeBuoy size={18} />
+                        <span>{t('Need Help?')}</span>
+                    </button>
 
                 </form>
 
