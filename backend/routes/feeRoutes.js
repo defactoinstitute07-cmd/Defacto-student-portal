@@ -4,7 +4,7 @@ const feeController = require('../controllers/feeController');
 const authMiddleware = require('../middleware/authMiddleware');
 const { cacheMiddleware } = require('../middleware/cache');
 
-router.get('/', authMiddleware, cacheMiddleware(60), feeController.getStudentFees);
+router.get('/', authMiddleware, cacheMiddleware(300), feeController.getStudentFees);
 router.post('/', authMiddleware, feeController.createFee);
 router.get('/:id/receipt', authMiddleware, cacheMiddleware(300), feeController.getFeeReceipt);
 

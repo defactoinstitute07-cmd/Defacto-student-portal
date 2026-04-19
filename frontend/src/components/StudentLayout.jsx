@@ -227,48 +227,47 @@ const StudentLayout = ({ children, title, backUrl, useHistoryBack = false, hideM
 
             {/* Mobile Bottom Navigation */}
             {!hideMobileNav && (
-              <nav
-  className="fixed bottom-2 left-1/2 -translate-x-1/2 w-[95%] max-w-md z-[150] md:hidden"
-  aria-label="Primary"
->
-  <div className="   rounded-[10px] border border-gray-200 bg-white shadow-md px-2 py-1">
-    <div
-      className="grid items-center"
-      style={{ gridTemplateColumns: `repeat(${MOBILE_NAV_ITEMS.length}, minmax(0, 1fr))` }}
-    >
-      {MOBILE_NAV_ITEMS.map(({ to, match, icon: Icon, label }) => {
-        const active = isActiveRoute(match);
+                <nav
+                    className="fixed bottom-2 left-1/2 -translate-x-1/2 w-[95%] max-w-md z-[150] md:hidden"
+                    aria-label="Primary"
+                >
+                    <div className="   rounded-[10px] border border-gray-200 bg-white shadow-md px-2 py-1">
+                        <div
+                            className="grid items-center"
+                            style={{ gridTemplateColumns: `repeat(${MOBILE_NAV_ITEMS.length}, minmax(0, 1fr))` }}
+                        >
+                            {MOBILE_NAV_ITEMS.map(({ to, match, icon: Icon, label }) => {
+                                const active = isActiveRoute(match);
 
-        return (
-          <Link
-            key={to}
-            to={to}
-            className={`flex flex-col items-center justify-center py-2 text-xs transition-colors duration-200 ${
-              active
-                ? 'text-blue-600'
-                : 'text-gray-500 hover:text-blue-500'
-            }`}
-          >
-            {/* Icon */}
-            <div className="mb-0.5">
-              <Icon size={18} strokeWidth={active ? 2.5 : 2} />
-            </div>
+                                return (
+                                    <Link
+                                        key={to}
+                                        to={to}
+                                        className={`flex flex-col items-center justify-center py-2 text-xs transition-colors duration-200 ${active
+                                                ? 'text-blue-600'
+                                                : 'text-gray-500 hover:text-blue-500'
+                                            }`}
+                                    >
+                                        {/* Icon */}
+                                        <div className="mb-0.5">
+                                            <Icon size={18} strokeWidth={active ? 2.5 : 2} />
+                                        </div>
 
-            {/* Label */}
-            <span className="font-medium">
-              {t(label)}
-            </span>
+                                        {/* Label */}
+                                        <span className="font-medium">
+                                            {t(label)}
+                                        </span>
 
-            {/* Active Indicator */}
-            {active && (
-              <div className="mt-1 h-1 w-5   rounded-[10px] bg-blue-600" />
-            )}
-          </Link>
-        );
-      })}
-    </div>
-  </div>
-</nav>
+                                        {/* Active Indicator */}
+                                        {active && (
+                                            <div className="mt-1 h-1 w-5   rounded-[10px] bg-blue-600" />
+                                        )}
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </nav>
             )}
         </div>
     );

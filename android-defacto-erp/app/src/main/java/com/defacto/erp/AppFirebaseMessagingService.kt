@@ -58,6 +58,7 @@ class AppFirebaseMessagingService : FirebaseMessagingService() {
         manager.createNotificationChannel(channel)
     }
 
+    @android.annotation.SuppressLint("MissingPermission")
     private fun showNotification(title: String, body: String) {
         val openIntent = Intent(this, SplashActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

@@ -1,4 +1,9 @@
-const admin = require('firebase-admin');
+// Lazy-load firebase-admin to reduce cold starts (~12MB dependency)
+let _admin = null;
+const getAdmin = () => {
+    if (!_admin) _admin = require('firebase-admin');
+    return _admin;
+};
 
 let firebaseApp = null;
 
@@ -35,6 +40,7 @@ const initFirebaseAdmin = () => {
             };
         }
 
+        const admin = getAdmin();
         firebaseApp = admin.initializeApp({
             credential: admin.credential.cert(credentialConfig)
         });
@@ -54,7 +60,7 @@ const getMessaging = () => {
     const app = initFirebaseAdmin();
     if (!app) return null;
     try {
-        return admin.messaging(app);
+        return getAdmin().messaging(app);
     } catch (err) {
         console.error('[firebaseAdmin] Failed to get messaging instance:', err.message);
         return null;

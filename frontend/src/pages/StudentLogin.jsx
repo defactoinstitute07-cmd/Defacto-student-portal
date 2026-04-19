@@ -723,13 +723,7 @@ const StudentLogin = () => {
                         )}
                     </button>
 
-                    <a href={APK_DOWNLOAD_PATH} className="sl-download-link" download>
-                        <Download size={18} />
-                        <span>{t('Download Android APK')}</span>
-                    </a>
-                    <p className="sl-download-note">
-                        {t('Use this if you want to install the Android app directly on your phone.')}
-                    </p>
+
                 </form>
 
                 {/* Footer */}

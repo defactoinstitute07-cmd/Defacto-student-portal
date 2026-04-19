@@ -15,5 +15,6 @@ const examResultSchema = new mongoose.Schema({
 examResultSchema.index({ examId: 1, studentId: 1 }, { unique: true });
 examResultSchema.index({ studentId: 1, uploadedAt: -1 });
 examResultSchema.index({ batchId: 1, examId: 1 });
+examResultSchema.index({ batchId: 1, studentId: 1 }); // leaderboard aggregation
 
 module.exports = mongoose.model('ExamResult', examResultSchema);

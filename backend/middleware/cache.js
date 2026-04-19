@@ -14,18 +14,33 @@ if (process.env.REDIS_URL) {
 
 const buildKey = (prefix, userId, url) => `${prefix}:${userId}:${url}`;
 
+// Consistent serialization: store JSON strings in both memory and Redis
+// to avoid double-serialize and guarantee identical read behavior.
 const getCache = async (key) => {
+    const memoryResult = memoryCache.get(key);
+    if (memoryResult) return JSON.parse(memoryResult);
+
     if (redis) {
-        const cached = await redis.get(key);
-        if (cached) return JSON.parse(cached);
+        try {
+            const redisResult = await redis.get(key);
+            if (redisResult) {
+                // Backfill memory cache from Redis
+                memoryCache.set(key, redisResult);
+                return JSON.parse(redisResult);
+            }
+        } catch {
+            // Ignore Redis errors
+        }
     }
-    return memoryCache.get(key);
+
+    return undefined;
 };
 
 const setCache = async (key, value, ttlSeconds) => {
-    memoryCache.set(key, value, { ttl: ttlSeconds * 1000 });
+    const serialized = JSON.stringify(value);
+    memoryCache.set(key, serialized, { ttl: ttlSeconds * 1000 });
     if (redis) {
-        await redis.set(key, JSON.stringify(value), 'EX', ttlSeconds);
+        await redis.set(key, serialized, 'EX', ttlSeconds).catch(() => {});
     }
 };
 
@@ -61,12 +76,16 @@ const invalidateUserCache = async (userId, prefix = 'cache') => {
 
     if (!redis) return;
 
-    let cursor = '0';
-    do {
-        const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `${prefix}:${userKey}:*`, 'COUNT', 100);
-        if (keys.length) await redis.del(keys);
-        cursor = nextCursor;
-    } while (cursor !== '0');
+    try {
+        let cursor = '0';
+        do {
+            const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `${prefix}:${userKey}:*`, 'COUNT', 100);
+            if (keys.length) await redis.del(keys);
+            cursor = nextCursor;
+        } while (cursor !== '0');
+    } catch {
+        // Ignore Redis errors during invalidation
+    }
 };
 
 module.exports = {

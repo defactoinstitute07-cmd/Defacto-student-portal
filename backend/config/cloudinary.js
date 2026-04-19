@@ -1,39 +1,59 @@
-const cloudinary = require('cloudinary').v2;
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
-const multer = require('multer');
+// Lazy-load cloudinary + multer to reduce cold starts.
+// These are only needed for POST /student/complete-setup (profile image upload).
+let _cloudinary = null;
+let _uploadProfile = null;
+let _uploadDocument = null;
 
-// Configure Cloudinary
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
-});
-
-// Create different storage profiles if needed
-// Profile Image Storage Profile
-const profileStorage = new CloudinaryStorage({
-    cloudinary: cloudinary,
-    params: {
-        folder: 'student_profiles',
-        allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
-        transformation: [{ width: 500, height: 500, crop: 'limit' }]
+const getCloudinary = () => {
+    if (!_cloudinary) {
+        _cloudinary = require('cloudinary').v2;
+        _cloudinary.config({
+            cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+            api_key: process.env.CLOUDINARY_API_KEY,
+            api_secret: process.env.CLOUDINARY_API_SECRET
+        });
     }
-});
+    return _cloudinary;
+};
 
-// Generic Storage Profile (for future use: certificates, receipts, etc)
-const genericStorage = new CloudinaryStorage({
-    cloudinary: cloudinary,
-    params: {
-        folder: 'student_documents',
-        allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'pdf'],
+const getUploadProfile = () => {
+    if (!_uploadProfile) {
+        const { CloudinaryStorage } = require('multer-storage-cloudinary');
+        const multer = require('multer');
+
+        const profileStorage = new CloudinaryStorage({
+            cloudinary: getCloudinary(),
+            params: {
+                folder: 'student_profiles',
+                allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+                transformation: [{ width: 500, height: 500, crop: 'limit' }]
+            }
+        });
+        _uploadProfile = multer({ storage: profileStorage });
     }
-});
+    return _uploadProfile;
+};
 
-const uploadProfile = multer({ storage: profileStorage });
-const uploadDocument = multer({ storage: genericStorage });
+const getUploadDocument = () => {
+    if (!_uploadDocument) {
+        const { CloudinaryStorage } = require('multer-storage-cloudinary');
+        const multer = require('multer');
 
+        const genericStorage = new CloudinaryStorage({
+            cloudinary: getCloudinary(),
+            params: {
+                folder: 'student_documents',
+                allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'pdf'],
+            }
+        });
+        _uploadDocument = multer({ storage: genericStorage });
+    }
+    return _uploadDocument;
+};
+
+// Backwards-compatible named exports using getters
 module.exports = {
-    cloudinary,
-    uploadProfile,
-    uploadDocument
+    get cloudinary() { return getCloudinary(); },
+    get uploadProfile() { return getUploadProfile(); },
+    get uploadDocument() { return getUploadDocument(); }
 };

@@ -76,7 +76,7 @@
 
 /* Tailwind font-sans override: force DM Sans everywhere */
 :root {
-  --font-sans: 'DM Sans', sans-serif;
+    --font-sans: 'DM Sans', sans-serif;
 }
 
 html {
@@ -114,7 +114,7 @@ button,
 input,
 select,
 textarea {
-    font-family:  'DM Sans';
+    font-family: 'DM Sans';
 }
 
 a {
@@ -1077,7 +1077,7 @@ textarea:focus-visible {
     background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
     color: #1e40af;
     border-color: #bfdbfe;
-  
+
 }
 
 .sb-item.active::before {
@@ -2472,4 +2472,20 @@ textarea:focus-visible {
     .page-content {
         padding: 16px 14px calc(24px + var(--mobile-nav-h) + env(safe-area-inset-bottom));
     }
+}
+
+@keyframes fast-shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.animate-fast-shimmer {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: fast-shimmer 0.75s infinite linear;
 }

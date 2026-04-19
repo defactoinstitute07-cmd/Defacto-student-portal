@@ -314,7 +314,8 @@ exports.getStudentSubjects = async (req, res) => {
     try {
         const student = await Student.findById(req.user.id)
             .populate('batchId', 'name')
-            .select('batchId');
+            .select('batchId')
+            .lean();
 
         if (!student) {
             return res.status(404).json({ success: false, message: 'Student not found' });
@@ -470,14 +471,22 @@ exports.studentLogin = async (req, res) => {
 
         const now = new Date();
         const portalAccess = student.portalAccess || {};
-        student.portalAccess = {
-            signupStatus: portalAccess.signupStatus || 'yes',
-            signedUpAt: portalAccess.signedUpAt || now,
-            lastLoginAt: now
-        };
-        student.lastActiveAt = now;
-        student.lastAppOpenAt = now;
-        await student.save();
+
+        // Fire-and-forget: don't block the login response for activity tracking
+        Student.updateOne(
+            { _id: student._id },
+            {
+                $set: {
+                    portalAccess: {
+                        signupStatus: portalAccess.signupStatus || 'yes',
+                        signedUpAt: portalAccess.signedUpAt || now,
+                        lastLoginAt: now
+                    },
+                    lastActiveAt: now,
+                    lastAppOpenAt: now
+                }
+            }
+        ).catch(() => {});
 
         // Generate JWT token
         const payload = {
@@ -626,6 +635,7 @@ exports.getStudentSubjectDetail = async (req, res) => {
             .select('batchId subjectTeachers roomAllocation')
             .lean();
 
+
         if (!student?.batchId?._id) {
             return res.status(404).json({ success: false, message: 'Batch not found for this student.' });
         }
@@ -676,7 +686,8 @@ exports.getStudentSubjectDetail = async (req, res) => {
             teacherProfileImage = subject.teacherId?.profileImage || null;
         }
 
-        const [teacherDocs, allExams, resultDocs] = await Promise.all([
+        // First fetch exams, then filter results by examIds to avoid over-fetching
+        const [teacherDocs, allExams] = await Promise.all([
             Teacher.find({
                 status: 'active',
                 $or: [
@@ -689,9 +700,14 @@ exports.getStudentSubjectDetail = async (req, res) => {
                 subjectDoc: subject
             }))
                 .sort({ date: -1 })
-                .lean(),
-            ExamResult.find({ studentId: student._id }).lean()
+                .lean()
         ]);
+
+        const examIds = allExams.map(e => e._id);
+        const resultDocs = await ExamResult.find({
+            studentId: student._id,
+            examId: { $in: examIds }
+        }).lean();
 
         if (teacher !== 'Unassigned') {
             const overrideDoc = teacherDocs.find((entry) => normalizeKey(entry.name) === normalizeKey(teacher));
@@ -835,7 +851,8 @@ exports.getStudentProfile = async (req, res) => {
     try {
         const student = await Student.findById(req.user.id)
             .populate('batchId')
-            .select('-password');
+            .select('-password')
+            .lean();
 
         if (!student) {
             return res.status(404).json({ success: false, message: 'Student not found' });
@@ -852,16 +869,50 @@ exports.getStudentProfile = async (req, res) => {
         const subjectBatchNamesMap = new Map();
         
         let batchSubjectDocs = [];
+        let teachers = [];
+        let completionDocs = [];
+        let syllabusDocs = [];
+        let allExams = [];
+        let allResults = [];
+        let attendance = { summary: { total: 0, present: 0, absent: 0, late: 0, percentage: 0 }, subjects: [], recent: [] };
+
         if (student.batchId?._id) {
-            batchSubjectDocs = await findSubjectsForStudentBatch(student.batchId._id, {
-                projection: 'name code teacherId assignedTeacher totalChapters chapters batchId batchIds',
-                populate: [
-                    { path: 'teacherId', select: 'name profileImage status' },
-                    { path: 'batchIds', select: 'name' },
-                    { path: 'batchId', select: 'name' }
-                ],
-                lean: true
-            });
+            // ── PARALLELIZED: Fetch subject docs + teachers + syllabus data in one go ──
+            const batchObjId = student.batchId._id;
+            const [subjectDocsResult, teachersResult, completionDocsResult, syllabusDocsResult, allExamsResult, allResultsResult, attendanceResult] = await Promise.all([
+                findSubjectsForStudentBatch(batchObjId, {
+                    projection: 'name code teacherId assignedTeacher totalChapters chapters batchId batchIds',
+                    populate: [
+                        { path: 'teacherId', select: 'name profileImage status' },
+                        { path: 'batchIds', select: 'name' },
+                        { path: 'batchId', select: 'name' }
+                    ],
+                    lean: true
+                }),
+                Teacher.find({ 'assignments.batchId': batchObjId })
+                    .select('name assignments profileImage')
+                    .lean(),
+                ChapterCompletion.find({ batchId: batchObjId })
+                    .sort({ updatedAt: -1, createdAt: -1 })
+                    .lean(),
+                Syllabus.find({ batchId: batchObjId }).lean(),
+                Exam.find(buildStudentExamCollectionQuery({
+                    studentBatchId: batchObjId,
+                    subjectDocs: [] // Will be updated after subjects are resolved
+                }))
+                    .sort({ date: -1 })
+                    .lean(),
+                ExamResult.find({ studentId: student._id }).lean(),
+                getAttendanceSnapshot(student._id)
+            ]);
+
+            batchSubjectDocs = subjectDocsResult;
+            teachers = teachersResult;
+            completionDocs = completionDocsResult;
+            syllabusDocs = syllabusDocsResult;
+            allExams = allExamsResult;
+            allResults = allResultsResult;
+            attendance = attendanceResult;
 
             batchSubjectDocs.forEach((subjectDoc) => {
                 if (!subjectDoc?.name) return;
@@ -897,7 +948,6 @@ exports.getStudentProfile = async (req, res) => {
                     }
                 }
             });
-        }
 
         // 1. First, populate from Student's own subjectTeachers (individual override)
         if (student.subjectTeachers && student.subjectTeachers.length > 0) {
@@ -908,12 +958,9 @@ exports.getStudentProfile = async (req, res) => {
             });
         }
 
-        // 2. Query Teacher assignments for this batch (Source of truth for Admin)
-        if (student.batchId) {
+        // 2. Process teacher assignments from the parallelized query
+        {
             const batchIdStr = student.batchId._id.toString();
-            const teachers = await Teacher.find({ 'assignments.batchId': student.batchId._id })
-                .select('name assignments')
-                .lean();
 
             teachers.forEach(t => {
                 if (t.name) {
@@ -970,22 +1017,10 @@ exports.getStudentProfile = async (req, res) => {
         }
 
         // 4. Fetch Syllabus Completion (from ChapterCompletion collection) ──────
+        // completionDocs, syllabusDocs already fetched in the parallel block above
         let syllabusMap = new Map();
-        if (student.batchId) {
-            const batchObjId = student.batchId._id;
+        {
             const normalizeKey = (value) => String(value || '').trim().toLowerCase();
-
-            // Primary: ChapterCompletion docs (created by admin/teacher panel)
-            const [completionDocs, batchSubjectDocs, syllabusDocs] = await Promise.all([
-                ChapterCompletion.find({ batchId: batchObjId })
-                    .sort({ updatedAt: -1, createdAt: -1 })
-                    .lean(),
-                findSubjectsForStudentBatch(batchObjId, {
-                    projection: 'name totalChapters chapters',
-                    lean: true
-                }),
-                Syllabus.find({ batchId: batchObjId }).lean()
-            ]);
 
             // Build a map: normalized subject -> total chapters from Subject collection
             const subjectTotalMap = new Map();
@@ -1147,25 +1182,16 @@ exports.getStudentProfile = async (req, res) => {
             });
         }
 
-        // 5. Fetch Detailed Exams & Results ──────────────────────────────
+        // 5. Process Detailed Exams & Results (already fetched in parallel block) ──
         let examDetailsMap = new Map();
         let subjectStatsMap = new Map();
-        if (student.batchId) {
+        {
+            const normalizeKey = (value) => String(value || '').trim().toLowerCase();
             const subjectNameById = new Map(
                 batchSubjectDocs
                     .map((doc) => [normalizeObjectIdString(doc?._id), doc?.name])
                     .filter(([id, name]) => Boolean(id && name))
             );
-
-            const allExams = await Exam.find(buildStudentExamCollectionQuery({
-                studentBatchId: student.batchId._id,
-                subjectDocs: batchSubjectDocs
-            }))
-                .sort({ date: -1 })
-                .lean();
-                
-            const allResults = await ExamResult.find({ studentId: student._id })
-                .lean();
             
             const resultMap = new Map(allResults.map(r => [r.examId.toString(), r]));
 
@@ -1203,6 +1229,7 @@ exports.getStudentProfile = async (req, res) => {
                 });
             });
         }
+        } // end if (student.batchId?._id)
 
         const subjectTeachers = Array.from(teachersMap.entries()).map(([subject, teacher]) => {
             let averageMarks = 0;
@@ -1253,7 +1280,7 @@ exports.getStudentProfile = async (req, res) => {
         }));
 
         const hydratedBatchData = student.batchId
-            ? (typeof student.batchId.toObject === 'function' ? student.batchId.toObject() : { ...student.batchId })
+            ? { ...student.batchId }
             : null;
         if (hydratedBatchData) {
             hydratedBatchData.subjects = resolvedSubjects.map((subject) => subject.name);
@@ -1309,7 +1336,7 @@ exports.getStudentProfile = async (req, res) => {
             resolvedSubjects: resolvedSubjects.map((item) => item?.name).filter(Boolean)
         });
 
-        const attendance = await getAttendanceSnapshot(student._id);
+        // attendance already fetched in the parallel block above
         profileData.attendanceSummary = attendance.summary;
         profileData.attendanceSubjects = attendance.subjects;
         profileData.attendanceRecent = attendance.recent;

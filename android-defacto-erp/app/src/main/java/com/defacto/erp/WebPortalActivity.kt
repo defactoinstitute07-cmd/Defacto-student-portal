@@ -95,12 +95,12 @@ class WebPortalActivity : AppCompatActivity() {
 
                 if (!didReloadAfterInject) {
                     didReloadAfterInject = true
-                    webView.loadUrl(Config.BASE_URL)
+                    webView.loadUrl(Config.FRONTEND_URL)
                     return
                 }
 
                 if (currentUrl.contains("/student/login")) {
-                    webView.loadUrl(Config.BASE_URL)
+                    webView.loadUrl(Config.FRONTEND_URL)
                     return
                 }
 
@@ -143,7 +143,7 @@ class WebPortalActivity : AppCompatActivity() {
             }
         }
 
-        webView.loadUrl(Config.BASE_URL)
+        webView.loadUrl(Config.FRONTEND_URL)
     }
 
     private fun redirectToLogin() {
@@ -154,10 +154,11 @@ class WebPortalActivity : AppCompatActivity() {
 
     object Config {
         // Change this to your local IP (e.g., "http://192.168.1.5:5005/") when testing locally.
-        const val BASE_URL = "https://student.defactoinstitute.in/"
+        const val API_BASE_URL = "https://defacto-student-portal.vercel.app/"
+        const val FRONTEND_URL = "https://student.defactoinstitute.in/"
         
         fun getApiUrl(endpoint: String): String {
-            val base = BASE_URL.removeSuffix("/")
+            val base = API_BASE_URL.removeSuffix("/")
             val cleanEndpoint = endpoint.removePrefix("/")
             return "$base/$cleanEndpoint"
         }

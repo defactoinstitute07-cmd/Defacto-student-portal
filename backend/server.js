@@ -2,7 +2,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
-const rateLimit = require('express-rate-limit');
 
 const authRoutes = require('./routes/authRoutes');
 const feeRoutes = require('./routes/feeRoutes');
@@ -15,25 +14,11 @@ const { sendApiError, sendDatabaseUnavailable } = require('./utils/apiError');
 const app = express();
 app.set('trust proxy', 1);
 
-// Log capture for remote debugging
-const logBuffer = [];
-const captureLog = (type, args) => {
-    const msg = `[${new Date().toISOString()}] [${type}] ${args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' ')}`;
-    logBuffer.push(msg);
-    if (logBuffer.length > 100) logBuffer.shift();
-};
-// Logging disabled for production
-    if (logBuffer.length > 100) logBuffer.shift(); // Logging disabled
-
-app.get('/api/debug/logs', (req, res) => {
-    res.type('text/plain').send(logBuffer.join('\n'));
-});
-
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Global security middleware
+// Global security middleware — sanitize NoSQL injection keys
 const cleanObj = (obj) => {
     if (!obj || typeof obj !== 'object') return obj;
     for (const key in obj) {
@@ -47,20 +32,12 @@ const cleanObj = (obj) => {
     return obj;
 };
 app.use((req, res, next) => {
-    if (req.body) cleanObj(req.body);
-    if (req.query) cleanObj(req.query);
-    if (req.params) cleanObj(req.params);
+    // Only clean body on mutation requests (POST/PUT/PATCH) — GET bodies are typically empty
+    if (req.body && typeof req.body === 'object' && req.method !== 'GET') {
+        cleanObj(req.body);
+    }
     next();
 });
-
-const globalLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 200,
-    message: 'Too many requests from this IP',
-    standardHeaders: true,
-    legacyHeaders: false,
-});
-app.use(globalLimiter);
 
 // Health Check
 app.get('/api/health', async (req, res) => {
@@ -98,15 +75,11 @@ app.use('/api', async (req, res, next) => {
         }
         return next();
     } catch (error) {
-        // console.error('Mongo connect middleware error:', error.message || error);
         return sendDatabaseUnavailable(res);
     }
 });
 
-
-
 // Routes
-// app.use('/api', ensureDatabase); // Remove ensureDatabase if it's Postgres specific or redundant with connectToDatabase
 const testRoutes = require('./routes/testRoutes');
 app.use('/api', testRoutes);
 app.use('/api', authRoutes);
@@ -118,7 +91,6 @@ const PORT = process.env.PORT || 5006;
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
-    // console.error('GLOBAL ERROR:', err);
     res.status(err.status || 500).json({
         success: false,
         message: err.message || 'Internal Server Error',

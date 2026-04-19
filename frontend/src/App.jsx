@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Suspense, lazy, useEffect } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import { useAppPresence } from './hooks/useAppPresence';
+import OfflinePage from './pages/OfflinePage';
 
 import { Component } from 'react';
 
@@ -81,6 +82,18 @@ const getStoredStudentRoute = () => {
 
 function App() {
     useAppPresence();
+    const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+    useEffect(() => {
+        const handleOnline = () => setIsOnline(true);
+        const handleOffline = () => setIsOnline(false);
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+        };
+    }, []);
 
     useEffect(() => {
         try {
@@ -103,6 +116,12 @@ function App() {
             // Ignore malformed bootstrap params
         }
     }, []);
+
+    const isLoggedIn = !!localStorage.getItem('studentToken');
+
+    if (!isOnline && isLoggedIn) {
+        return <OfflinePage />;
+    }
 
     return (
         <Router>

@@ -23,18 +23,18 @@ router.post('/student/mobile/logout', mobileAuthController.mobileLogout);
 router.get('/student/mobile/session', ...mobileAuthController.mobileSession);
 
 // Get Student Profile
-router.get('/student/me', authMiddleware, cacheMiddleware(30), authController.getStudentProfile);
-router.get('/student/subjects', authMiddleware, cacheMiddleware(30), authController.getStudentSubjects);
+router.get('/student/me', authMiddleware, cacheMiddleware(300), authController.getStudentProfile);
+router.get('/student/subjects', authMiddleware, cacheMiddleware(120), authController.getStudentSubjects);
 
 // Device registration + activity tracking
 router.post('/student/device', authMiddleware, authController.registerDevice);
 router.post('/student/activity', authMiddleware, authController.trackActivity);
 
 // Get Subject Attendance Detail
-router.get('/student/attendance/subject/:subjectId', authMiddleware, authController.getSubjectAttendanceDetail);
+router.get('/student/attendance/subject/:subjectId', authMiddleware, cacheMiddleware(120), authController.getSubjectAttendanceDetail);
 
 // Get Live Subject Detail
-router.get('/student/subject/:subjectName', authMiddleware, authController.getStudentSubjectDetail);
+router.get('/student/subject/:subjectName', authMiddleware, cacheMiddleware(120), authController.getStudentSubjectDetail);
 
 // Reset Password
 router.post('/student/reset-password', authMiddleware, authController.resetPassword);

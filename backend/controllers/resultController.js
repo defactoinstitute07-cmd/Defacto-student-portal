@@ -17,7 +17,7 @@ exports.getStudentResults = async (req, res) => {
         const subjectFilter = req.query.subject;
 
         // Fetch student to get batch info
-        const student = await Student.findById(studentId).populate('batchId', 'name').select('batchId');
+        const student = await Student.findById(studentId).populate('batchId', 'name').select('batchId').lean();
         const batchName = student && student.batchId ? student.batchId.name : 'N/A';
 
         // Fetch paginated or full results for this student
@@ -154,7 +154,7 @@ exports.getStudentResults = async (req, res) => {
 exports.getLeaderboard = async (req, res) => {
     try {
         const { type, subject } = req.query;
-        const student = await Student.findById(req.user.id);
+        const student = await Student.findById(req.user.id).select('batchId').lean();
         if (!student) return res.status(404).json({ success: false, message: 'Student not found' });
 
         // 1. Determine the Match Scope

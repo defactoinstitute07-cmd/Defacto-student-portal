@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const LEGACY_API_ORIGIN = 'https://student-erp-server-api.vercel.app';
-const PRIMARY_API_ORIGIN = 'https://student.defactoinstitute.in';
+const PRIMARY_API_ORIGIN = 'https://defacto-student-portal.vercel.app';
 
 const isPrivateOrLocalHost = (hostname = '') => {
     const host = String(hostname || '').trim().toLowerCase();
