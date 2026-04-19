@@ -173,7 +173,7 @@ export default function ContactSupport() {
                                     <Megaphone size={20} />
                                 </div>
                                 <p className="text-sm font-bold tracking-wide text-white/95">
-                                    Marketing by Priyanshu Bisht
+                                    Marketing by Priyanshu Bisht , Karan Negi
                                 </p>
                             </div>
                         </div>
