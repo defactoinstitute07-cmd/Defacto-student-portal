@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
-import { Camera, Lock, CheckCircle2, AlertTriangle, RefreshCcw, ShieldCheck, Eye, EyeOff, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Camera, Lock, CheckCircle2, AlertTriangle, RefreshCcw, ShieldCheck, Eye, EyeOff, ArrowRight, ArrowLeft, HelpCircle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageToggleButton from '../components/LanguageToggleButton';
 
@@ -102,7 +102,15 @@ const StudentSetup = () => {
 
     return (
         <div className="relative min-h-screen w-full flex items-center justify-center p-4 font-sans overflow-hidden bg-gradient-to-br from-gray-50 via-white to-gray-100">
-            <div className="absolute right-4 top-4 z-[120]">
+            <div className="absolute right-4 top-4 z-[120] flex items-center gap-3">
+                <button 
+                    onClick={() => navigate('/student/setup-help')}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white/80 backdrop-blur-md border border-gray-200 rounded-full text-xs font-bold text-gray-600 hover:text-[#191838] hover:border-[#191838] transition-all shadow-sm"
+                    title={t("Contact Support")}
+                >
+                    <HelpCircle size={14} />
+                    <span>{t('Need Help?')}</span>
+                </button>
                 <LanguageToggleButton variant="topbar" />
             </div>
 

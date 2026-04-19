@@ -56,6 +56,7 @@ const StudentResults = lazy(() => import('./pages/StudentResults'));
 const StudentProfile = lazy(() => import('./pages/StudentProfile'));
 const SubjectDetail = lazy(() => import('./pages/SubjectDetail'));
 const StudentSetup = lazy(() => import('./pages/StudentSetup'));
+const SetupHelpForm = lazy(() => import('./pages/SetupHelpForm'));
 const StudentSubjects = lazy(() => import('./pages/StudentSubjects'));
 const ContactSupport = lazy(() => import('./pages/ContactSupport'));
 const Leaderboard = lazy(() => import('./pages/Leaderboard'));
@@ -136,6 +137,7 @@ function App() {
                                 : <StudentLogin />
                         } />
                         <Route path="/student/setup" element={<StudentSetup />} />
+                        <Route path="/student/setup-help" element={<SetupHelpForm />} />
                         <Route path="/student/dashboard" element={<StudentTabController />} />
                         <Route path="/student/profile" element={<Navigate to="/student/dashboard?tab=profile" replace />} />
                         <Route path="/student/subjects" element={<Navigate to="/student/dashboard?tab=subjects" replace />} />

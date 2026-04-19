@@ -7,6 +7,7 @@ const authRoutes = require('./routes/authRoutes');
 const feeRoutes = require('./routes/feeRoutes');
 const resultRoutes = require('./routes/resultRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const supportRoutes = require('./routes/supportRoutes');
 const { redis } = require('./middleware/cache');
 const { connectToDatabase, getDatabaseHealth } = require('./config/database');
 const { sendApiError, sendDatabaseUnavailable } = require('./utils/apiError');
@@ -86,6 +87,7 @@ app.use('/api', authRoutes);
 app.use('/api', notificationRoutes);
 app.use('/api/student/fees', feeRoutes);
 app.use('/api/student/results', resultRoutes);
+app.use('/api/support', supportRoutes);
 
 const PORT = process.env.PORT || 5006;
 
