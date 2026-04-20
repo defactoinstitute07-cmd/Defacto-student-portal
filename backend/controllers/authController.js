@@ -21,8 +21,21 @@ const normalizeCodeKey = (value = '') => String(value || '')
     .toUpperCase();
 
 const normalizeObjectIdString = (value) => {
-    const normalized = String(value || '').trim();
-    return normalized || null;
+    if (!value) return null;
+
+    const candidate = typeof value === 'object' && value._id && value._id !== value
+        ? value._id
+        : value;
+
+    if (candidate && typeof candidate.toHexString === 'function') {
+        return candidate.toHexString();
+    }
+
+    const normalized = typeof candidate?.toString === 'function'
+        ? candidate.toString().trim()
+        : String(candidate).trim();
+
+    return normalized && normalized !== '[object Object]' ? normalized : null;
 };
 
 const buildStudentExamScopeClauses = ({ studentBatchId, subjectDoc = null, subjectDocs = [] } = {}) => {
@@ -874,6 +887,9 @@ exports.getStudentProfile = async (req, res) => {
         let syllabusDocs = [];
         let allExams = [];
         let allResults = [];
+        let syllabusMap = new Map();
+        let examDetailsMap = new Map();
+        let subjectStatsMap = new Map();
         let attendance = { summary: { total: 0, present: 0, absent: 0, late: 0, percentage: 0 }, subjects: [], recent: [] };
 
         if (student.batchId?._id) {
@@ -1018,7 +1034,6 @@ exports.getStudentProfile = async (req, res) => {
 
         // 4. Fetch Syllabus Completion (from ChapterCompletion collection) ──────
         // completionDocs, syllabusDocs already fetched in the parallel block above
-        let syllabusMap = new Map();
         {
             const normalizeKey = (value) => String(value || '').trim().toLowerCase();
 
@@ -1183,8 +1198,6 @@ exports.getStudentProfile = async (req, res) => {
         }
 
         // 5. Process Detailed Exams & Results (already fetched in parallel block) ──
-        let examDetailsMap = new Map();
-        let subjectStatsMap = new Map();
         {
             const normalizeKey = (value) => String(value || '').trim().toLowerCase();
             const subjectNameById = new Map(
