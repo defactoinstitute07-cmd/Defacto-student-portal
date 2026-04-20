@@ -83,6 +83,12 @@ const getBaseURL = () => {
     }
 
     const appHost = typeof window !== 'undefined' ? window.location.hostname : '';
+    const storedIP = typeof window !== 'undefined' ? localStorage.getItem('local_dev_ip_override') : null;
+
+    if (storedIP) {
+        return `http://${storedIP}:5005/api`;
+    }
+
     const envBase = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
 
     // If the frontend is accessed from a private IP (like 192.168.x.x) on the same Wi-Fi

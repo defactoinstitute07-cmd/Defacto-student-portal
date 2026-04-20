@@ -184,13 +184,32 @@ const StudentDashboard = () => {
           <p className="text-xs leading-relaxed text-rose-600/80">
             {error || t('This build is trying to reach {{url}}. If you are using the local backend, keep it running and connect the phone to the same Wi-Fi.', { url: apiBaseUrl })}
           </p>
-          <button
-            type="button"
-            onClick={() => window.location.reload()}
-            className="h-11 w-full   rounded-[10px] bg-[#191838] text-xs font-black uppercase tracking-[0.24em] text-white"
-          >
-            {t('Retry')}
-          </button>
+          <div className="flex gap-2 mt-4">
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="h-11 flex-1 rounded-[10px] bg-[#191838] text-xs font-black uppercase tracking-[0.24em] text-white"
+            >
+              {t('Retry')}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const ip = prompt('Enter your computer\'s Local WiFi IP (e.g. 192.168.1.5) or type "clear" to reset:');
+                if (ip) {
+                    if (ip.trim().toLowerCase() === 'clear') {
+                        localStorage.removeItem('local_dev_ip_override');
+                    } else {
+                        localStorage.setItem('local_dev_ip_override', ip.trim());
+                    }
+                    window.location.reload();
+                }
+              }}
+              className="h-11 flex-1 rounded-[10px] border border-[#191838] bg-transparent text-[#191838] text-xs font-black uppercase tracking-[0.1em]"
+            >
+              Set Local IP
+            </button>
+          </div>
         </div>
       </div>
     );
