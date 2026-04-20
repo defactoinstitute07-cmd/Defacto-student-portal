@@ -2,10 +2,14 @@ const express = require('express');
 const router = express.Router();
 const { Resend } = require('resend');
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 router.post('/ticket', async (req, res) => {
     try {
+        if (!process.env.RESEND_API_KEY) {
+            console.error('RESEND_API_KEY is not set in environment variables');
+            return res.status(500).json({ success: false, message: 'Support ticket system is currently unavailable.' });
+        }
+        const resend = new Resend(process.env.RESEND_API_KEY);
+
         const { name, rollNo, issue, description, whatsappNumber, preferredContactMethod } = req.body;
 
         if (!name || !rollNo || !issue || !description || !preferredContactMethod) {
