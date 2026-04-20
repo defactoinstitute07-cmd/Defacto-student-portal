@@ -108,3 +108,4 @@ if (require.main === module) {
 }
 
 module.exports = app;
+// Trigger backend Vercel rebuild
