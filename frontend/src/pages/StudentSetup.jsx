@@ -175,7 +175,7 @@ const StudentSetup = () => {
                                     <input
                                         ref={fileInputRef}
                                         type="file"
-                                        accept="image/*"
+                                        accept="image/jpeg, image/png, image/webp"
                                         onChange={handleImageChange}
                                         className="hidden"
                                     />

@@ -82,7 +82,30 @@ const getBaseURL = () => {
         return '/api';
     }
 
+    const appHost = typeof window !== 'undefined' ? window.location.hostname : '';
     const envBase = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
+
+    // If the frontend is accessed from a private IP (like 192.168.x.x) on the same Wi-Fi
+    // intercept the request and point it to the local backend on port 5005 automatically.
+    if (isPrivateOrLocalHost(appHost)) {
+        // If an explicit override is provided in env that is ALSO local, we respect it
+        if (envBase) {
+            try {
+                const url = new URL(envBase);
+                if (isPrivateOrLocalHost(url.hostname)) {
+                    return normalizeBaseURL(envBase);
+                }
+            } catch (error) {
+                // Ignore parsing errors
+            }
+        }
+        
+        // Otherwise guess the backend is on the same local IP at port 5005.
+        // This makes `npm run preview -- --host` "just work" for mobile devices.
+        const protocol = typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'http:' : 'http:';
+        const targetHost = appHost === 'localhost' ? '127.0.0.1' : appHost;
+        return `${protocol}//${targetHost}:5005/api`;
+    }
 
     if (shouldForcePublicApiOrigin(envBase)) {
         return normalizeBaseURL(PRIMARY_API_ORIGIN);
