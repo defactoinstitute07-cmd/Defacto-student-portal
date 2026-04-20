@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Suspense, lazy, useEffect, useState } from 'react';
 import { useAppPresence } from './hooks/useAppPresence';
 import OfflinePage from './pages/OfflinePage';
+import { Analytics } from '@vercel/analytics/react';
 
 import { Component } from 'react';
 
@@ -153,6 +154,7 @@ function App() {
                     </Routes>
                 </Suspense>
             </ErrorBoundary>
+            <Analytics />
         </Router>
     );
 }
