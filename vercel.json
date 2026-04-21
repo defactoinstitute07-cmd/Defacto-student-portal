@@ -39,8 +39,10 @@
         }
     ],
     "functions": {
-        "api/**/*": {
-            "includeFiles": "backend/**"
+        "api/index.js": {
+            "includeFiles": "backend/**",
+            "maxDuration": 60,
+            "memory": 1024
         }
     }
 }

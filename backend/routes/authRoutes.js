@@ -21,6 +21,8 @@ router.post('/student/mobile/login', mobileAuthController.mobileLogin);
 router.post('/student/mobile/refresh', mobileAuthController.mobileRefresh);
 router.post('/student/mobile/logout', mobileAuthController.mobileLogout);
 router.get('/student/mobile/session', ...mobileAuthController.mobileSession);
+router.post('/student/refresh', mobileAuthController.mobileRefresh);
+router.post('/student/logout', mobileAuthController.mobileLogout);
 
 // Get Student Profile
 router.get('/student/me', authMiddleware, cacheMiddleware(300), authController.getStudentProfile);

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Skeleton from '../components/Skeleton';
-import api from '../services/api';
+import api, { clearAuthSession } from '../services/api';
 import { useQuery } from '@tanstack/react-query';
 import { getCached, setCached } from '../utils/offlineCache';
 import { useLanguage } from '../context/LanguageContext';
@@ -178,7 +178,7 @@ const StudentSubjects = () => {
                 throw new Error('Failed to load');
             } catch (err) {
                 if (err.response?.status === 401) {
-                    localStorage.removeItem('studentToken');
+                    clearAuthSession();
                     navigate('/student/login');
                     throw err;
                 }

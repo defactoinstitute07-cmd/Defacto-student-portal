@@ -56,10 +56,14 @@ class LoginActivity : AppCompatActivity() {
         requestNotificationPermissionIfNeeded()
 
         val existingToken = sessionManager.getToken()
+        val existingRefreshToken = sessionManager.getRefreshToken()
         val existingStudentJson = sessionManager.getStudentJson()
-        if (!existingToken.isNullOrBlank() && !existingStudentJson.isNullOrBlank()) {
-            syncPushTokenIfPossible(existingToken)
-            openPortal(existingToken, existingStudentJson)
+        val existingExpiry = sessionManager.getAccessTokenExpiresAt()
+        if ((!existingToken.isNullOrBlank() || !existingRefreshToken.isNullOrBlank()) && !existingStudentJson.isNullOrBlank()) {
+            if (!existingToken.isNullOrBlank()) {
+                syncPushTokenIfPossible(existingToken)
+            }
+            openPortal(existingToken.orEmpty(), existingRefreshToken.orEmpty(), existingStudentJson, existingExpiry)
             return
         }
 
@@ -87,9 +91,19 @@ class LoginActivity : AppCompatActivity() {
                 setLoading(false)
                 when (result) {
                     is LoginResult.Success -> {
-                        sessionManager.saveSession(result.data.token, result.data.studentJson)
+                        sessionManager.saveSession(
+                            token = result.data.token,
+                            refreshToken = result.data.refreshToken,
+                            studentJson = result.data.studentJson,
+                            accessTokenExpiresAt = result.data.accessTokenExpiresAt
+                        )
                         syncPushTokenIfPossible(result.data.token)
-                        openPortal(result.data.token, result.data.studentJson)
+                        openPortal(
+                            result.data.token,
+                            result.data.refreshToken,
+                            result.data.studentJson,
+                            result.data.accessTokenExpiresAt
+                        )
                     }
                     is LoginResult.Error -> {
                         errorText.text = result.error.message
@@ -108,10 +122,17 @@ class LoginActivity : AppCompatActivity() {
         loginProgress.visibility = if (isLoading) View.VISIBLE else View.GONE
     }
 
-    private fun openPortal(token: String, studentJson: String) {
+    private fun openPortal(
+        token: String,
+        refreshToken: String,
+        studentJson: String,
+        accessTokenExpiresAt: String?
+    ) {
         val intent = Intent(this, WebPortalActivity::class.java)
         intent.putExtra(WebPortalActivity.EXTRA_TOKEN, token)
+        intent.putExtra(WebPortalActivity.EXTRA_REFRESH_TOKEN, refreshToken)
         intent.putExtra(WebPortalActivity.EXTRA_STUDENT_JSON, studentJson)
+        intent.putExtra(WebPortalActivity.EXTRA_ACCESS_TOKEN_EXPIRES_AT, accessTokenExpiresAt)
         startActivity(intent)
         finish()
     }

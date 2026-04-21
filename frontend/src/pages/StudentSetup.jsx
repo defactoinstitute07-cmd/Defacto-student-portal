@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import api from '../services/api';
+import api, { clearAuthSession, getStoredAccessToken, getStoredStudentInfo, saveAuthSession } from '../services/api';
 import { Camera, Lock, CheckCircle2, AlertTriangle, RefreshCcw, ShieldCheck, Eye, EyeOff, ArrowRight, ArrowLeft, HelpCircle, LogOut } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageToggleButton from '../components/LanguageToggleButton';
@@ -21,8 +21,8 @@ const StudentSetup = () => {
     const fileInputRef = useRef(null);
 
     useEffect(() => {
-        const student = JSON.parse(localStorage.getItem('studentInfo') || '{}');
-        const token = localStorage.getItem('studentToken');
+        const student = getStoredStudentInfo() || {};
+        const token = getStoredAccessToken();
 
         if (!token) {
             navigate('/student/login');
@@ -39,9 +39,7 @@ const StudentSetup = () => {
     }, [navigate]);
 
     const handleLogout = () => {
-        localStorage.removeItem('studentToken');
-        localStorage.removeItem('studentInfo');
-        localStorage.removeItem('loginTimestamp');
+        clearAuthSession();
         navigate('/student/login', { replace: true });
     };
 
@@ -89,11 +87,15 @@ const StudentSetup = () => {
             });
 
             if (res.data.success) {
-                const studentInfo = JSON.parse(localStorage.getItem('studentInfo') || '{}');
-                studentInfo.isFirstLogin = false;
-                studentInfo.profileImage = res.data.student?.profileImage || studentInfo.profileImage;
-                studentInfo.needsSetup = false;
-                localStorage.setItem('studentInfo', JSON.stringify(studentInfo));
+                const studentInfo = getStoredStudentInfo() || {};
+                saveAuthSession({
+                    student: {
+                        ...studentInfo,
+                        isFirstLogin: false,
+                        profileImage: res.data.student?.profileImage || studentInfo.profileImage,
+                        needsSetup: false
+                    }
+                });
 
                 setStep(3);
                 if (!fromApp) {
@@ -101,6 +103,11 @@ const StudentSetup = () => {
                 }
             }
         } catch (err) {
+            if (err.code === 'ECONNABORTED' || /timeout/i.test(String(err.message || ''))) {
+                setError('Activation is taking longer than expected. Please wait a moment and try again.');
+                return;
+            }
+
             setError(err.response?.data?.message || t('Failed to complete setup'));
         } finally {
             setLoading(false);

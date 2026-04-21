@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import StudentLayout from '../components/StudentLayout';
+import { clearAuthSession } from '../services/api';
 import Skeleton from '../components/Skeleton';
 import {
     ArrowLeft,
@@ -115,7 +116,7 @@ const StudentProfile = () => {
                 throw new Error('Failed to load');
             } catch (err) {
                 if (err.response?.status === 401) {
-                    localStorage.removeItem('studentToken');
+                    clearAuthSession();
                     navigate('/student/login');
                     throw err;
                 }
@@ -337,8 +338,7 @@ const StudentProfile = () => {
                         } catch {
                             // no-op
                         }
-                        localStorage.removeItem('studentToken');
-                        localStorage.removeItem('studentInfo');
+                        clearAuthSession();
                         window.location.replace('/student/login');
                     }}
                     className="mt-6 flex w-full items-center justify-center gap-2   rounded-[10px] bg-white px-4 py-4 text-sm font-extrabold text-rose-500 border border-rose-100 shadow-sm transition active:scale-95"

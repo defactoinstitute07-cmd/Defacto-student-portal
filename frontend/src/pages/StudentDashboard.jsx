@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../services/api';
+import api, { clearAuthSession } from '../services/api';
 import {
   AlertTriangle,
   ArrowRight,
@@ -113,7 +113,7 @@ const StudentDashboard = () => {
         throw new Error('Failed to load');
       } catch (err) {
         if (err.response?.status === 401) {
-          localStorage.removeItem('studentToken');
+          clearAuthSession();
           navigate('/student/login');
           throw err;
         }
@@ -140,7 +140,7 @@ const StudentDashboard = () => {
         throw new Error('Failed to load fees');
       } catch (err) {
         if (err.response?.status === 401) {
-          localStorage.removeItem('studentToken');
+          clearAuthSession();
           navigate('/student/login');
           throw err;
         }

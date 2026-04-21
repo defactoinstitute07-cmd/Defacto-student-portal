@@ -8,9 +8,9 @@ const Subject = require('../models/Subject');
 const Syllabus = require('../models/Syllabus');
 const ChapterCompletion = require('../models/ChapterCompletion');
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const { invalidateUserCache } = require('../middleware/cache');
 const { sendApiError } = require('../utils/apiError');
+const { issueStudentSession } = require('../utils/mobileAuth');
 
 const escapeRegex = (value = '') => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const normalizeKey = (value = '') => String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
@@ -485,30 +485,24 @@ exports.studentLogin = async (req, res) => {
         const now = new Date();
         const portalAccess = student.portalAccess || {};
 
-        // Fire-and-forget: don't block the login response for activity tracking
-        Student.updateOne(
-            { _id: student._id },
-            {
-                $set: {
-                    portalAccess: {
-                        signupStatus: portalAccess.signupStatus || 'yes',
-                        signedUpAt: portalAccess.signedUpAt || now,
-                        lastLoginAt: now
-                    },
-                    lastActiveAt: now,
-                    lastAppOpenAt: now
-                }
-            }
-        ).catch(() => {});
-
-        // Generate JWT token
-        const payload = {
-            id: student._id,
-            rollNo: student.rollNo,
-            name: student.name
+        student.portalAccess = {
+            signupStatus: portalAccess.signupStatus || 'yes',
+            signedUpAt: portalAccess.signedUpAt || now,
+            lastLoginAt: now
         };
+        student.lastActiveAt = now;
+        student.lastAppOpenAt = now;
 
-        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '10m' });
+        const session = await issueStudentSession(student, {
+            platform: 'web',
+            appType: 'web',
+            appVersion: 'web',
+            deviceId: req.get('user-agent') || 'browser',
+            model: 'browser',
+            manufacturer: 'browser'
+        }, null, {
+            client: 'web'
+        });
 
         const needsSetup = student.isFirstLogin || !student.profileImage;
 
@@ -539,7 +533,11 @@ exports.studentLogin = async (req, res) => {
         res.json({
             success: true,
             message: 'Login successful',
-            token,
+            token: session.accessToken,
+            accessToken: session.accessToken,
+            refreshToken: session.refreshToken,
+            accessTokenExpiresAt: session.accessTokenExpiresAt?.toISOString() || null,
+            expiresInSeconds: session.expiresInSeconds,
             student: {
                 id: student._id,
                 name: student.name,
@@ -1404,7 +1402,15 @@ exports.completeSetup = async (req, res) => {
 
         const needsSetup = student.isFirstLogin || !student.profileImage;
         if (!needsSetup) {
-            return res.status(400).json({ success: false, message: 'Setup already completed' });
+            return res.json({
+                success: true,
+                message: 'Setup already completed',
+                student: {
+                    profileImage: student.profileImage || null,
+                    isFirstLogin: false,
+                    needsSetup: false
+                }
+            });
         }
 
         if (!req.file) {

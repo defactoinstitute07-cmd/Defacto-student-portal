@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Skeleton from '../components/Skeleton';
-import api from '../services/api';
+import api, { clearAuthSession } from '../services/api';
 import StudentLayout from '../components/StudentLayout';
 import {
     Award, TrendingUp, TrendingDown, BookOpen,
@@ -184,7 +184,7 @@ const StudentResults = () => {
             throw new Error('Failed to load results');
         } catch (err) {
             if (err.response?.status === 401) {
-                localStorage.removeItem('studentToken');
+                clearAuthSession();
                 navigate('/student/login');
                 throw err;
             }

@@ -5,6 +5,7 @@ const {
     buildStudentLoginResponse,
     hashRefreshToken,
     issueMobileSession,
+    refreshStudentSession,
     normalizeDeviceInfo,
     pruneMobileRefreshSessions
 } = require('../utils/mobileAuth');
@@ -124,7 +125,14 @@ exports.mobileRefresh = async (req, res) => {
         }
 
         await updateStudentActivity(student, req.body);
-        const session = await issueMobileSession(student, req.body, existingSession._id);
+        const client = String(req.body?.appType || req.body?.client || '')
+            .trim()
+            .toLowerCase() === 'web'
+            ? 'web'
+            : 'mobile';
+        const session = await refreshStudentSession(student, refreshToken, req.body, existingSession._id, {
+            client
+        });
 
         res.json({
             success: true,

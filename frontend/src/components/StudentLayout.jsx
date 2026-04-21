@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageToggleButton from './LanguageToggleButton';
+import { clearAuthSession } from '../services/api';
 
 const NAV_ITEMS = [
     {
@@ -59,8 +60,7 @@ const StudentLayout = ({ children, title, backUrl, useHistoryBack = false, hideM
         } catch {
             // no-op
         }
-        localStorage.removeItem('studentToken');
-        localStorage.removeItem('studentInfo');
+        clearAuthSession();
         window.location.replace('/student/login');
     };
 
@@ -111,15 +111,21 @@ const StudentLayout = ({ children, title, backUrl, useHistoryBack = false, hideM
             )}
 
             {/* Sidebar */}
-            <nav className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-[#0b0f15] transition-all duration-300 ease-in-out
-                ${mobileOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'} 
-                md:relative md:translate-x-0 
-                ${mini ? 'w-20' : 'w-64'}`}
+            <nav className={`fixed inset-y-0 left-0 z-50 flex flex-col 
+    bg-white !bg-white opacity-100
+    transition-all duration-300 ease-in-out
+    ${mobileOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'} 
+    md:relative md:translate-x-0 
+    ${mini ? 'w-20' : 'w-64'}`}
             >
                 {/* Brand Header */}
-                <div className={`flex items-center gap-2.5 p-3 md:gap-3 md:px-4 md:py-4 shrink-0 
-                    ${mini && !mobileOpen ? 'justify-center' : 'w-full'}`}>
+                <div
+                    className={`flex items-center gap-2.5 p-3 md:gap-3 md:px-4 md:py-4 shrink-0 
+  relative
+  ${mini && !mobileOpen ? 'justify-center' : 'w-full'}`}
+                >
 
+                    {/* Logo */}
                     <div className="flex items-center justify-center shrink-0" aria-hidden="true">
                         <img
                             src="https://res.cloudinary.com/dsks5swu1/image/upload/v1775565407/erp_uploads/xcoemwx25dr8gcjkm4ha.png"
@@ -128,16 +134,32 @@ const StudentLayout = ({ children, title, backUrl, useHistoryBack = false, hideM
                         />
                     </div>
 
+                    {/* Text */}
                     {(!mini || mobileOpen) && (
                         <div className="flex flex-col justify-center whitespace-nowrap overflow-hidden">
-                            <div className="text-[#FFD700] text-[20px] font-bold font-sans leading-tight tracking-[0.5px]">
+
+                            {/* Gradient Title */}
+                            <div
+                                className="text-[27px] font-bold font-sans leading-tight tracking-[0.5px] 
+        bg-gradient-to-br from-[#FFD700] via-[#FFC300] to-[#FF8C00] 
+        bg-clip-text text-transparent"
+                            >
                                 Defacto
                             </div>
-                            <div className="text-white text-[11px] font-medium mt-0.5 tracking-[0.5px]">
+
+                            {/* Subtitle */}
+                            <div className="text-black text-[13px] font-medium mt-0.5 tracking-[0.5px]">
                                 Institute <span className="text-[#888888] mx-[2px]">|</span> BHANIYAWALA
                             </div>
                         </div>
                     )}
+
+                    {/* 🔥 Premium Bottom Gradient Line */}
+                    <div className="absolute bottom-0 left-4 right-4 h-[2px] 
+    bg-gradient-to-r from-[#FFD700] via-[#FFC300] to-[#FF8C00] 
+    rounded-full opacity-80">
+                    </div>
+
                 </div>
 
                 {/* Navigation Links */}
@@ -157,11 +179,11 @@ const StudentLayout = ({ children, title, backUrl, useHistoryBack = false, hideM
                                         <Link
                                             key={item.to}
                                             to={item.to}
-                                            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors duration-200
+                                            className={`flex items-center gap-3 px-4 py-4 rounded-lg transition-colors duration-200
                                                 ${mini && !mobileOpen ? 'justify-center' : ''}
                                                 ${active
-                                                    ? 'bg-blue-600/15 text-blue-400 font-medium'
-                                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                                    ? 'bg-gradient-to-br from-[#FFD700] via-[#FFC300] to-[#FF8C00] text-gray-700 font-bold'
+                                                    : 'text-gray-700 hover:text-black hover:bg-white/5'
                                                 }`}
                                             onClick={() => setMobileOpen(false)}
                                             title={mini && !mobileOpen ? t(item.label) : ''}

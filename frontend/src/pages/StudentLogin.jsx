@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle, Download, LifeBuoy } from 'lucide-react';
 import axios from 'axios';
-import api from '../services/api';
+import api, { getStoredAccessToken, getStoredStudentInfo, saveAuthSession } from '../services/api';
 import { getFcmToken } from '../firebase';
 import instituteLogo from '../assets/icon.png';
 import { useLanguage } from '../context/LanguageContext';
@@ -68,10 +68,10 @@ const StudentLogin = () => {
             // no-op
         }
 
-        const token = localStorage.getItem('studentToken');
+        const token = getStoredAccessToken();
         if (!token) return;
         try {
-            const student = JSON.parse(localStorage.getItem('studentInfo') || '{}');
+            const student = getStoredStudentInfo() || {};
             const needsSetup = student?.needsSetup !== undefined
                 ? student.needsSetup
                 : (student?.isFirstLogin || !student?.profileImage);
@@ -139,14 +139,17 @@ const StudentLogin = () => {
                     rollNo: normalizedRollNo,
                     password
                 }, {
-                    timeout: 20000
+                    timeout: 60000
                 });
             }
 
             if (response.data.success) {
-                localStorage.setItem('studentToken', response.data.token);
-                localStorage.setItem('studentInfo', JSON.stringify(response.data.student));
-                localStorage.setItem('loginTimestamp', Date.now().toString());
+                saveAuthSession({
+                    token: response.data.token,
+                    refreshToken: response.data.refreshToken,
+                    student: response.data.student,
+                    accessTokenExpiresAt: response.data.accessTokenExpiresAt
+                });
 
                 registerDeviceToken(response.data.token);
                 sendAppOpenActivity();

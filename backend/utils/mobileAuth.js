@@ -1,7 +1,9 @@
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 
-const DEFAULT_ACCESS_TTL = process.env.MOBILE_ACCESS_TOKEN_TTL || '15m';
+const DEFAULT_MOBILE_ACCESS_TTL = process.env.MOBILE_ACCESS_TOKEN_TTL || '15m';
+const DEFAULT_WEB_ACCESS_TTL = process.env.WEB_ACCESS_TOKEN_TTL || '1h';
+const DEFAULT_SETUP_ACCESS_TOKEN_TTL = process.env.SETUP_ACCESS_TOKEN_TTL || '2h';
 const DEFAULT_REFRESH_DAYS = parseInt(process.env.MOBILE_REFRESH_TOKEN_DAYS || '30', 10);
 const DEFAULT_SESSION_LIMIT = parseInt(process.env.MOBILE_REFRESH_SESSION_LIMIT || '5', 10);
 
@@ -30,15 +32,31 @@ const buildStudentLoginResponse = (student) => {
     };
 };
 
-const createAccessToken = (student) => {
+const resolveAccessTtl = (student, options = {}) => {
+    if (options.accessTtl) {
+        return options.accessTtl;
+    }
+
+    if (options.client === 'web') {
+        return (student?.isFirstLogin || !student?.profileImage)
+            ? DEFAULT_SETUP_ACCESS_TOKEN_TTL
+            : DEFAULT_WEB_ACCESS_TTL;
+    }
+
+    return DEFAULT_MOBILE_ACCESS_TTL;
+};
+
+const createAccessToken = (student, options = {}) => {
     const payload = {
         id: student._id,
         rollNo: student.rollNo,
         name: student.name,
-        client: 'mobile'
+        client: options.client || 'mobile'
     };
 
-    return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: DEFAULT_ACCESS_TTL });
+    return jwt.sign(payload, process.env.JWT_SECRET, {
+        expiresIn: resolveAccessTtl(student, options)
+    });
 };
 
 const decodeExpiry = (token) => {
@@ -64,7 +82,7 @@ const getRefreshTokenExpiry = (now = new Date()) => {
     return new Date(now.getTime() + refreshDays * 24 * 60 * 60 * 1000);
 };
 
-const issueMobileSession = async (student, deviceInfo = {}, existingSessionId = null) => {
+const issueStudentSession = async (student, deviceInfo = {}, existingSessionId = null, options = {}) => {
     const now = new Date();
     pruneMobileRefreshSessions(student, now);
 
@@ -98,7 +116,7 @@ const issueMobileSession = async (student, deviceInfo = {}, existingSessionId = 
 
     await student.save();
 
-    const accessToken = createAccessToken(student);
+    const accessToken = createAccessToken(student, options);
     const accessTokenExpiresAt = decodeExpiry(accessToken);
 
     return {
@@ -111,10 +129,57 @@ const issueMobileSession = async (student, deviceInfo = {}, existingSessionId = 
     };
 };
 
+const refreshStudentSession = async (student, refreshToken, deviceInfo = {}, existingSessionId = null, options = {}) => {
+    const now = new Date();
+    pruneMobileRefreshSessions(student, now);
+
+    const existingSession = existingSessionId
+        ? student.mobileRefreshSessions.id(existingSessionId)
+        : student.mobileRefreshSessions.find((session) => session.tokenHash === hashRefreshToken(refreshToken));
+
+    if (!existingSession || existingSession.expiresAt <= now) {
+        throw new Error('refresh_session_invalid');
+    }
+
+    existingSession.lastUsedAt = now;
+
+    const normalizedDevice = normalizeDeviceInfo(deviceInfo);
+    if (Object.values(normalizedDevice).some(Boolean)) {
+        existingSession.device = normalizedDevice;
+    }
+
+    student.mobileRefreshSessions = student.mobileRefreshSessions
+        .sort((left, right) => right.lastUsedAt.getTime() - left.lastUsedAt.getTime())
+        .slice(0, Math.max(DEFAULT_SESSION_LIMIT, 1));
+
+    await student.save();
+
+    const accessToken = createAccessToken(student, options);
+    const accessTokenExpiresAt = decodeExpiry(accessToken);
+
+    return {
+        accessToken,
+        refreshToken,
+        accessTokenExpiresAt,
+        expiresInSeconds: accessTokenExpiresAt
+            ? Math.max(Math.floor((accessTokenExpiresAt.getTime() - now.getTime()) / 1000), 0)
+            : 0
+    };
+};
+
+const issueMobileSession = async (student, deviceInfo = {}, existingSessionId = null, options = {}) => (
+    issueStudentSession(student, deviceInfo, existingSessionId, {
+        client: 'mobile',
+        ...options
+    })
+);
+
 module.exports = {
     buildStudentLoginResponse,
     hashRefreshToken,
+    issueStudentSession,
     issueMobileSession,
+    refreshStudentSession,
     normalizeDeviceInfo,
     pruneMobileRefreshSessions
 };

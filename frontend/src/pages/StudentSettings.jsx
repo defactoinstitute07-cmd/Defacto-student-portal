@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../services/api';
+import api, { clearAuthSession } from '../services/api';
 import StudentLayout from '../components/StudentLayout';
 import {
     Lock, RefreshCcw, AlertTriangle,
@@ -56,9 +56,7 @@ const StudentSettings = () => {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('studentToken');
-        localStorage.removeItem('studentInfo');
-        localStorage.removeItem('loginTimestamp');
+        clearAuthSession();
         navigate('/student/login', { replace: true });
     };
 
@@ -175,4 +173,3 @@ const StudentSettings = () => {
 };
 
 export default StudentSettings;
-

@@ -3,6 +3,14 @@ import axios from 'axios';
 const LEGACY_API_ORIGIN = 'https://student-erp-server-api.vercel.app';
 const PRIMARY_API_ORIGIN = 'https://defacto-student-portal.vercel.app';
 
+const STORAGE_KEYS = {
+    token: 'studentToken',
+    refreshToken: 'studentRefreshToken',
+    studentInfo: 'studentInfo',
+    accessTokenExpiresAt: 'studentAccessTokenExpiresAt',
+    loginTimestamp: 'loginTimestamp'
+};
+
 const isPrivateOrLocalHost = (hostname = '') => {
     const host = String(hostname || '').trim().toLowerCase();
     if (!host) return false;
@@ -46,8 +54,6 @@ const shouldForcePublicApiOrigin = (rawBase) => {
 const normalizeBaseURL = (rawBase) => {
     const value = String(rawBase || '').trim();
     if (!value) {
-        // In production builds, avoid relative /api to prevent frontend-only hosts
-        // from returning "Server temporarily unavailable" during login.
         return import.meta.env.DEV ? '/api' : `${PRIMARY_API_ORIGIN}/api`;
     }
     if (!value.startsWith('http')) return value;
@@ -66,7 +72,7 @@ const normalizeBaseURL = (rawBase) => {
         }
 
         return url.toString().replace(/\/$/, '');
-    } catch (error) {
+    } catch {
         if (!value.includes('/api')) {
             return value.endsWith('/') ? `${value}api` : `${value}/api`;
         }
@@ -76,8 +82,6 @@ const normalizeBaseURL = (rawBase) => {
 };
 
 const getBaseURL = () => {
-    // During local development, always use Vite proxy so backend changes are testable
-    // without depending on deployed API routes.
     if (import.meta.env.DEV) {
         return '/api';
     }
@@ -91,26 +95,20 @@ const getBaseURL = () => {
 
     const envBase = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
 
-    // If the frontend is accessed from a private IP (like 192.168.x.x) on the same Wi-Fi
-    // intercept the request and point it to the local backend on port 5005 automatically.
     if (isPrivateOrLocalHost(appHost)) {
-        // If an explicit override is provided in env that is ALSO local, we respect it
         if (envBase) {
             try {
                 const url = new URL(envBase);
                 if (isPrivateOrLocalHost(url.hostname)) {
                     return normalizeBaseURL(envBase);
                 }
-            } catch (error) {
+            } catch {
                 // Ignore parsing errors
             }
         }
-        
-        // Otherwise guess the backend is on the same local IP at port 5005.
-        // This makes `npm run preview -- --host` "just work" for mobile devices.
-        const protocol = typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'http:' : 'http:';
+
         const targetHost = appHost === 'localhost' ? '127.0.0.1' : appHost;
-        return `${protocol}//${targetHost}:5005/api`;
+        return `http://${targetHost}:5005/api`;
     }
 
     if (shouldForcePublicApiOrigin(envBase)) {
@@ -120,10 +118,75 @@ const getBaseURL = () => {
     return normalizeBaseURL(envBase);
 };
 
-const api = axios.create({
-    baseURL: getBaseURL(),
-    timeout: 20000,
-});
+const safeStorage = {
+    getItem(key) {
+        if (typeof window === 'undefined') return null;
+        try {
+            return window.localStorage.getItem(key);
+        } catch {
+            return null;
+        }
+    },
+    setItem(key, value) {
+        if (typeof window === 'undefined' || value === undefined || value === null) return;
+        try {
+            window.localStorage.setItem(key, value);
+        } catch {
+            // Ignore storage failures
+        }
+    },
+    removeItem(key) {
+        if (typeof window === 'undefined') return;
+        try {
+            window.localStorage.removeItem(key);
+        } catch {
+            // Ignore storage failures
+        }
+    }
+};
+
+const parseStoredStudent = () => {
+    const rawStudent = safeStorage.getItem(STORAGE_KEYS.studentInfo);
+    if (!rawStudent) return null;
+
+    try {
+        return JSON.parse(rawStudent);
+    } catch {
+        return null;
+    }
+};
+
+const decodeJwtExpiry = (token) => {
+    const rawToken = String(token || '').trim();
+    if (!rawToken) return null;
+
+    try {
+        const [, payload] = rawToken.split('.');
+        if (!payload) return null;
+
+        const normalized = payload
+            .replace(/-/g, '+')
+            .replace(/_/g, '/')
+            .padEnd(Math.ceil(payload.length / 4) * 4, '=');
+
+        const decoded = JSON.parse(atob(normalized));
+        return decoded?.exp ? decoded.exp * 1000 : null;
+    } catch {
+        return null;
+    }
+};
+
+const resolveStoredExpiryMs = (token) => {
+    const rawExpiry = safeStorage.getItem(STORAGE_KEYS.accessTokenExpiresAt);
+    if (rawExpiry) {
+        const parsed = Date.parse(rawExpiry);
+        if (Number.isFinite(parsed)) {
+            return parsed;
+        }
+    }
+
+    return decodeJwtExpiry(token);
+};
 
 const normalizeAuthReason = (error) => {
     const rawReason = error?.response?.data?.error || error?.response?.data?.reason;
@@ -132,12 +195,170 @@ const normalizeAuthReason = (error) => {
     return String(rawReason).trim().toLowerCase().replace(/-/g, '_');
 };
 
-api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('studentToken');
+const isAuthRequest = (requestUrl = '') => /\/student\/(?:mobile\/)?(?:login|refresh|logout|register)/i.test(String(requestUrl || ''));
+
+const isTerminalRefreshFailure = (error) => {
+    const statusCode = error?.response?.status;
+    const authReason = normalizeAuthReason(error);
+
+    return statusCode === 401
+        || statusCode === 403
+        || ['session_expired', 'token_invalid', 'token_missing'].includes(authReason);
+};
+
+export const getStoredAccessToken = () => safeStorage.getItem(STORAGE_KEYS.token);
+export const getStoredRefreshToken = () => safeStorage.getItem(STORAGE_KEYS.refreshToken);
+export const getStoredStudentInfo = () => parseStoredStudent();
+
+export const clearAuthSession = () => {
+    safeStorage.removeItem(STORAGE_KEYS.token);
+    safeStorage.removeItem(STORAGE_KEYS.refreshToken);
+    safeStorage.removeItem(STORAGE_KEYS.studentInfo);
+    safeStorage.removeItem(STORAGE_KEYS.accessTokenExpiresAt);
+    safeStorage.removeItem(STORAGE_KEYS.loginTimestamp);
+};
+
+export const saveAuthSession = ({
+    token,
+    refreshToken,
+    student,
+    accessTokenExpiresAt
+} = {}) => {
+    const existingStudent = parseStoredStudent() || {};
+    const mergedStudent = student === undefined
+        ? existingStudent
+        : {
+            ...existingStudent,
+            ...student
+        };
+
     if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+        safeStorage.setItem(STORAGE_KEYS.token, token);
     }
-    return config;
+
+    if (typeof refreshToken === 'string' && refreshToken.trim()) {
+        safeStorage.setItem(STORAGE_KEYS.refreshToken, refreshToken.trim());
+    }
+
+    if (student !== undefined) {
+        safeStorage.setItem(STORAGE_KEYS.studentInfo, JSON.stringify(mergedStudent));
+    }
+
+    const resolvedExpiryMs = accessTokenExpiresAt
+        ? Date.parse(accessTokenExpiresAt)
+        : decodeJwtExpiry(token || getStoredAccessToken());
+
+    if (Number.isFinite(resolvedExpiryMs)) {
+        safeStorage.setItem(
+            STORAGE_KEYS.accessTokenExpiresAt,
+            new Date(resolvedExpiryMs).toISOString()
+        );
+    }
+};
+
+const shouldRefreshAccessToken = (token, skewMs = 30_000) => {
+    if (!token) return false;
+
+    const expiryMs = resolveStoredExpiryMs(token);
+    if (!Number.isFinite(expiryMs)) {
+        return false;
+    }
+
+    return Date.now() >= (expiryMs - skewMs);
+};
+
+const buildRefreshPayload = () => ({
+    refreshToken: getStoredRefreshToken(),
+    platform: 'web',
+    appType: 'web',
+    appVersion: 'web',
+    deviceId: typeof navigator !== 'undefined' ? navigator.userAgent : 'browser',
+    model: typeof navigator !== 'undefined' ? navigator.platform || 'browser' : 'browser',
+    manufacturer: 'browser'
+});
+
+const api = axios.create({
+    baseURL: getBaseURL(),
+    timeout: 60000,
+});
+
+const refreshClient = axios.create({
+    baseURL: getBaseURL(),
+    timeout: 60000,
+});
+
+let refreshPromise = null;
+
+const refreshStudentSession = async () => {
+    const existingRefreshToken = getStoredRefreshToken();
+    if (!existingRefreshToken) {
+        throw new Error('refresh_token_missing');
+    }
+
+    if (!refreshPromise) {
+        refreshPromise = refreshClient.post('/student/refresh', buildRefreshPayload())
+            .then((response) => {
+                if (!response?.data?.success || !response?.data?.token) {
+                    throw new Error('refresh_failed');
+                }
+
+                saveAuthSession({
+                    token: response.data.token,
+                    refreshToken: response.data.refreshToken || existingRefreshToken,
+                    student: response.data.student,
+                    accessTokenExpiresAt: response.data.accessTokenExpiresAt
+                });
+
+                return response.data;
+            })
+            .catch((error) => {
+                if (isTerminalRefreshFailure(error)) {
+                    clearAuthSession();
+                }
+                throw error;
+            })
+            .finally(() => {
+                refreshPromise = null;
+            });
+    }
+
+    return refreshPromise;
+};
+
+export const ensureFreshStudentSession = async () => {
+    const token = getStoredAccessToken();
+    const refreshToken = getStoredRefreshToken();
+
+    if (!refreshToken) {
+        return token;
+    }
+
+    if (!token || shouldRefreshAccessToken(token)) {
+        await refreshStudentSession();
+        return getStoredAccessToken();
+    }
+
+    return token;
+};
+
+api.interceptors.request.use(async (config) => {
+    const nextConfig = { ...config };
+    nextConfig.headers = nextConfig.headers || {};
+
+    if (!nextConfig.skipAuthRefresh && !isAuthRequest(nextConfig.url)) {
+        try {
+            await ensureFreshStudentSession();
+        } catch {
+            // Let the protected request fail and be handled by the response interceptor.
+        }
+    }
+
+    const token = getStoredAccessToken();
+    if (token) {
+        nextConfig.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return nextConfig;
 });
 
 api.interceptors.response.use(
@@ -151,17 +372,34 @@ api.interceptors.response.use(
             ? sessionStorage.getItem('auth_redirecting') === '1'
             : false;
 
-        // Never intercept 401s from login endpoints — let the login page handle them
-        const isLoginRequest = requestUrl.includes('/login') || requestUrl.includes('/register');
+        if (statusCode === 401 && !isAuthRequest(requestUrl) && !error?.config?._retry) {
+            const authReason = normalizeAuthReason(error);
+            const canRetryWithRefresh = !!getStoredRefreshToken()
+                && (!authReason || ['session_expired', 'token_invalid', 'token_missing'].includes(authReason));
 
-        if (statusCode === 401 && !isLoginRequest && !isLoginRoute && !authRedirectInProgress) {
+            if (canRetryWithRefresh) {
+                try {
+                    error.config._retry = true;
+                    await refreshStudentSession();
+                    error.config.headers = error.config.headers || {};
+                    error.config.headers.Authorization = `Bearer ${getStoredAccessToken()}`;
+                    return api(error.config);
+                } catch (refreshError) {
+                    if (!isTerminalRefreshFailure(refreshError)) {
+                        return Promise.reject(refreshError);
+                    }
+                    // Fall through to the redirect handler below.
+                }
+            }
+        }
+
+        if (statusCode === 401 && !isAuthRequest(requestUrl) && !isLoginRoute && !authRedirectInProgress) {
             try {
                 sessionStorage.setItem('auth_redirecting', '1');
             } catch {
                 // no-op
             }
-            localStorage.removeItem('studentToken');
-            localStorage.removeItem('studentInfo');
+            clearAuthSession();
             window.location.replace('/student/login');
         }
 

@@ -37,16 +37,24 @@ class WebPortalActivity : AppCompatActivity() {
         val token = intent.getStringExtra(EXTRA_TOKEN).orEmpty().ifBlank {
             sessionManager.getToken().orEmpty()
         }
+        val refreshToken = intent.getStringExtra(EXTRA_REFRESH_TOKEN).orEmpty().ifBlank {
+            sessionManager.getRefreshToken().orEmpty()
+        }
         val studentJson = intent.getStringExtra(EXTRA_STUDENT_JSON).orEmpty().ifBlank {
             sessionManager.getStudentJson().orEmpty()
         }
+        val accessTokenExpiresAt = intent.getStringExtra(EXTRA_ACCESS_TOKEN_EXPIRES_AT).orEmpty().ifBlank {
+            sessionManager.getAccessTokenExpiresAt().orEmpty()
+        }
 
-        if (token.isBlank() || studentJson.isBlank()) {
+        if ((token.isBlank() && refreshToken.isBlank()) || studentJson.isBlank()) {
             redirectToLogin()
             return
         }
 
-        PushTokenSyncer.syncCurrentToken(this, token)
+        if (token.isNotBlank()) {
+            PushTokenSyncer.syncCurrentToken(this, token)
+        }
 
         webView = findViewById(R.id.webView)
         pageLoading = findViewById(R.id.pageLoading)
@@ -81,11 +89,30 @@ class WebPortalActivity : AppCompatActivity() {
                 val currentUrl = url.orEmpty()
                 if (!didInjectSession) {
                     val tokenJs = JSONObject.quote(token)
+                    val refreshTokenJs = JSONObject.quote(refreshToken)
                     val studentJs = JSONObject.quote(studentJson)
+                    val expiryJs = JSONObject.quote(accessTokenExpiresAt)
                     val script = """
                         (function() {
-                            localStorage.setItem('studentToken', $tokenJs);
+                            if ($tokenJs && $tokenJs !== "") {
+                                localStorage.setItem('studentToken', $tokenJs);
+                            } else {
+                                localStorage.removeItem('studentToken');
+                            }
+
+                            if ($refreshTokenJs && $refreshTokenJs !== "") {
+                                localStorage.setItem('studentRefreshToken', $refreshTokenJs);
+                            } else {
+                                localStorage.removeItem('studentRefreshToken');
+                            }
+
                             localStorage.setItem('studentInfo', $studentJs);
+
+                            if ($expiryJs && $expiryJs !== "") {
+                                localStorage.setItem('studentAccessTokenExpiresAt', $expiryJs);
+                            } else {
+                                localStorage.removeItem('studentAccessTokenExpiresAt');
+                            }
                         })();
                     """.trimIndent()
 
@@ -99,8 +126,10 @@ class WebPortalActivity : AppCompatActivity() {
                     return
                 }
 
+                syncSessionFromWebStorage()
+
                 if (currentUrl.contains("/student/login")) {
-                    webView.loadUrl(Config.FRONTEND_URL)
+                    redirectToLogin()
                     return
                 }
 
@@ -146,6 +175,47 @@ class WebPortalActivity : AppCompatActivity() {
         webView.loadUrl(Config.FRONTEND_URL)
     }
 
+    private fun syncSessionFromWebStorage() {
+        val script = """
+            (function() {
+                return {
+                    token: localStorage.getItem('studentToken'),
+                    refreshToken: localStorage.getItem('studentRefreshToken'),
+                    studentInfo: localStorage.getItem('studentInfo'),
+                    accessTokenExpiresAt: localStorage.getItem('studentAccessTokenExpiresAt')
+                };
+            })();
+        """.trimIndent()
+
+        webView.evaluateJavascript(script) { rawResult ->
+            try {
+                if (rawResult.isNullOrBlank() || rawResult == "null") {
+                    return@evaluateJavascript
+                }
+
+                val payload = JSONObject(rawResult)
+                val tokenValue = payload.optString("token").takeIf { it.isNotBlank() }
+                val refreshTokenValue = payload.optString("refreshToken").takeIf { it.isNotBlank() }
+                val studentInfoValue = payload.optString("studentInfo").takeIf { it.isNotBlank() }
+                val expiryValue = payload.optString("accessTokenExpiresAt").takeIf { it.isNotBlank() }
+
+                if (tokenValue == null && refreshTokenValue == null && studentInfoValue.isNullOrBlank()) {
+                    sessionManager.clear()
+                    return@evaluateJavascript
+                }
+
+                sessionManager.saveSession(
+                    token = tokenValue,
+                    refreshToken = refreshTokenValue,
+                    studentJson = studentInfoValue,
+                    accessTokenExpiresAt = expiryValue
+                )
+            } catch (_: Exception) {
+                // Ignore serialization issues; the next navigation can sync again.
+            }
+        }
+    }
+
     private fun redirectToLogin() {
         sessionManager.clear()
         startActivity(Intent(this, LoginActivity::class.java))
@@ -153,10 +223,9 @@ class WebPortalActivity : AppCompatActivity() {
     }
 
     object Config {
-        // Change this to your local IP (e.g., "http://192.168.1.5:5005/") when testing locally.
         const val API_BASE_URL = "https://defacto-student-portal.vercel.app/"
         const val FRONTEND_URL = "https://student.defactoinstitute.in/"
-        
+
         fun getApiUrl(endpoint: String): String {
             val base = API_BASE_URL.removeSuffix("/")
             val cleanEndpoint = endpoint.removePrefix("/")
@@ -166,6 +235,8 @@ class WebPortalActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_TOKEN = "extra_token"
+        const val EXTRA_REFRESH_TOKEN = "extra_refresh_token"
         const val EXTRA_STUDENT_JSON = "extra_student_json"
+        const val EXTRA_ACCESS_TOKEN_EXPIRES_AT = "extra_access_token_expires_at"
     }
 }

@@ -7,7 +7,12 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.IOException
 
-data class LoginSuccess(val token: String, val studentJson: String)
+data class LoginSuccess(
+    val token: String,
+    val refreshToken: String,
+    val studentJson: String,
+    val accessTokenExpiresAt: String?
+)
 
 data class LoginError(val message: String)
 
@@ -52,16 +57,20 @@ class LoginRepository {
                 }
 
                 val token = json?.optString("token").orEmpty()
+                val refreshToken = json?.optString("refreshToken").orEmpty()
                 val studentObj = json?.optJSONObject("student")
+                val accessTokenExpiresAt = json?.optString("accessTokenExpiresAt")?.takeIf { it.isNotBlank() }
 
-                if (token.isBlank() || studentObj == null) {
+                if (token.isBlank() || refreshToken.isBlank() || studentObj == null) {
                     return LoginResult.Error(LoginError("Login failed. Please try again."))
                 }
 
                 LoginResult.Success(
                     LoginSuccess(
                         token = token,
-                        studentJson = studentObj.toString()
+                        refreshToken = refreshToken,
+                        studentJson = studentObj.toString(),
+                        accessTokenExpiresAt = accessTokenExpiresAt
                     )
                 )
             }
@@ -73,6 +82,6 @@ class LoginRepository {
     }
 
     companion object {
-        private val LOGIN_URL = WebPortalActivity.Config.getApiUrl("api/student/login")
+        private val LOGIN_URL = WebPortalActivity.Config.getApiUrl("api/student/mobile/login")
     }
 }
