@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
-import { Camera, Lock, CheckCircle2, AlertTriangle, RefreshCcw, ShieldCheck, Eye, EyeOff, ArrowRight, ArrowLeft, HelpCircle } from 'lucide-react';
+import { Camera, Lock, CheckCircle2, AlertTriangle, RefreshCcw, ShieldCheck, Eye, EyeOff, ArrowRight, ArrowLeft, HelpCircle, LogOut } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageToggleButton from '../components/LanguageToggleButton';
 
@@ -37,6 +37,13 @@ const StudentSetup = () => {
             navigate('/student/dashboard');
         }
     }, [navigate]);
+
+    const handleLogout = () => {
+        localStorage.removeItem('studentToken');
+        localStorage.removeItem('studentInfo');
+        localStorage.removeItem('loginTimestamp');
+        navigate('/student/login', { replace: true });
+    };
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -110,6 +117,14 @@ const StudentSetup = () => {
                 >
                     <HelpCircle size={14} />
                     <span>{t('Need Help?')}</span>
+                </button>
+                <button 
+                    onClick={handleLogout}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50/80 backdrop-blur-md border border-rose-100 rounded-full text-xs font-bold text-rose-600 hover:bg-rose-100 hover:border-rose-200 transition-all shadow-sm"
+                    title={t("Logout")}
+                >
+                    <LogOut size={14} />
+                    <span>{t('Logout')}</span>
                 </button>
                 <LanguageToggleButton variant="topbar" />
             </div>

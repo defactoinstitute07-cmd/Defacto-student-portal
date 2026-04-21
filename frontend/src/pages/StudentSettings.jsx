@@ -4,7 +4,7 @@ import api from '../services/api';
 import StudentLayout from '../components/StudentLayout';
 import {
     Lock, RefreshCcw, AlertTriangle,
-    CheckCircle2, Bell
+    CheckCircle2, Bell, LogOut
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -53,6 +53,13 @@ const StudentSettings = () => {
         } finally {
             setPwdLoading(false);
         }
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('studentToken');
+        localStorage.removeItem('studentInfo');
+        localStorage.removeItem('loginTimestamp');
+        navigate('/student/login', { replace: true });
     };
 
     return (
@@ -136,9 +143,36 @@ const StudentSettings = () => {
                     </div>
                 </section>
 
+                {/* Logout Section */}
+                <section className="mb-6 rounded-[10px] border border-rose-200/80 bg-white p-5 shadow-[0_18px_40px_rgba(15,23,42,0.06)] sm:p-6">
+                    <div className="flex items-center gap-2.5 mb-4">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-50 text-rose-600 border border-rose-100">
+                            <LogOut size={16} />
+                        </span>
+                        <div>
+                            <h3 className="text-sm font-black uppercase tracking-[0.16em] text-slate-800">{t('Logout')}</h3>
+                            <p className="text-xs text-slate-500 mt-0.5">{t('Sign out from your account')}</p>
+                        </div>
+                    </div>
+
+                    <p className="text-xs text-slate-500 leading-relaxed mb-4">
+                        {t('Your session will be cleared and you will be redirected to the login page. You can log back in anytime.')}
+                    </p>
+
+                    <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="w-full h-12 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black uppercase tracking-widest rounded-xl active:scale-[0.98] transition-all shadow-md shadow-rose-600/20 flex items-center justify-center gap-2"
+                    >
+                        <LogOut size={16} />
+                        {t('Logout')}
+                    </button>
+                </section>
+
             </div>
         </StudentLayout>
     );
 };
 
 export default StudentSettings;
+

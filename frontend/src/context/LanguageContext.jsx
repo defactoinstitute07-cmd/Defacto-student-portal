@@ -4,6 +4,10 @@ const LANGUAGE_STORAGE_KEY = 'studentPortalLanguage';
 
 const translations = {
     hi: {
+        'Birthday Greeting': 'जन्मदिन की बधाई',
+        'Happy Birthday': 'जन्मदिन मुबारक',
+        'May your day be filled with joy and success!': 'आपका दिन खुशी और सफलता से भरा हो!',
+        'Celebrate': 'जश्न मनाएं',
         'Language': 'भाषा',
         'English': 'English',
         'Hindi': 'हिंदी',

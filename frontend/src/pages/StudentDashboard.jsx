@@ -11,7 +11,10 @@ import {
   Hash,
   Star,
   User,
-  Wallet
+  Wallet,
+  Cake,
+  PartyPopper,
+  Gift
 } from 'lucide-react';
 import Skeleton from '../components/Skeleton';
 import { useQuery } from '@tanstack/react-query';
@@ -275,63 +278,102 @@ const StudentDashboard = () => {
     }
   ];
 
+  const isBirthday = (() => {
+    if (!student?.dob) return false;
+    const birthDate = new Date(student.dob);
+    const today = new Date();
+    return birthDate.getDate() === today.getDate() && 
+           birthDate.getMonth() === today.getMonth();
+  })();
+
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       {/* LIGHT THEME HERO SECTION */}
-<section className="relative overflow-hidden rounded-2xl sm:rounded-[24px] border border-slate-200 bg-gradient-to-br from-white to-slate-50 shadow-sm">
-    
-    {/* Subtle dot pattern background */}
-    <div className="absolute inset-0 opacity-[0.03] pointer-events-none [background-image:radial-gradient(circle_at_1px_1px,black_1px,transparent_0)] [background-size:20px_20px]" />
-
-    <div className="relative p-5 sm:p-8">
-        <div className="min-w-0">
-            
-            {/* Top Label Badge */}
-            <span className="inline-block px-3 py-1 bg-indigo-50 border border-indigo-100 rounded-full text-[10px] font-bold uppercase tracking-widest text-indigo-600 mb-3 sm:mb-4 shadow-sm">
-                {t('Student Dashboard')}
-            </span>
-            
-            {/* Welcome Text with Gradient Name */}
-            <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-slate-900 leading-tight">
-                {t('Welcome back')}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">{student.name}</span>
-            </h1>
-            
-            <p className="mt-2 sm:mt-3 max-w-2xl text-sm font-medium text-slate-500 sm:text-base leading-relaxed">
-                {t('Track your academic progress, attendance, and fee status from one clean dashboard.')}
-            </p>
-
-            {/* Info Chips - Now with subtle colorful icons */}
-            <div className="mt-5 sm:mt-6 flex flex-wrap gap-2.5">
-                
-                {/* Roll Number */}
-                <span className="inline-flex max-w-full items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition-all hover:border-indigo-200 hover:shadow-md">
-                    <Hash size={16} className="text-indigo-400" />
-                    <span className="truncate">{student.rollNo || '-'}</span>
-                </span>
-                
-                {/* Class / Batch Name */}
-                <span className="inline-flex max-w-full items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition-all hover:border-emerald-200 hover:shadow-md">
-                    <BookOpen size={16} className="text-emerald-400" />
-                    <span className="truncate">{student.className || student.batchName || 'N/A'}</span>
-                </span>
-                
-                {/* Batch Number */}
-                <span className="inline-flex max-w-full items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition-all hover:border-amber-200 hover:shadow-md">
-                    <Building2 size={16} className="text-amber-400" />
-                    <span className="truncate">{t('Batch')}: {batchName}</span>
-                </span>
-                
-                {/* Subjects */}
-                <span className="inline-flex max-w-full items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition-all hover:border-rose-200 hover:shadow-md">
-                    <User size={16} className="text-rose-400" />
-                    <span className="truncate">{subjectCount} {t('Subjects')}</span>
-                </span>
-                
+      {/* HERO SECTION */}
+      <section className={`relative overflow-hidden rounded-2xl sm:rounded-[24px] border shadow-sm transition-all duration-500 ${
+        isBirthday 
+        ? 'border-pink-200 bg-gradient-to-br from-[#FFF5F7] via-[#FFF9E6] to-[#F3F0FF]' 
+        : 'border-slate-200 bg-gradient-to-br from-white to-slate-50'
+      }`}>
+          
+          {/* Background pattern */}
+          {isBirthday ? (
+            <div className="absolute inset-0 opacity-[0.4] pointer-events-none">
+              <div className="absolute top-4 left-1/4 animate-bounce delay-150 text-pink-200/50"><PartyPopper size={48} /></div>
+              <div className="absolute top-12 right-1/4 animate-bounce delay-300 text-amber-200/50"><Cake size={40} /></div>
+              <div className="absolute bottom-8 left-1/3 animate-bounce delay-75 text-indigo-200/50"><Gift size={32} /></div>
+              <div className="absolute inset-0 [background-image:radial-gradient(circle_at_1px_1px,rgba(219,39,119,0.05)_1px,transparent_0)] [background-size:24px_24px]" />
             </div>
+          ) : (
+            <div className="absolute inset-0 opacity-[0.03] pointer-events-none [background-image:radial-gradient(circle_at_1px_1px,black_1px,transparent_0)] [background-size:20px_20px]" />
+          )}
 
-        </div>
-    </div>
-</section>
+          <div className="relative p-5 sm:p-8">
+              <div className="min-w-0">
+                  
+                  {/* Top Label Badge */}
+                  <span className={`inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-3 sm:mb-4 shadow-sm border ${
+                    isBirthday 
+                    ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white border-transparent animate-pulse' 
+                    : 'bg-indigo-50 border-indigo-100 text-indigo-600'
+                  }`}>
+                      {isBirthday ? (
+                        <div className="flex items-center gap-1.5">
+                          <PartyPopper size={10} />
+                          {t('Celebrate')}
+                          <Cake size={10} />
+                        </div>
+                      ) : t('Student Dashboard')}
+                  </span>
+                  
+                  {/* Welcome Text with Gradient Name */}
+                  <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-slate-900 leading-tight">
+                      {isBirthday ? t('Happy Birthday') : t('Welcome back')}, <span className={`text-transparent bg-clip-text bg-gradient-to-r ${
+                        isBirthday 
+                        ? 'from-rose-600 via-amber-500 to-violet-600' 
+                        : 'from-indigo-600 to-violet-600'
+                      }`}>{student.name}</span>
+                  </h1>
+                  
+                  <p className="mt-2 sm:mt-3 max-w-2xl text-sm font-medium text-slate-500 sm:text-base leading-relaxed">
+                      {isBirthday 
+                        ? t('May your day be filled with joy and success!') 
+                        : t('Track your academic progress, attendance, and fee status from one clean dashboard.')
+                      }
+                  </p>
+
+                  {/* Info Chips - Now with subtle colorful icons */}
+                  <div className="mt-5 sm:mt-6 flex flex-wrap gap-2.5">
+                      
+                      {/* Roll Number */}
+                      <span className="inline-flex max-w-full items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition-all hover:border-indigo-200 hover:shadow-md">
+                          <Hash size={16} className="text-indigo-400" />
+                          <span className="truncate">{student.rollNo || '-'}</span>
+                      </span>
+                      
+                      {/* Class / Batch Name */}
+                      <span className="inline-flex max-w-full items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition-all hover:border-emerald-200 hover:shadow-md">
+                          <BookOpen size={16} className="text-emerald-400" />
+                          <span className="truncate">{student.className || student.batchName || 'N/A'}</span>
+                      </span>
+                      
+                      {/* Batch Number */}
+                      <span className="inline-flex max-w-full items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition-all hover:border-amber-200 hover:shadow-md">
+                          <Building2 size={16} className="text-amber-400" />
+                          <span className="truncate">{t('Batch')}: {batchName}</span>
+                      </span>
+                      
+                      {/* Subjects */}
+                      <span className="inline-flex max-w-full items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition-all hover:border-rose-200 hover:shadow-md">
+                          <User size={16} className="text-rose-400" />
+                          <span className="truncate">{subjectCount} {t('Subjects')}</span>
+                      </span>
+                      
+                  </div>
+
+              </div>
+          </div>
+      </section>
 
       {error ? (
         <div className="flex items-center gap-2   rounded-[10px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">

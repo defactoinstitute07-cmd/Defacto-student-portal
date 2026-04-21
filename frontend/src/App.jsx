@@ -109,6 +109,7 @@ function App() {
             const student = JSON.parse(decodeURIComponent(studentParam));
             localStorage.setItem('studentToken', token);
             localStorage.setItem('studentInfo', JSON.stringify(student));
+            localStorage.setItem('loginTimestamp', Date.now().toString());
 
             url.searchParams.delete('token');
             url.searchParams.delete('student');
@@ -116,6 +117,26 @@ function App() {
         } catch {
             // Ignore malformed bootstrap params
         }
+    }, []);
+
+    // ── Session expiry check (10 minutes) ──
+    useEffect(() => {
+        const SESSION_DURATION_MS = 10 * 60 * 1000; // 10 minutes
+        const checkSession = () => {
+            const loginTs = localStorage.getItem('loginTimestamp');
+            const token = localStorage.getItem('studentToken');
+            if (!token || !loginTs) return;
+            const elapsed = Date.now() - Number(loginTs);
+            if (elapsed >= SESSION_DURATION_MS) {
+                localStorage.removeItem('studentToken');
+                localStorage.removeItem('studentInfo');
+                localStorage.removeItem('loginTimestamp');
+                window.location.href = '/student/login';
+            }
+        };
+        checkSession();
+        const interval = setInterval(checkSession, 30_000); // check every 30s
+        return () => clearInterval(interval);
     }, []);
 
     const isLoggedIn = !!localStorage.getItem('studentToken');

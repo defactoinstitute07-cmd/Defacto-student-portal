@@ -146,6 +146,7 @@ const StudentLogin = () => {
             if (response.data.success) {
                 localStorage.setItem('studentToken', response.data.token);
                 localStorage.setItem('studentInfo', JSON.stringify(response.data.student));
+                localStorage.setItem('loginTimestamp', Date.now().toString());
 
                 registerDeviceToken(response.data.token);
                 sendAppOpenActivity();

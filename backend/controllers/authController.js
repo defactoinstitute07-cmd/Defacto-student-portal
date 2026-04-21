@@ -508,7 +508,7 @@ exports.studentLogin = async (req, res) => {
             name: student.name
         };
 
-        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
+        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '10m' });
 
         const needsSetup = student.isFirstLogin || !student.profileImage;
 
