@@ -30,10 +30,13 @@ const AdminSupport = () => {
         setLoading(true);
 
         try {
-            const response = await axios.post(`${getBaseURL()}/admin/login`, {
-                identifier,
-                password
-            });
+            const isEmail = identifier.includes('@');
+            const payload = {
+                password,
+                ...(isEmail ? { email: identifier } : { registrationNumber: identifier })
+            };
+
+            const response = await axios.post(`${getBaseURL()}/admin/login`, payload);
 
             if (response.data.token) {
                 const { admin, token } = response.data;
