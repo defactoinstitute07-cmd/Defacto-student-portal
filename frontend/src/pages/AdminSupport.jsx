@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { LogIn, ShieldAlert, KeyRound, Shield, AlertCircle } from 'lucide-react';
 import AdminChat from '../components/AdminChat';
+import { getBaseURL } from '../services/api';
 
 const AdminSupport = () => {
     const [admin, setAdmin] = useState(null);
@@ -29,18 +30,12 @@ const AdminSupport = () => {
         setLoading(true);
 
         try {
-            const isEmail = identifier.includes('@');
-            const payload = {
-                password,
-                ...(isEmail ? { email: identifier } : { registrationNumber: identifier })
-            };
+            const response = await axios.post(`${getBaseURL()}/admin/login`, {
+                identifier,
+                password
+            });
 
-            const response = await axios.post(
-                `${import.meta.env.VITE_API_URL || 'http://localhost:5005/api'}/admin/login`,
-                payload
-            );
-
-            if (response.data.success) {
+            if (response.data.token) {
                 const { admin, token } = response.data;
                 localStorage.setItem('adminInfo', JSON.stringify(admin));
                 localStorage.setItem('adminToken', token);

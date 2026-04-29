@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 import { Search, Send, CheckCheck, MessageCircle, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { getBaseURL } from '../services/api';
 
 const AdminChat = ({ currentAdminId }) => {
     const [conversations, setConversations] = useState([]);
@@ -15,7 +16,7 @@ const AdminChat = ({ currentAdminId }) => {
     const getAdminApi = () => {
         const token = localStorage.getItem('adminToken');
         return axios.create({
-            baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5005/api',
+            baseURL: getBaseURL(),
             headers: { Authorization: `Bearer ${token}` }
         });
     };

@@ -24,8 +24,8 @@ class WebPortalActivity : AppCompatActivity() {
     private lateinit var pageLoading: ProgressBar
     private lateinit var sessionManager: SessionManager
 
-    private var didInjectSession = false
-    private var didReloadAfterInject = false
+    /** Tracks whether the very first injection + reload cycle has completed. */
+    private var initialInjectionDone = false
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,6 +34,7 @@ class WebPortalActivity : AppCompatActivity() {
 
         sessionManager = SessionManager(this)
 
+        // Prefer intent extras; fall back to SharedPreferences.
         val token = intent.getStringExtra(EXTRA_TOKEN).orEmpty().ifBlank {
             sessionManager.getToken().orEmpty()
         }
@@ -47,6 +48,7 @@ class WebPortalActivity : AppCompatActivity() {
             sessionManager.getAccessTokenExpiresAt().orEmpty()
         }
 
+        // If we have absolutely no credentials, the user hasn't logged in.
         if ((token.isBlank() && refreshToken.isBlank()) || studentJson.isBlank()) {
             redirectToLogin()
             return
@@ -55,6 +57,9 @@ class WebPortalActivity : AppCompatActivity() {
         if (token.isNotBlank()) {
             PushTokenSyncer.syncCurrentToken(this, token)
         }
+
+        // Persist the freshest values into SharedPreferences so they survive WebView evictions.
+        sessionManager.saveSession(token, refreshToken, studentJson, accessTokenExpiresAt)
 
         webView = findViewById(R.id.webView)
         pageLoading = findViewById(R.id.pageLoading)
@@ -87,51 +92,44 @@ class WebPortalActivity : AppCompatActivity() {
                 super.onPageFinished(view, url)
 
                 val currentUrl = url.orEmpty()
-                if (!didInjectSession) {
-                    val tokenJs = JSONObject.quote(token)
-                    val refreshTokenJs = JSONObject.quote(refreshToken)
-                    val studentJs = JSONObject.quote(studentJson)
-                    val expiryJs = JSONObject.quote(accessTokenExpiresAt)
-                    val script = """
-                        (function() {
-                            if ($tokenJs && $tokenJs !== "") {
-                                localStorage.setItem('studentToken', $tokenJs);
-                            } else {
-                                localStorage.removeItem('studentToken');
-                            }
 
-                            if ($refreshTokenJs && $refreshTokenJs !== "") {
-                                localStorage.setItem('studentRefreshToken', $refreshTokenJs);
-                            } else {
-                                localStorage.removeItem('studentRefreshToken');
-                            }
-
-                            localStorage.setItem('studentInfo', $studentJs);
-
-                            if ($expiryJs && $expiryJs !== "") {
-                                localStorage.setItem('studentAccessTokenExpiresAt', $expiryJs);
-                            } else {
-                                localStorage.removeItem('studentAccessTokenExpiresAt');
-                            }
-                        })();
-                    """.trimIndent()
-
-                    webView.evaluateJavascript(script, null)
-                    didInjectSession = true
-                }
-
-                if (!didReloadAfterInject) {
-                    didReloadAfterInject = true
-                    webView.loadUrl(Config.FRONTEND_URL)
+                if (!initialInjectionDone) {
+                    // First load: inject session and reload so the web app picks it up.
+                    injectSessionIntoWebView {
+                        initialInjectionDone = true
+                        webView.loadUrl(Config.FRONTEND_URL)
+                    }
                     return
                 }
 
-                syncSessionFromWebStorage()
+                // On every subsequent page load, re-inject session from SharedPreferences
+                // into localStorage. This covers cases where the WebView cleared its data
+                // (memory pressure, OS-level cache wipe, etc.).
+                reinjectSessionIfNeeded()
 
+                // If the web app redirected to the login page, it means the web-side
+                // refresh token flow failed. Before giving up, try re-injecting from
+                // SharedPreferences and reloading — only redirect to native login if
+                // we genuinely have no credentials left.
                 if (currentUrl.contains("/student/login")) {
+                    val spRefresh = sessionManager.getRefreshToken()
+                    val spStudent = sessionManager.getStudentJson()
+                    if (!spRefresh.isNullOrBlank() && !spStudent.isNullOrBlank()) {
+                        // We still have valid credentials in SharedPreferences.
+                        // Re-inject them and navigate back to the portal.
+                        injectSessionIntoWebView {
+                            webView.loadUrl(Config.FRONTEND_URL)
+                        }
+                        return
+                    }
+                    // SharedPreferences are also empty → genuine logout.
                     redirectToLogin()
                     return
                 }
+
+                // Sync any updated tokens the web app may have written back to localStorage
+                // (e.g. after a refresh-token rotation) into SharedPreferences.
+                syncSessionFromWebStorage()
 
                 pageLoading.visibility = View.GONE
             }
@@ -175,6 +173,82 @@ class WebPortalActivity : AppCompatActivity() {
         webView.loadUrl(Config.FRONTEND_URL)
     }
 
+    /**
+     * Injects the full session (token, refreshToken, studentInfo, expiry) from
+     * SharedPreferences into the WebView's localStorage, then invokes [onDone].
+     */
+    private fun injectSessionIntoWebView(onDone: (() -> Unit)? = null) {
+        val tokenJs = JSONObject.quote(sessionManager.getToken().orEmpty())
+        val refreshTokenJs = JSONObject.quote(sessionManager.getRefreshToken().orEmpty())
+        val studentJs = JSONObject.quote(sessionManager.getStudentJson().orEmpty())
+        val expiryJs = JSONObject.quote(sessionManager.getAccessTokenExpiresAt().orEmpty())
+
+        val script = """
+            (function() {
+                if ($tokenJs && $tokenJs !== "") {
+                    localStorage.setItem('studentToken', $tokenJs);
+                } else {
+                    localStorage.removeItem('studentToken');
+                }
+
+                if ($refreshTokenJs && $refreshTokenJs !== "") {
+                    localStorage.setItem('studentRefreshToken', $refreshTokenJs);
+                } else {
+                    localStorage.removeItem('studentRefreshToken');
+                }
+
+                if ($studentJs && $studentJs !== "") {
+                    localStorage.setItem('studentInfo', $studentJs);
+                }
+
+                if ($expiryJs && $expiryJs !== "") {
+                    localStorage.setItem('studentAccessTokenExpiresAt', $expiryJs);
+                } else {
+                    localStorage.removeItem('studentAccessTokenExpiresAt');
+                }
+            })();
+        """.trimIndent()
+
+        webView.evaluateJavascript(script) {
+            onDone?.invoke()
+        }
+    }
+
+    /**
+     * Checks if the WebView's localStorage has lost its refresh token (e.g. due to
+     * cache eviction). If so, re-injects the session from SharedPreferences.
+     * This is the key mechanism that keeps users logged in across WebView restarts.
+     */
+    private fun reinjectSessionIfNeeded() {
+        val checkScript = """
+            (function() {
+                var rt = localStorage.getItem('studentRefreshToken');
+                var si = localStorage.getItem('studentInfo');
+                return (rt && rt !== '' && si && si !== '') ? 'ok' : 'missing';
+            })();
+        """.trimIndent()
+
+        webView.evaluateJavascript(checkScript) { result ->
+            val value = result?.replace("\"", "") ?: ""
+            if (value == "missing") {
+                val spRefresh = sessionManager.getRefreshToken()
+                val spStudent = sessionManager.getStudentJson()
+                if (!spRefresh.isNullOrBlank() && !spStudent.isNullOrBlank()) {
+                    injectSessionIntoWebView()
+                }
+            }
+        }
+    }
+
+    /**
+     * Reads the current session values from the WebView's localStorage and
+     * persists them into SharedPreferences. This captures token rotations
+     * performed by the web app's axios interceptor.
+     *
+     * IMPORTANT: If localStorage is empty, we do NOT clear SharedPreferences.
+     * The web frontend may have lost its storage due to eviction, but
+     * SharedPreferences still holds the last known-good session.
+     */
     private fun syncSessionFromWebStorage() {
         val script = """
             (function() {
@@ -190,6 +264,7 @@ class WebPortalActivity : AppCompatActivity() {
         webView.evaluateJavascript(script) { rawResult ->
             try {
                 if (rawResult.isNullOrBlank() || rawResult == "null") {
+                    // WebView returned nothing — do NOT clear SharedPreferences.
                     return@evaluateJavascript
                 }
 
@@ -200,10 +275,12 @@ class WebPortalActivity : AppCompatActivity() {
                 val expiryValue = payload.optString("accessTokenExpiresAt").takeIf { it.isNotBlank() }
 
                 if (tokenValue == null && refreshTokenValue == null && studentInfoValue.isNullOrBlank()) {
-                    sessionManager.clear()
+                    // localStorage is empty, but this could be a WebView data eviction.
+                    // Do NOT call sessionManager.clear() — preserve SharedPreferences.
                     return@evaluateJavascript
                 }
 
+                // Only persist if we actually have meaningful data from localStorage.
                 sessionManager.saveSession(
                     token = tokenValue,
                     refreshToken = refreshTokenValue,

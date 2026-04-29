@@ -12,7 +12,14 @@ class SplashActivity : AppCompatActivity() {
         setContentView(R.layout.activity_splash)
 
         Handler(Looper.getMainLooper()).postDelayed({
-            startActivity(Intent(this, LoginActivity::class.java))
+            val session = SessionManager(this)
+            val target = if (session.hasSession()) {
+                // User already has a saved session — go straight to the portal.
+                WebPortalActivity::class.java
+            } else {
+                LoginActivity::class.java
+            }
+            startActivity(Intent(this, target))
             finish()
         }, SPLASH_DELAY_MS)
     }

@@ -81,7 +81,7 @@ const normalizeBaseURL = (rawBase) => {
     }
 };
 
-const getBaseURL = () => {
+export const getBaseURL = () => {
     if (import.meta.env.DEV) {
         return '/api';
     }

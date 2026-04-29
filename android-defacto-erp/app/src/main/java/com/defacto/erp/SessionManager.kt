@@ -17,10 +17,21 @@ class SessionManager(context: Context) {
         }
 
         prefs.edit().apply {
-            putString(KEY_TOKEN, token)
-            putString(KEY_REFRESH_TOKEN, refreshToken)
-            putString(KEY_STUDENT_JSON, studentJson)
-            putString(KEY_ACCESS_TOKEN_EXPIRES_AT, accessTokenExpiresAt)
+            // Only overwrite each field if the new value is non-blank.
+            // This prevents a partial sync (e.g. after a token rotation where only
+            // the access token changed) from accidentally blanking the refresh token.
+            if (!token.isNullOrBlank()) {
+                putString(KEY_TOKEN, token)
+            }
+            if (!refreshToken.isNullOrBlank()) {
+                putString(KEY_REFRESH_TOKEN, refreshToken)
+            }
+            if (!studentJson.isNullOrBlank()) {
+                putString(KEY_STUDENT_JSON, studentJson)
+            }
+            if (!accessTokenExpiresAt.isNullOrBlank()) {
+                putString(KEY_ACCESS_TOKEN_EXPIRES_AT, accessTokenExpiresAt)
+            }
             apply()
         }
     }
@@ -30,6 +41,12 @@ class SessionManager(context: Context) {
 
     fun getStudentJson(): String? = prefs.getString(KEY_STUDENT_JSON, null)
     fun getAccessTokenExpiresAt(): String? = prefs.getString(KEY_ACCESS_TOKEN_EXPIRES_AT, null)
+
+    fun hasSession(): Boolean {
+        val refresh = getRefreshToken()
+        val student = getStudentJson()
+        return !refresh.isNullOrBlank() && !student.isNullOrBlank()
+    }
 
     fun clear() {
         prefs.edit().clear().apply()
