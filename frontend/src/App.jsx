@@ -69,6 +69,7 @@ const ContactSupport = lazy(() => import('./pages/ContactSupport'));
 const Leaderboard = lazy(() => import('./pages/Leaderboard'));
 const StudentSettings = lazy(() => import('./pages/StudentSettings'));
 const StudentTabController = lazy(() => import('./pages/StudentTabController'));
+const AdminSupport = lazy(() => import('./pages/AdminSupport'));
 
 const getStoredStudentRoute = () => {
     const token = getStoredAccessToken();
@@ -145,6 +146,7 @@ function App() {
                                         : <StudentLogin />
                                 }
                             />
+                            <Route path="/student/admin-support" element={<AdminSupport />} />
                             <Route path="/student/setup" element={<StudentSetup />} />
                             <Route path="/student/setup-help" element={<SetupHelpForm />} />
                             <Route path="/student/dashboard" element={<StudentTabController />} />

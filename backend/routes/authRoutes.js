@@ -9,6 +9,9 @@ const { cacheMiddleware } = require('../middleware/cache');
 // Add Student (Admin Side)
 router.post('/students/add', authController.addStudent);
 
+// Admin Login
+router.post('/admin/login', authController.adminLogin);
+
 // Student Login
 router.post('/student/login', authController.studentLogin);
 router.get('/student/login', (req, res) => {

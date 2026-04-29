@@ -200,12 +200,12 @@ const StudentProfile = () => {
 
     return (
         <div className="mx-auto max-w-2xl p0">
-            
+
             {/* 1. Header Card - Avatar & Primary Info */}
             <div className="relative overflow-hidden rounded-[15px] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] sm:p-8">
                 {/* Decorative Background Pattern */}
                 <div className="absolute -right-8 -top-8 h-40 w-40   rounded-[10px] bg-indigo-50/50" />
-                
+
                 <div className="relative flex flex-col items-center gap-5 sm:flex-row sm:text-left">
                     <div className="relative h-24 w-24 shrink-0">
                         <div className="h-full w-full overflow-hidden rounded-[15px] border-4 border-white bg-slate-50 shadow-md">
@@ -242,33 +242,33 @@ const StudentProfile = () => {
 
             {/* 2. Grid for Sections */}
             <div className="mt-6 grid grid-cols-1 gap-6">
-                
+
                 {/* Academic Summary */}
                 <section>
                     <SectionHeader title={t('Academic Summary')} />
-                                        <div className="   rounded-[10px] border border-gray-100 bg-white p-5 shadow-sm">
-                                                <div className="flex items-center justify-between">
-                                                        <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                                                                {t('Attendance')}
-                                                        </span>
-                                                        <span className={`text-lg font-black ${getAttendanceTextColor(attendancePercent)}`}>
-                                                                {attendancePercent}%
-                                                        </span>
-                                                </div>
+                    <div className="   rounded-[10px] border border-gray-100 bg-white p-5 shadow-sm">
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                                {t('Attendance')}
+                            </span>
+                            <span className={`text-lg font-black ${getAttendanceTextColor(attendancePercent)}`}>
+                                {attendancePercent}%
+                            </span>
+                        </div>
 
-                                                <div className="mt-3 h-2 w-full overflow-hidden   rounded-[10px] bg-slate-100">
-                                                        <div
-                                                                className={`h-full transition-all ${getAttendanceColor(attendancePercent)}`}
-                                                                style={{ width: `${attendancePercent}%` }}
-                                                        />
-                                                </div>
+                        <div className="mt-3 h-2 w-full overflow-hidden   rounded-[10px] bg-slate-100">
+                            <div
+                                className={`h-full transition-all ${getAttendanceColor(attendancePercent)}`}
+                                style={{ width: `${attendancePercent}%` }}
+                            />
+                        </div>
 
-                                                <div className="mt-5 space-y-3">
-                                                        <DetailRow icon={BookOpen} label={t('Current Session')} value={student.session} colorClass="text-indigo-600" />
-                                                        <DetailRow icon={Calendar} label={t('Admission Date')} value={formatDateValue(student.admissionDate, locale)} colorClass="text-indigo-600" />
-                                                        <DetailRow icon={UserCheck} label={t('Account Status')} value={academicStatus} colorClass="text-indigo-600" />
-                                                </div>
-                                        </div>
+                        <div className="mt-5 space-y-3">
+                            <DetailRow icon={BookOpen} label={t('Current Session')} value={student.session} colorClass="text-indigo-600" />
+                            <DetailRow icon={Calendar} label={t('Admission Date')} value={formatDateValue(student.admissionDate, locale)} colorClass="text-indigo-600" />
+                            <DetailRow icon={UserCheck} label={t('Account Status')} value={academicStatus} colorClass="text-indigo-600" />
+                        </div>
+                    </div>
                 </section>
 
                 {/* Batch Details */}
@@ -323,15 +323,15 @@ const StudentProfile = () => {
             <section>
                 <SectionHeader title={t('Settings & Support')} />
                 <div className="   rounded-[10px] bg-white p-5 border border-slate-100 shadow-sm divide-y divide-slate-50">
-                    <SettingRow 
-                        icon={Briefcase} 
-                        label={t('Contact Support')} 
-                        type="link" 
+                    <SettingRow
+                        icon={Briefcase}
+                        label={t('Creators')}
+                        type="link"
                         onClick={() => navigate('/student/support')}
                     />
                 </div>
-                
-                <button 
+
+                <button
                     onClick={() => {
                         try {
                             sessionStorage.setItem('auth_redirecting', '1');
@@ -348,7 +348,7 @@ const StudentProfile = () => {
                 </button>
             </section>
 
-            
+
         </div>
     );
 };

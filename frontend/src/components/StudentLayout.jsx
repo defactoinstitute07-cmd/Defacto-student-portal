@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard, User, Trophy, BookOpen,
     Wallet, Award, LogOut, Menu, X, ShieldAlert,
-    Settings, ArrowLeft, RefreshCw
+    Settings, ArrowLeft, RefreshCw, MessageCircle, UserCog
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageToggleButton from './LanguageToggleButton';
 import { clearAuthSession } from '../services/api';
+import { getConversations } from '../services/chatService';
 
 const NAV_ITEMS = [
     {
@@ -29,7 +30,8 @@ const NAV_ITEMS = [
         section: 'INFO',
         items: [
             { to: '/student/dashboard?tab=fees', match: 'fees', icon: Wallet, label: 'Fees' },
-            { to: '/student/support', match: '/student/support', icon: ShieldAlert, label: 'Contact & Support' },
+            { to: '/student/dashboard?tab=chat', match: 'chat', icon: MessageCircle, label: 'Support & Chat', newUntil: '2026-05-28' },
+            { to: '/student/support', match: '/student/support', icon: UserCog, label: 'Creators' },
             { to: '/student/settings', match: '/student/settings', icon: Settings, label: 'Settings' },
         ]
     }
@@ -43,13 +45,14 @@ const MOBILE_NAV_ITEMS = [
     { to: '/student/profile', match: 'profile', icon: User, label: 'My Profile' }
 ];
 
-const StudentLayout = ({ children, title, backUrl, useHistoryBack = false, hideMobileNav = false }) => {
+const StudentLayout = ({ children, title, backUrl, useHistoryBack = false, hideMobileNav = false, hideChrome = false }) => {
     const location = useLocation();
     const navigate = useNavigate();
     const { t } = useLanguage();
     const [mini, setMini] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+    const [chatUnseenCount, setChatUnseenCount] = useState(0);
 
     const studentInfoRaw = localStorage.getItem('studentInfo');
     const student = studentInfoRaw ? JSON.parse(studentInfoRaw) : {};
@@ -71,6 +74,26 @@ const StudentLayout = ({ children, title, backUrl, useHistoryBack = false, hideM
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+
+    /* ── Chat unseen badge polling ── */
+    const fetchUnseenCount = useCallback(async () => {
+        try {
+            const userId = student?._id || student?.id;
+            if (!userId) return;
+            const data = await getConversations(userId);
+            const convos = data.conversations || data || [];
+            const total = convos.reduce((sum, c) => sum + (c.unseenCount || 0), 0);
+            setChatUnseenCount(total);
+        } catch {
+            // silent — badge is non-critical
+        }
+    }, [student?._id, student?.id]);
+
+    useEffect(() => {
+        fetchUnseenCount();
+        const id = setInterval(fetchUnseenCount, 30000);
+        return () => clearInterval(id);
+    }, [fetchUnseenCount]);
 
     const searchParams = new URLSearchParams(location.search);
     const currentTab = searchParams.get('tab') || 'home';
@@ -188,9 +211,23 @@ const StudentLayout = ({ children, title, backUrl, useHistoryBack = false, hideM
                                             onClick={() => setMobileOpen(false)}
                                             title={mini && !mobileOpen ? t(item.label) : ''}
                                         >
-                                            <span className="shrink-0"><item.icon size={18} strokeWidth={active ? 2.5 : 2} /></span>
+                                            <span className="relative shrink-0">
+                                                <item.icon size={18} strokeWidth={active ? 2.5 : 2} />
+                                                {item.match === 'chat' && chatUnseenCount > 0 && (
+                                                    <span className="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-[9px] font-bold text-white shadow-sm ring-2 ring-white">
+                                                        {chatUnseenCount > 99 ? '99+' : chatUnseenCount}
+                                                    </span>
+                                                )}
+                                            </span>
                                             {(!mini || mobileOpen) && (
-                                                <span className="truncate">{t(item.label)}</span>
+                                                <span className="truncate flex items-center gap-2">
+                                                    {t(item.label)}
+                                                    {item.newUntil && new Date() < new Date(item.newUntil) && (
+                                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-700 text-[9px] font-extrabold uppercase tracking-wider ring-1 ring-emerald-200 animate-pulse">
+                                                            NEW
+                                                        </span>
+                                                    )}
+                                                </span>
                                             )}
                                         </Link>
                                     );
@@ -219,8 +256,8 @@ const StudentLayout = ({ children, title, backUrl, useHistoryBack = false, hideM
             {/* Main Body */}
             <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
 
-                {/* Topbar */}
-                <header className="h-[60px] bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 shrink-0 z-10">
+                {/* Topbar — hidden on mobile when chat is fullscreen */}
+                <header className={`h-[60px] bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 shrink-0 z-10 ${hideChrome ? 'hidden md:flex' : ''}`}>
                     <div className="flex items-center gap-3">
                         {backUrl || useHistoryBack ? (
                             <button
@@ -272,15 +309,15 @@ const StudentLayout = ({ children, title, backUrl, useHistoryBack = false, hideM
                 </header>
 
                 {/* Main Content Area */}
-                <main className="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-6 pb-24 md:pb-6 relative scroll-smooth">
-                    <div className="max-w-7xl mx-auto">
+                <main className={`flex-1 overflow-y-auto bg-slate-50 relative scroll-smooth ${hideChrome ? 'p-0 pb-0' : 'p-4 md:p-6 pb-24 md:pb-6'}`}>
+                    <div className={hideChrome ? 'h-full' : 'max-w-7xl mx-auto'}>
                         {children}
                     </div>
                 </main>
             </div>
 
             {/* Mobile Bottom Navigation (Fixed Z-index & Auto Hide) */}
-            {!hideMobileNav && (
+            {!hideMobileNav && !hideChrome && (
                 <nav
                     className={`fixed bottom-3 left-1/2 -translate-x-1/2 w-[94%] max-w-md z-30 md:hidden transition-all duration-300 ${mobileOpen ? 'opacity-0 pointer-events-none translate-y-5' : 'opacity-100 translate-y-0'
                         }`}

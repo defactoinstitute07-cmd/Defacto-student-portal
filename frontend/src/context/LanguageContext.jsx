@@ -25,7 +25,7 @@ const translations = {
         'Results': 'परिणाम',
         'Leaderboard': 'लीडरबोर्ड',
         'Fees': 'फीस',
-        'Contact & Support': 'संपर्क और सहायता',
+        'Creators': 'संपर्क और सहायता',
         'Home': 'होम',
         'Attend': 'अटेंड',
         'Logout': 'लॉगआउट',
@@ -414,7 +414,7 @@ const safeString = (val) => {
 
 const interpolate = (template, values = {}) => {
     const templateStr = typeof template === 'string' ? template : safeString(template);
-    
+
     return Object.entries(values).reduce(
         (result, [key, value]) => {
             return result.replaceAll(`{{${key}}}`, safeString(value));

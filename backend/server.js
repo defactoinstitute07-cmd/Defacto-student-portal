@@ -8,6 +8,7 @@ const feeRoutes = require('./routes/feeRoutes');
 const resultRoutes = require('./routes/resultRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const supportRoutes = require('./routes/supportRoutes');
+const chatRoutes = require('./routes/chatRoutes');
 const { redis } = require('./middleware/cache');
 const { connectToDatabase, getDatabaseHealth } = require('./config/database');
 const { sendApiError, sendDatabaseUnavailable } = require('./utils/apiError');
@@ -88,6 +89,7 @@ app.use('/api', notificationRoutes);
 app.use('/api/student/fees', feeRoutes);
 app.use('/api/student/results', resultRoutes);
 app.use('/api/support', supportRoutes);
+app.use('/api/chat', chatRoutes);
 
 const PORT = process.env.PORT || 5006;
 
@@ -103,6 +105,10 @@ app.use((err, req, res, next) => {
 if (require.main === module) {
     connectToDatabase()
         .catch((err) => {/* console.error('MongoDB connection error:', err.message); */});
+
+    // Start auto-delete cron job (purges seen messages after 24h)
+    const { startAutoDeleteJob } = require('./jobs/autoDelete');
+    startAutoDeleteJob();
 
     app.listen(PORT);
 }

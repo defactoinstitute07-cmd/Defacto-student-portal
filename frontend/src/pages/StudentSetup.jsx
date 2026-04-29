@@ -33,7 +33,7 @@ const StudentSetup = () => {
             ? student.needsSetup
             : (student.isFirstLogin || !student.profileImage);
 
-                if (!needsSetup) {
+        if (!needsSetup) {
             navigate('/student/dashboard');
         }
     }, [navigate]);
@@ -117,15 +117,15 @@ const StudentSetup = () => {
     return (
         <div className="relative min-h-screen w-full flex items-center justify-center p-4 font-sans overflow-hidden bg-gradient-to-br from-gray-50 via-white to-gray-100">
             <div className="absolute right-4 top-4 z-[120] flex items-center gap-3">
-                <button 
+                <button
                     onClick={() => navigate('/student/setup-help')}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-white/80 backdrop-blur-md border border-gray-200 rounded-full text-xs font-bold text-gray-600 hover:text-[#191838] hover:border-[#191838] transition-all shadow-sm"
-                    title={t("Contact Support")}
+                    title={t("Creators")}
                 >
                     <HelpCircle size={14} />
                     <span>{t('Need Help?')}</span>
                 </button>
-                <button 
+                <button
                     onClick={handleLogout}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50/80 backdrop-blur-md border border-rose-100 rounded-full text-xs font-bold text-rose-600 hover:bg-rose-100 hover:border-rose-200 transition-all shadow-sm"
                     title={t("Logout")}
@@ -151,9 +151,8 @@ const StudentSetup = () => {
                     <div className="flex items-center gap-2">
                         {[1, 2, 3].map((s) => (
                             <div key={s} className="flex-1">
-                                <div className={`h-1.5   rounded-[10px] transition-all duration-500 ${
-                                    s <= step ? 'bg-[#191838]' : 'bg-gray-100'
-                                }`} />
+                                <div className={`h-1.5   rounded-[10px] transition-all duration-500 ${s <= step ? 'bg-[#191838]' : 'bg-gray-100'
+                                    }`} />
                             </div>
                         ))}
                     </div>

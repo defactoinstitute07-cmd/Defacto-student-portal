@@ -1,4 +1,5 @@
 const Student = require('../models/Student');
+const Admin = require('../models/Admin');
 const Batch = require('../models/Batch');
 const Teacher = require('../models/Teacher');
 const Exam = require('../models/Exam');
@@ -439,6 +440,61 @@ exports.addStudent = async (req, res) => {
     } catch (error) {
         // console.error('Error in addStudent:', error);
         sendApiError(res, error, 'Unable to add student right now.');
+    }
+};
+
+// Admin Login
+exports.adminLogin = async (req, res) => {
+    try {
+        let { email, registrationNumber, password } = req.body;
+
+        if ((!email && !registrationNumber) || !password) {
+            return res.status(400).json({ success: false, message: 'Please provide email or registration number, and password' });
+        }
+
+        let admin;
+        if (email) {
+            admin = await Admin.findOne({ email: email.toLowerCase().trim() });
+        } else if (registrationNumber) {
+            admin = await Admin.findOne({ registrationNumber: registrationNumber.trim() });
+        }
+
+        if (!admin) {
+            // Fallback in case they have only one admin and used a generic login or didn't set email
+            admin = await Admin.findOne({});
+            if (!admin) {
+                return res.status(404).json({ success: false, message: 'No admin account found in the system' });
+            }
+        }
+
+        // Verify password
+        const isMatch = await bcrypt.compare(password, admin.password);
+        if (!isMatch) {
+            return res.status(401).json({ success: false, message: 'Invalid credentials' });
+        }
+
+        // Generate simple JWT for admin
+        const jwt = require('jsonwebtoken');
+        const token = jwt.sign(
+            { id: admin._id, role: 'admin' },
+            process.env.JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        res.json({
+            success: true,
+            message: 'Admin login successful',
+            token,
+            admin: {
+                id: admin._id,
+                name: admin.adminName,
+                coachingName: admin.coachingName,
+                email: admin.email
+            }
+        });
+    } catch (error) {
+        // console.error('Error in adminLogin:', error);
+        sendApiError(res, error, 'Login failed. Please try again.');
     }
 };
 

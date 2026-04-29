@@ -69,7 +69,7 @@ This project is pre-configured for **Vercel**.
 
 ## EmailJS Requirements (Support Tickets)
 
-The Contact & Support form now sends emails using EmailJS directly from the frontend.
+The Creators form now sends emails using EmailJS directly from the frontend.
 
 Required setup:
 1. Create an EmailJS account and connect your email provider (Gmail/Outlook/SMTP).

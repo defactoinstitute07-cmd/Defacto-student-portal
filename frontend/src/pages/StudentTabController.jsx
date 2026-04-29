@@ -7,6 +7,7 @@ import StudentFees from './StudentFees';
 import StudentResults from './StudentResults';
 import StudentSubjects from './StudentSubjects';
 import StudentProfile from './StudentProfile';
+import ChatTab from '../components/ChatTab';
 import StudentLayout from '../components/StudentLayout';
 
 const StudentTabController = () => {
@@ -24,6 +25,13 @@ const StudentTabController = () => {
                 return { title: t('My Results'), component: <StudentResults /> };
             case 'subjects':
                 return { title: t('My Subjects'), component: <StudentSubjects /> };
+            case 'chat': {
+                const studentInfo = JSON.parse(localStorage.getItem('studentInfo') || '{}');
+                return {
+                    title: t('Chat'),
+                    component: <ChatTab currentUserId={studentInfo._id || studentInfo.id} currentUserRole="student" />
+                };
+            }
             case 'profile':
                 return { title: t('My Profile'), component: <StudentProfile /> };
             default:
@@ -38,7 +46,7 @@ const StudentTabController = () => {
     }
 
     return (
-        <StudentLayout title={config.title}>
+        <StudentLayout title={config.title} hideChrome={tab === 'chat'}>
             {config.component}
         </StudentLayout>
     );
