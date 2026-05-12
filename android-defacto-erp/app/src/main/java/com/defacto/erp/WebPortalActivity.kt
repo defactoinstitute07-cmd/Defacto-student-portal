@@ -336,6 +336,8 @@ class WebPortalActivity : AppCompatActivity() {
                     return@evaluateJavascript
                 }
 
+                val oldToken = sessionManager.getToken()
+
                 // Only persist if we actually have meaningful data from localStorage.
                 sessionManager.saveSession(
                     token = tokenValue,
@@ -343,6 +345,11 @@ class WebPortalActivity : AppCompatActivity() {
                     studentJson = studentInfoValue,
                     accessTokenExpiresAt = expiryValue
                 )
+
+                // If the token changed (e.g., fresh login or signup in WebView), sync push token natively
+                if (tokenValue != null && tokenValue != oldToken) {
+                    PushTokenSyncer.syncCurrentToken(this@WebPortalActivity, tokenValue)
+                }
             } catch (_: Exception) {
                 // Ignore serialization issues; the next navigation can sync again.
             }
