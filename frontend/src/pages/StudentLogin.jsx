@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ShieldCheck, Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle, Download, LifeBuoy } from 'lucide-react';
+import { ShieldCheck, Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle, Download, LifeBuoy, UserPlus } from 'lucide-react';
 import axios from 'axios';
 import api, { getStoredAccessToken, getStoredStudentInfo, saveAuthSession } from '../services/api';
 import { signInWithPopup } from 'firebase/auth';
