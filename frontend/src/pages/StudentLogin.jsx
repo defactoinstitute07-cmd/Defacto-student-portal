@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { ShieldCheck, Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle, Download, LifeBuoy } from 'lucide-react';
 import axios from 'axios';
 import api, { getStoredAccessToken, getStoredStudentInfo, saveAuthSession } from '../services/api';
-import { getFcmToken } from '../firebase';
+import { signInWithPopup } from 'firebase/auth';
+import { auth, googleProvider, getFcmToken } from '../firebase';
 import instituteLogo from '../assets/icon.png';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageToggleButton from '../components/LanguageToggleButton';
@@ -161,7 +162,7 @@ const StudentLogin = () => {
                 // Store data for welcome modal handling
                 setPendingStudent(response.data.student);
                 setPendingNeedsSetup(needsSetup);
-                
+
                 // Show welcome modal
                 setShowWelcome(true);
             }
@@ -185,9 +186,55 @@ const StudentLogin = () => {
         }
     };
 
+    const handleGoogleLogin = async () => {
+        if (loading || loginStarted) return;
+        setLoading(true);
+        setFormError('');
+        setFormErrorHint('');
+
+        try {
+            const result = await signInWithPopup(auth, googleProvider);
+            const idToken = await result.user.getIdToken();
+
+            const response = await api.post('/student/google-login', { idToken });
+
+            if (response.data.success) {
+                saveAuthSession({
+                    token: response.data.token,
+                    refreshToken: response.data.refreshToken,
+                    student: response.data.student,
+                    accessTokenExpiresAt: response.data.accessTokenExpiresAt
+                });
+
+                registerDeviceToken(response.data.token);
+                sendAppOpenActivity();
+
+                const needsSetup = response.data.student?.needsSetup !== undefined
+                    ? response.data.student.needsSetup
+                    : (response.data.student?.isFirstLogin || !response.data.student?.profileImage);
+
+                setPendingStudent(response.data.student);
+                setPendingNeedsSetup(needsSetup);
+                setShowWelcome(true);
+            }
+        } catch (err) {
+            if (err.code === 'auth/popup-closed-by-user') {
+                // Ignore
+            } else if (err.response?.status === 404) {
+                setFormError(t('No student account found with this Google email.'));
+                setFormErrorHint(t('Please contact the admin to link your email.'));
+            } else {
+                setFormError(err.response?.data?.message || t('Google login failed.'));
+                setFormErrorHint(t('Please try again or use Student ID login.'));
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleWelcomeClose = () => {
         setShowWelcome(false);
-        
+
         if (!pendingStudent) return;
 
         if (pendingNeedsSetup) {
@@ -547,6 +594,62 @@ const StudentLogin = () => {
                         line-height: 1.5;
                     }
 
+                    /* ═══ GOOGLE LOGIN ═══ */
+                    .sl-divider {
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                        margin: 4px 0;
+                    }
+                    .sl-divider-line {
+                        flex: 1;
+                        height: 1px;
+                        background: #e2e8f0;
+                    }
+                    .sl-divider-text {
+                        font-size: 11px;
+                        font-weight: 700;
+                        color: #94a3b8;
+                        text-transform: uppercase;
+                        letter-spacing: 0.05em;
+                    }
+
+                    .sl-google-btn {
+                        width: 100%;
+                        height: 52px;
+                        border: 1.5px solid #e2e8f0;
+                        border-radius: 18px;
+                        background: #ffffff;
+                        color: #1f2937;
+                        font-size: 14px;
+                        font-weight: 700;
+                        font-family: inherit;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 12px;
+                        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+                        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+                    }
+                    .sl-google-btn:hover:not(:disabled) {
+                        background: #f8fafc;
+                        border-color: #cbd5e1;
+                        transform: translateY(-1px);
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+                    }
+                    .sl-google-btn:active:not(:disabled) {
+                        transform: scale(0.98);
+                    }
+                    .sl-google-btn:disabled {
+                        opacity: 0.7;
+                        cursor: not-allowed;
+                    }
+                    .sl-google-icon {
+                        width: 20px;
+                        height: 20px;
+                    }
+
                     /* ═══ HELP BUTTON ═══ */
                     .sl-help-btn {
                         width: 100%;
@@ -753,6 +856,14 @@ const StudentLogin = () => {
                         )}
                     </button>
 
+                    {/* Divider */}
+                    <div className="sl-divider">
+                        <div className="sl-divider-line" />
+                        <span className="sl-divider-text">{t('OR')}</span>
+                        <div className="sl-divider-line" />
+                    </div>
+
+
                     {/* Help Button */}
                     <button
                         type="button"
@@ -770,12 +881,25 @@ const StudentLogin = () => {
                     <ShieldCheck size={14} className="sl-footer-icon" />
                     <span className="sl-footer-text">{t('Secured with 256-bit encryption')}</span>
                 </div>
+
+                {/* Sign Up link */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '16px' }}>
+                    <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: 500 }}>{t("Don't have an account?")}</span>
+                    <Link
+                        to="/student/signup"
+                        style={{ fontSize: '13px', fontWeight: 700, color: '#191838', textDecoration: 'none' }}
+                        onMouseEnter={e => e.target.style.color = '#6366f1'}
+                        onMouseLeave={e => e.target.style.color = '#191838'}
+                    >
+                        {t('Create Account')}
+                    </Link>
+                </div>
             </div>
 
             {/* Welcome Modal */}
             {showWelcome && (
-                <WelcomeModal 
-                    studentName={pendingStudent?.name} 
+                <WelcomeModal
+                    studentName={pendingStudent?.name}
                     onClose={handleWelcomeClose}
                 />
             )}

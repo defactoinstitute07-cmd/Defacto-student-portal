@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Suspense, lazy, useEffect, useState, Component } from 'react';
 import { useAppPresence } from './hooks/useAppPresence';
 import OfflinePage from './pages/OfflinePage';
+import PermissionPrompt from './components/PermissionPrompt';
 import {
     getStoredAccessToken,
     getStoredStudentInfo,
@@ -70,6 +71,7 @@ const Leaderboard = lazy(() => import('./pages/Leaderboard'));
 const StudentSettings = lazy(() => import('./pages/StudentSettings'));
 const StudentTabController = lazy(() => import('./pages/StudentTabController'));
 const AdminSupport = lazy(() => import('./pages/AdminSupport'));
+const StudentSignup = lazy(() => import('./pages/StudentSignup'));
 
 const getStoredStudentRoute = () => {
     const token = getStoredAccessToken();
@@ -132,39 +134,50 @@ function App() {
     }
 
     return (
-        <Router>
-            <ErrorBoundary>
-                <Suspense fallback={<div className="p-8 text-center text-slate-500">Loading...</div>}>
-                    <Routes>
-                        <>
-                            <Route path="/" element={<Navigate to={getStoredStudentRoute()} replace />} />
-                            <Route
-                                path="/student/login"
-                                element={
-                                    getStoredAccessToken()
-                                        ? <Navigate to={getStoredStudentRoute()} replace />
-                                        : <StudentLogin />
-                                }
-                            />
-                            <Route path="/student/admin-support" element={<AdminSupport />} />
-                            <Route path="/student/setup" element={<StudentSetup />} />
-                            <Route path="/student/setup-help" element={<SetupHelpForm />} />
-                            <Route path="/student/dashboard" element={<StudentTabController />} />
-                            <Route path="/student/profile" element={<Navigate to="/student/dashboard?tab=profile" replace />} />
-                            <Route path="/student/subjects" element={<Navigate to="/student/dashboard?tab=subjects" replace />} />
-                            <Route path="/student/attendance" element={<Navigate to="/student/dashboard?tab=home" replace />} />
-                            <Route path="/student/attendance/:subjectId" element={<Navigate to="/student/dashboard?tab=home" replace />} />
-                            <Route path="/student/fees" element={<Navigate to="/student/dashboard?tab=fees" replace />} />
-                            <Route path="/student/results" element={<Navigate to="/student/dashboard?tab=results" replace />} />
-                            <Route path="/student/results/subject/:subjectName" element={<SubjectDetail />} />
-                            <Route path="/student/support" element={<ContactSupport />} />
-                            <Route path="/student/leaderboard" element={<Leaderboard />} />
-                            <Route path="/student/settings" element={<StudentSettings />} />
-                        </>
-                    </Routes>
-                </Suspense>
-            </ErrorBoundary>
-        </Router>
+        <>
+            <PermissionPrompt />
+            <Router>
+                <ErrorBoundary>
+                    <Suspense fallback={<div className="p-8 text-center text-slate-500">Loading...</div>}>
+                        <Routes>
+                            <>
+                                <Route path="/" element={<Navigate to={getStoredStudentRoute()} replace />} />
+                                <Route
+                                    path="/student/login"
+                                    element={
+                                        getStoredAccessToken()
+                                            ? <Navigate to={getStoredStudentRoute()} replace />
+                                            : <StudentLogin />
+                                    }
+                                />
+                                <Route path="/student/admin-support" element={<AdminSupport />} />
+                                <Route
+                                    path="/student/signup"
+                                    element={
+                                        getStoredAccessToken()
+                                            ? <Navigate to={getStoredStudentRoute()} replace />
+                                            : <StudentSignup />
+                                    }
+                                />
+                                <Route path="/student/setup" element={<StudentSetup />} />
+                                <Route path="/student/setup-help" element={<SetupHelpForm />} />
+                                <Route path="/student/dashboard" element={<StudentTabController />} />
+                                <Route path="/student/profile" element={<Navigate to="/student/dashboard?tab=profile" replace />} />
+                                <Route path="/student/subjects" element={<Navigate to="/student/dashboard?tab=subjects" replace />} />
+                                <Route path="/student/attendance" element={<Navigate to="/student/dashboard?tab=home" replace />} />
+                                <Route path="/student/attendance/:subjectId" element={<Navigate to="/student/dashboard?tab=home" replace />} />
+                                <Route path="/student/fees" element={<Navigate to="/student/dashboard?tab=fees" replace />} />
+                                <Route path="/student/results" element={<Navigate to="/student/dashboard?tab=results" replace />} />
+                                <Route path="/student/results/subject/:subjectName" element={<SubjectDetail />} />
+                                <Route path="/student/support" element={<ContactSupport />} />
+                                <Route path="/student/leaderboard" element={<Leaderboard />} />
+                                <Route path="/student/settings" element={<StudentSettings />} />
+                            </>
+                        </Routes>
+                    </Suspense>
+                </ErrorBoundary>
+            </Router>
+        </>
     );
 }
 

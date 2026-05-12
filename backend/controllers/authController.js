@@ -12,6 +12,7 @@ const bcrypt = require('bcryptjs');
 const { invalidateUserCache } = require('../middleware/cache');
 const { sendApiError } = require('../utils/apiError');
 const { issueStudentSession } = require('../utils/mobileAuth');
+const { getAuth } = require('../config/firebaseAdmin');
 
 const escapeRegex = (value = '') => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const normalizeKey = (value = '') => String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
@@ -404,6 +405,188 @@ exports.getStudentSubjects = async (req, res) => {
     }
 };
 
+/* ─── Public Signup Form Options ─────────────────────────────────────────────
+ * Returns active batches + distinct class names + distinct courses so the
+ * signup form can show dynamic dropdowns instead of free-text fields.
+ * This route is public (no auth) and cached for 2 minutes.
+ * ─────────────────────────────────────────────────────────────────────────── */
+exports.getSignupOptions = async (req, res) => {
+    try {
+        const [batches, classNames] = await Promise.all([
+            // All active batches — only fields the form needs
+            Batch.find({ isActive: true })
+                .select('name course')
+                .sort({ name: 1 })
+                .lean(),
+
+            // Distinct className values already stored in Student collection
+            Student.distinct('className', {
+                className: { $exists: true, $ne: null, $ne: '' }
+            })
+        ]);
+
+        // Derive a unique, sorted list of courses from batches
+        const courses = [...new Set(
+            batches.map(b => (b.course || '').trim()).filter(Boolean)
+        )].sort();
+
+        const classNamesClean = [...new Set(
+            classNames.map(c => String(c || '').trim()).filter(Boolean)
+        )].sort();
+
+        return res.json({
+            success: true,
+            batches: batches.map(b => ({
+                _id: b._id,
+                name: b.name,
+                course: b.course || ''
+            })),
+            classNames: classNamesClean,
+            courses
+        });
+    } catch (error) {
+        sendApiError(res, error, 'Unable to fetch form options.');
+    }
+};
+
+/* ─── Auto Student-ID generator ──────────────────────────────────────────────
+ * Format: STU + YY + NN
+ *   STU  = literal prefix
+ *   YY   = last 2 digits of current calendar year  (e.g. 26 for 2026)
+ *   NN   = sequential counter per calendar year, minimum 2 digits (01, 02 … 99, 100)
+ *
+ * Example: STU2601, STU2602, STU2699, STU26100
+ * ──────────────────────────────────────────────────────────────────────────── */
+const generateStudentId = async () => {
+    const yy = String(new Date().getFullYear()).slice(-2);  // '26' for 2026
+    const prefix = `STU${yy}`;
+
+    // Find the highest existing ID for this calendar year
+    const pattern = new RegExp(`^STU${yy}\\d+$`, 'i');
+    const latest = await Student.findOne(
+        { rollNo: { $regex: pattern } },
+        { rollNo: 1 }
+    ).sort({ rollNo: -1 }).lean();
+
+    let nextNum = 1;
+    if (latest?.rollNo) {
+        const numStr = latest.rollNo.slice(prefix.length);   // everything after 'STU26'
+        const lastNum = parseInt(numStr, 10);
+        if (Number.isFinite(lastNum)) nextNum = lastNum + 1;
+    }
+
+    // Minimum 2-digit counter: 01, 02 … 99, 100, 101 …
+    return `${prefix}${String(nextNum).padStart(2, '0')}`;
+};
+
+// Student Self-Registration (Sign Up)
+exports.studentSignup = async (req, res) => {
+    try {
+        let {
+            name,
+            email, contact, dob, gender, address,
+            className, session, fatherName, motherName, batchId
+        } = req.body;
+
+        // Sanitise required fields
+        name = String(name || '').trim();
+
+        if (!name) {
+            return res.status(400).json({
+                success: false,
+                message: 'Full name is required.'
+            });
+        }
+
+        // Check for duplicate email (if provided)
+        if (email) {
+            const normalizedEmail = String(email).toLowerCase().trim();
+            const existingByEmail = await Student.findOne({ email: normalizedEmail });
+            if (existingByEmail) {
+                return res.status(409).json({
+                    success: false,
+                    message: 'An account with this email already exists.',
+                    field: 'email'
+                });
+            }
+            email = normalizedEmail;
+        }
+
+        // Generate a unique Student ID — retry up to 5 times on the rare collision
+        let generatedRollNo;
+        for (let attempt = 0; attempt < 5; attempt++) {
+            const candidate = await generateStudentId();
+            const collision = await Student.findOne({ rollNo: candidate }).lean();
+            if (!collision) { generatedRollNo = candidate; break; }
+        }
+        if (!generatedRollNo) {
+            return res.status(500).json({ success: false, message: 'Could not generate a unique Student ID. Please try again.' });
+        }
+
+        // Build student document — fee fields intentionally excluded
+        const studentData = {
+            name,
+            rollNo: generatedRollNo,
+            // No password set at signup — student creates it during /student/setup
+            status: 'batch_pending',
+            isFirstLogin: true,
+            portalAccess: {
+                signupStatus: 'yes',
+                signedUpAt: new Date(),
+                lastLoginAt: new Date()
+            }
+        };
+
+        if (email)      studentData.email      = email;
+        if (contact)    studentData.contact    = String(contact).trim();
+        if (dob)        studentData.dob        = new Date(dob);
+        if (gender)     studentData.gender     = String(gender).trim();
+        if (address)    studentData.address    = String(address).trim();
+        if (className)  studentData.className  = String(className).trim();
+        if (session)    studentData.session    = String(session).trim();
+        if (fatherName) studentData.fatherName = String(fatherName).trim();
+        if (motherName) studentData.motherName = String(motherName).trim();
+        if (batchId)    studentData.batchId    = batchId;   // ObjectId — Mongoose will cast & validate
+
+        const newStudent = new Student(studentData);
+        await newStudent.save();
+
+        // Auto-issue session so the frontend can redirect to /student/setup
+        const session_ = await issueStudentSession(newStudent, {
+            platform: 'web',
+            appType: 'web',
+            appVersion: 'web',
+            deviceId: req.get('user-agent') || 'browser',
+            model: 'browser',
+            manufacturer: 'browser'
+        }, null, { client: 'web' });
+
+        return res.status(201).json({
+            success: true,
+            message: 'Account created successfully! Please complete your profile setup.',
+            generatedStudentId: generatedRollNo,   // shown to student on success screen
+            token: session_.accessToken,
+            accessToken: session_.accessToken,
+            refreshToken: session_.refreshToken,
+            accessTokenExpiresAt: session_.accessTokenExpiresAt?.toISOString() || null,
+            student: {
+                id: newStudent._id,
+                name: newStudent.name,
+                rollNo: generatedRollNo,
+                class: newStudent.className || '',
+                batch: 'N/A',
+                activeBatchId: null,
+                subjects: [],
+                isFirstLogin: true,
+                profileImage: null,
+                needsSetup: true
+            }
+        });
+    } catch (error) {
+        sendApiError(res, error, 'Unable to create account right now. Please try again.');
+    }
+};
+
 // Add Student (Admin Side)
 exports.addStudent = async (req, res) => {
     try {
@@ -611,6 +794,125 @@ exports.studentLogin = async (req, res) => {
     } catch (error) {
         // console.error('Error in studentLogin:', error);
         sendApiError(res, error, 'Login failed. Please try again.');
+    }
+};
+
+// Google Login for Students
+exports.googleLogin = async (req, res) => {
+    try {
+        const { idToken } = req.body;
+
+        if (!idToken) {
+            return res.status(400).json({ success: false, message: 'Google ID Token is required' });
+        }
+
+        const auth = getAuth();
+        if (!auth) {
+            return res.status(500).json({ success: false, message: 'Firebase Auth not initialized on server' });
+        }
+
+        // Verify the token
+        const decodedToken = await auth.verifyIdToken(idToken);
+        const email = decodedToken.email;
+
+        if (!email) {
+            return res.status(400).json({ success: false, message: 'Email not found in Google token' });
+        }
+
+        // Find student by email
+        const student = await Student.findOne({ email: email.toLowerCase() }).populate('batchId');
+
+        if (!student) {
+            return res.status(404).json({
+                success: false,
+                message: 'No student account found with this Google email.',
+                hint: 'Please contact the administrator to link your email to your student profile.'
+            });
+        }
+
+        if (student.status === 'inactive') {
+            return res.status(403).json({
+                success: false,
+                message: 'Your account is inactive. Please contact the admin.'
+            });
+        }
+
+        const now = new Date();
+        const portalAccess = student.portalAccess || {};
+
+        student.portalAccess = {
+            signupStatus: portalAccess.signupStatus || 'yes',
+            signedUpAt: portalAccess.signedUpAt || now,
+            lastLoginAt: now
+        };
+        student.lastActiveAt = now;
+        student.lastAppOpenAt = now;
+
+        await student.save();
+
+        const session = await issueStudentSession(student, {
+            platform: 'web',
+            appType: 'web',
+            appVersion: 'web',
+            deviceId: req.get('user-agent') || 'browser',
+            model: 'browser',
+            manufacturer: 'browser'
+        }, null, {
+            client: 'web'
+        });
+
+        const needsSetup = student.isFirstLogin || !student.profileImage;
+
+        let resolvedSubjects = [];
+        if (student.batchId?._id) {
+            const loginSubjectDocs = await findSubjectsForStudentBatch(student.batchId._id, {
+                projection: 'name code classLevel batchId batchIds isActive totalChapters chapters syllabus',
+                lean: true
+            });
+
+            resolvedSubjects = loginSubjectDocs.map((subjectDoc) => ({
+                _id: subjectDoc._id,
+                name: subjectDoc.name,
+                subject: subjectDoc.name,
+                code: subjectDoc.code || null,
+                classLevel: subjectDoc.classLevel || '',
+                batchId: subjectDoc.batchId || null,
+                batchIds: getSubjectLinkedBatchIds(subjectDoc),
+                isActive: subjectDoc.isActive !== false,
+                totalChapters: Number.isFinite(Number(subjectDoc.totalChapters))
+                    ? Number(subjectDoc.totalChapters)
+                    : (Array.isArray(subjectDoc.chapters) ? subjectDoc.chapters.length : 0),
+                chapters: Array.isArray(subjectDoc.chapters) ? subjectDoc.chapters : [],
+                syllabus: subjectDoc.syllabus || {}
+            }));
+        }
+
+        res.json({
+            success: true,
+            message: 'Google login successful',
+            token: session.accessToken,
+            accessToken: session.accessToken,
+            refreshToken: session.refreshToken,
+            accessTokenExpiresAt: session.accessTokenExpiresAt?.toISOString() || null,
+            expiresInSeconds: session.expiresInSeconds,
+            student: {
+                id: student._id,
+                name: student.name,
+                rollNo: student.rollNo,
+                class: student.className,
+                batch: student.batchId ? student.batchId.name : 'N/A',
+                activeBatchId: student.batchId ? student.batchId._id : null,
+                fullBatchData: student.batchId || null,
+                subjects: resolvedSubjects,
+                isFirstLogin: student.isFirstLogin,
+                profileImage: student.profileImage || null,
+                needsSetup
+            }
+        });
+
+    } catch (error) {
+        // console.error('Error in googleLogin:', error);
+        sendApiError(res, error, 'Google authentication failed.');
     }
 };
 

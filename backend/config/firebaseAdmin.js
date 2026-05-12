@@ -67,6 +67,18 @@ const getMessaging = () => {
     }
 };
 
+const getAuth = () => {
+    const app = initFirebaseAdmin();
+    if (!app) return null;
+    try {
+        return getAdmin().auth(app);
+    } catch (err) {
+        console.error('[firebaseAdmin] Failed to get auth instance:', err.message);
+        return null;
+    }
+};
+
 module.exports = {
-	getMessaging
+    getMessaging,
+    getAuth
 };

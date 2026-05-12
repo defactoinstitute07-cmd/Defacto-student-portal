@@ -3,10 +3,13 @@ package com.student.erp
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Bitmap
+import android.net.Uri
 import android.net.http.SslError
 import android.os.Bundle
 import android.view.View
 import android.webkit.SslErrorHandler
+import android.webkit.ValueCallback
+import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
@@ -16,6 +19,7 @@ import android.webkit.WebViewClient
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONObject
 
@@ -26,6 +30,20 @@ class WebPortalActivity : AppCompatActivity() {
 
     /** Tracks whether the very first injection + reload cycle has completed. */
     private var initialInjectionDone = false
+
+    // ── File chooser support for <input type="file"> inside the WebView ──────
+    private var fileChooserCallback: ValueCallback<Array<Uri>>? = null
+
+    private val fileChooserLauncher = registerForActivityResult(
+        ActivityResultContracts.GetMultipleContents()
+    ) { uris: List<Uri> ->
+        // Deliver result back to WebView; send null on cancellation
+        fileChooserCallback?.onReceiveValue(
+            if (uris.isEmpty()) null else uris.toTypedArray()
+        )
+        fileChooserCallback = null
+    }
+    // ─────────────────────────────────────────────────────────────────────────
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -81,6 +99,30 @@ class WebPortalActivity : AppCompatActivity() {
                 }
             }
         })
+
+        // ── File chooser: intercept <input type="file"> taps in the WebView ──
+        webView.webChromeClient = object : WebChromeClient() {
+            override fun onShowFileChooser(
+                wv: WebView?,
+                callback: ValueCallback<Array<Uri>>,
+                params: FileChooserParams
+            ): Boolean {
+                // Cancel any previous pending callback before starting a new one
+                fileChooserCallback?.onReceiveValue(null)
+                fileChooserCallback = callback
+
+                // Use the MIME types from the web page (e.g. "image/*") or default to all
+                val mimeTypes = params.acceptTypes
+                    ?.filter { it.isNotBlank() }
+                    ?.joinToString(",")
+                    ?.takeIf { it.isNotBlank() }
+                    ?: "image/*"
+
+                fileChooserLauncher.launch(mimeTypes)
+                return true
+            }
+        }
+        // ─────────────────────────────────────────────────────────────────────
 
         webView.webViewClient = object : WebViewClient() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {

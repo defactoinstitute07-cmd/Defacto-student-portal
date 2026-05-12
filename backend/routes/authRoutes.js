@@ -9,11 +9,18 @@ const { cacheMiddleware } = require('../middleware/cache');
 // Add Student (Admin Side)
 router.post('/students/add', authController.addStudent);
 
+// Student Self-Registration (Public — no auth required)
+router.post('/student/signup', authController.studentSignup);
+
+// Public signup form options (batches, classes, courses) — short cache
+router.get('/student/signup-options', cacheMiddleware(120), authController.getSignupOptions);
+
 // Admin Login
 router.post('/admin/login', authController.adminLogin);
 
 // Student Login
 router.post('/student/login', authController.studentLogin);
+router.post('/student/google-login', authController.googleLogin);
 router.get('/student/login', (req, res) => {
 	res.status(405).json({
 		success: false,

@@ -1,4 +1,6 @@
 import { initializeApp } from 'firebase/app';
+import { getAnalytics } from "firebase/analytics";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getMessaging, getToken, isSupported } from 'firebase/messaging';
 
 const firebaseConfig = {
@@ -7,7 +9,8 @@ const firebaseConfig = {
     projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
     storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
     messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-    appId: import.meta.env.VITE_FIREBASE_APP_ID
+    appId: import.meta.env.VITE_FIREBASE_APP_ID,
+    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 const hasConfig = Boolean(
@@ -18,6 +21,9 @@ const hasConfig = Boolean(
 );
 
 export const firebaseApp = hasConfig ? initializeApp(firebaseConfig) : null;
+export const auth = firebaseApp ? getAuth(firebaseApp) : null;
+export const googleProvider = new GoogleAuthProvider();
+export const analytics = firebaseApp ? getAnalytics(firebaseApp) : null;
 
 const getServiceWorkerPath = () => {
     const params = new URLSearchParams({
