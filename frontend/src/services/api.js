@@ -195,7 +195,7 @@ const normalizeAuthReason = (error) => {
     return String(rawReason).trim().toLowerCase().replace(/-/g, '_');
 };
 
-const isAuthRequest = (requestUrl = '') => /\/student\/(?:mobile\/)?(?:login|refresh|logout|register)/i.test(String(requestUrl || ''));
+const isAuthRequest = (requestUrl = '') => /\/student\/(?:mobile\/)?(?:login|refresh|logout|register|signup)/i.test(String(requestUrl || ''));
 
 const isTerminalRefreshFailure = (error) => {
     const statusCode = error?.response?.status;
@@ -370,7 +370,7 @@ api.interceptors.response.use(
         const statusCode = error.response?.status;
         const requestUrl = error?.config?.url || '';
         const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
-        const isLoginRoute = currentPath.startsWith('/student/login');
+        const isAuthRoute = currentPath.startsWith('/student/login') || currentPath.startsWith('/student/signup');
         const authRedirectInProgress = typeof window !== 'undefined'
             ? sessionStorage.getItem('auth_redirecting') === '1'
             : false;
@@ -396,7 +396,7 @@ api.interceptors.response.use(
             }
         }
 
-        if (statusCode === 401 && !isAuthRequest(requestUrl) && !isLoginRoute && !authRedirectInProgress) {
+        if (statusCode === 401 && !isAuthRequest(requestUrl) && !isAuthRoute && !authRedirectInProgress) {
             try {
                 sessionStorage.setItem('auth_redirecting', '1');
             } catch {
