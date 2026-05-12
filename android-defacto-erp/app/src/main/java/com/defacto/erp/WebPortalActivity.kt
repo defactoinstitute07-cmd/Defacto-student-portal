@@ -149,23 +149,29 @@ class WebPortalActivity : AppCompatActivity() {
                 // (memory pressure, OS-level cache wipe, etc.).
                 reinjectSessionIfNeeded()
 
-                // If the web app redirected to the login page, it means the web-side
-                // refresh token flow failed. Before giving up, try re-injecting from
-                // SharedPreferences and reloading — only redirect to native login if
-                // we genuinely have no credentials left.
+                // If the web app redirected to the login page, check if it was a deliberate logout
                 if (currentUrl.contains("/student/login")) {
-                    val spRefresh = sessionManager.getRefreshToken()
-                    val spStudent = sessionManager.getStudentJson()
-                    if (!spRefresh.isNullOrBlank() && !spStudent.isNullOrBlank()) {
-                        // We still have valid credentials in SharedPreferences.
-                        // Re-inject them and navigate back to the portal.
-                        injectSessionIntoWebView {
-                            webView.loadUrl(Config.FRONTEND_URL)
+                    webView.evaluateJavascript("localStorage.getItem('studentLogoutTriggered')") { result ->
+                        val isLogout = result?.replace("\"", "") == "true"
+                        if (isLogout) {
+                            // Explicit logout triggered by the web app
+                            sessionManager.clear()
+                            webView.evaluateJavascript("localStorage.removeItem('studentLogoutTriggered');", null)
+                            redirectToLogin()
+                        } else {
+                            // Might be a web-side token refresh failure or random navigation.
+                            // Check if we still have credentials in SharedPreferences.
+                            val spRefresh = sessionManager.getRefreshToken()
+                            val spStudent = sessionManager.getStudentJson()
+                            if (!spRefresh.isNullOrBlank() && !spStudent.isNullOrBlank()) {
+                                injectSessionIntoWebView {
+                                    webView.loadUrl(Config.FRONTEND_URL)
+                                }
+                            } else {
+                                redirectToLogin()
+                            }
                         }
-                        return
                     }
-                    // SharedPreferences are also empty → genuine logout.
-                    redirectToLogin()
                     return
                 }
 

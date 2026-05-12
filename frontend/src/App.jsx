@@ -2,7 +2,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Suspense, lazy, useEffect, useState, Component } from 'react';
 import { useAppPresence } from './hooks/useAppPresence';
 import OfflinePage from './pages/OfflinePage';
-import PermissionPrompt from './components/PermissionPrompt';
 import {
     getStoredAccessToken,
     getStoredStudentInfo,
@@ -135,7 +134,6 @@ function App() {
 
     return (
         <>
-            <PermissionPrompt />
             <Router>
                 <ErrorBoundary>
                     <Suspense fallback={<div className="p-8 text-center text-slate-500">Loading...</div>}>

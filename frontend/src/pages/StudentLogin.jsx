@@ -676,6 +676,32 @@ const StudentLogin = () => {
                         transform: translateY(-1px);
                     }
 
+                    /* ═══ SIGNUP BUTTON ═══ */
+                    .sl-signup-btn {
+                        width: 100%;
+                        height: 52px;
+                        margin-top: 12px;
+                        border: 1.5px dashed #cbd5e1;
+                        border-radius: 18px;
+                        background: #f8fafc;
+                        color: #3b82f6;
+                        font-size: 14px;
+                        font-weight: 700;
+                        font-family: inherit;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 8px;
+                        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+                    }
+                    .sl-signup-btn:hover {
+                        background: #eff6ff;
+                        color: #2563eb;
+                        border-color: #93c5fd;
+                        transform: translateY(-1px);
+                    }
+
                     /* ═══ FOOTER ═══ */
                     .sl-footer {
                         display: flex;
@@ -864,6 +890,16 @@ const StudentLogin = () => {
                     </div>
 
 
+                    {/* Create Account Button */}
+                    <button
+                        type="button"
+                        onClick={() => navigate('/student/signup')}
+                        className="sl-signup-btn"
+                    >
+                        <UserPlus size={18} />
+                        <span>{t('Create New Account')}</span>
+                    </button>
+                    
                     {/* Help Button */}
                     <button
                         type="button"
@@ -880,19 +916,6 @@ const StudentLogin = () => {
                 <div className="sl-footer">
                     <ShieldCheck size={14} className="sl-footer-icon" />
                     <span className="sl-footer-text">{t('Secured with 256-bit encryption')}</span>
-                </div>
-
-                {/* Sign Up link */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '16px' }}>
-                    <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: 500 }}>{t("Don't have an account?")}</span>
-                    <Link
-                        to="/student/signup"
-                        style={{ fontSize: '13px', fontWeight: 700, color: '#191838', textDecoration: 'none' }}
-                        onMouseEnter={e => e.target.style.color = '#6366f1'}
-                        onMouseLeave={e => e.target.style.color = '#191838'}
-                    >
-                        {t('Create Account')}
-                    </Link>
                 </div>
             </div>
 

@@ -216,6 +216,9 @@ export const clearAuthSession = () => {
     safeStorage.removeItem(STORAGE_KEYS.studentInfo);
     safeStorage.removeItem(STORAGE_KEYS.accessTokenExpiresAt);
     safeStorage.removeItem(STORAGE_KEYS.loginTimestamp);
+    
+    // Explicit signal for Android WebView to clear its SharedPreferences
+    safeStorage.setItem('studentLogoutTriggered', 'true');
 };
 
 export const saveAuthSession = ({
