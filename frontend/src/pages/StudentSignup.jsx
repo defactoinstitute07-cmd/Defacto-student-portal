@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import api, { saveAuthSession } from '../services/api';
 import instituteLogo from '../assets/icon.png';
+import { getFcmToken } from '../firebase';
 
 /* ─────────────────────────── helpers ─────────────────────────── */
 const Field = ({ label, icon: Icon, error, children }) => (
@@ -60,6 +61,29 @@ const StudentSignup = () => {
         setFormError('');
     };
 
+    const registerDeviceToken = async (authToken) => {
+        try {
+            const fcmToken = await getFcmToken();
+            if (!fcmToken) return;
+
+            await api.post('/student/device', {
+                fcmToken,
+                platform: 'web',
+                appType: 'web',
+                appVersion: 'web',
+                deviceId: navigator.userAgent,
+                model: navigator.platform || 'browser',
+                manufacturer: 'browser'
+            }, {
+                headers: {
+                    Authorization: `Bearer ${authToken}`
+                }
+            });
+        } catch {
+            // Best-effort registration; skip blocking signup flow.
+        }
+    };
+
     const handleCopy = () => {
         navigator.clipboard.writeText(generatedId).then(() => {
             setCopied(true);
@@ -106,6 +130,10 @@ const StudentSignup = () => {
                     student: res.data.student,
                     accessTokenExpiresAt: res.data.accessTokenExpiresAt
                 });
+                
+                // Register push notification token right away
+                registerDeviceToken(res.data.token);
+
                 setGeneratedId(res.data.generatedStudentId || res.data.student?.rollNo || '');
                 // Delay navigation so student can see & copy their ID
                 setTimeout(() => navigate('/student/setup'), 8000);
