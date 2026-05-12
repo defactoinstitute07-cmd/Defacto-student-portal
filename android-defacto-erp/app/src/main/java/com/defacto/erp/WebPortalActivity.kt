@@ -66,8 +66,10 @@ class WebPortalActivity : AppCompatActivity() {
             sessionManager.getAccessTokenExpiresAt().orEmpty()
         }
 
-        // If we have absolutely no credentials, the user hasn't logged in.
-        if ((token.isBlank() && refreshToken.isBlank()) || studentJson.isBlank()) {
+        val isSignup = intent.getBooleanExtra(EXTRA_IS_SIGNUP, false)
+
+        // If we have absolutely no credentials, the user hasn't logged in (unless they are signing up).
+        if (!isSignup && ((token.isBlank() && refreshToken.isBlank()) || studentJson.isBlank())) {
             redirectToLogin()
             return
         }
@@ -139,7 +141,13 @@ class WebPortalActivity : AppCompatActivity() {
                     // First load: inject session and reload so the web app picks it up.
                     injectSessionIntoWebView {
                         initialInjectionDone = true
-                        webView.loadUrl(Config.FRONTEND_URL)
+                        val isSignup = intent.getBooleanExtra(EXTRA_IS_SIGNUP, false)
+                        val targetUrl = if (isSignup) {
+                            Config.FRONTEND_URL.removeSuffix("/") + "/student/signup"
+                        } else {
+                            Config.FRONTEND_URL
+                        }
+                        webView.loadUrl(targetUrl)
                     }
                     return
                 }
@@ -363,5 +371,6 @@ class WebPortalActivity : AppCompatActivity() {
         const val EXTRA_REFRESH_TOKEN = "extra_refresh_token"
         const val EXTRA_STUDENT_JSON = "extra_student_json"
         const val EXTRA_ACCESS_TOKEN_EXPIRES_AT = "extra_access_token_expires_at"
+        const val EXTRA_IS_SIGNUP = "extra_is_signup"
     }
 }

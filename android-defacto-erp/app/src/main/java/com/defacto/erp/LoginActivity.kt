@@ -21,6 +21,7 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var loginProgress: ProgressBar
     private lateinit var errorText: TextView
     private lateinit var showPasswordBtn: android.widget.ImageButton
+    private lateinit var createAccountButton: Button
     private var isPasswordVisible = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,6 +36,14 @@ class LoginActivity : AppCompatActivity() {
         loginProgress  = findViewById(R.id.loginProgress)
         errorText      = findViewById(R.id.errorText)
         showPasswordBtn = findViewById(R.id.showPasswordBtn)
+        createAccountButton = findViewById(R.id.createAccountButton)
+
+        createAccountButton.setOnClickListener {
+            val intent = Intent(this, WebPortalActivity::class.java)
+            intent.putExtra(WebPortalActivity.EXTRA_IS_SIGNUP, true)
+            startActivity(intent)
+            finish()
+        }
 
         showPasswordBtn.setOnClickListener {
             isPasswordVisible = !isPasswordVisible

@@ -153,6 +153,18 @@
                     android:visibility="gone" />
             </FrameLayout>
 
+            <Button
+                android:id="@+id/createAccountButton"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_input"
+                android:text="Create New Account"
+                android:textAllCaps="false"
+                android:textColor="#3b82f6"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
