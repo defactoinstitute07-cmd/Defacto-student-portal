@@ -8,6 +8,7 @@ frontend/public/*
 !frontend/public/robots.txt
 !frontend/public/sitemap.xml
 !frontend/public/google*.html
+!frontend/public/manifest.webmanifest
 .DS_Store
 *.log
 frontend/android/.idea/
