@@ -715,6 +715,50 @@ const StudentLogin = () => {
 
                     .sl-footer-icon { color: #a5b4fc; }
 
+                    .sl-credits {
+                        margin-top: 18px;
+                        padding-top: 18px;
+                        border-top: 1px solid #f1f5f9;
+                        display: grid;
+                        grid-template-columns: 1fr;
+                        gap: 12px;
+                        text-align: center;
+                    }
+
+                    .sl-credit-block {
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        gap: 2px;
+                    }
+
+                    .sl-credit-role {
+                        font-size: 10px;
+                        font-weight: 800;
+                        color: #94a3b8;
+                        text-transform: uppercase;
+                        letter-spacing: 0.08em;
+                    }
+
+                    .sl-credit-name {
+                        font-size: 13px;
+                        font-weight: 800;
+                        color: #191838;
+                        line-height: 1.35;
+                    }
+
+                    .sl-credit-grid {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 10px;
+                    }
+
+                    @media (max-width: 360px) {
+                        .sl-credit-grid {
+                            grid-template-columns: 1fr;
+                        }
+                    }
+
                     .sl-footer-text {
                         font-size: 11px;
                         font-weight: 600;
@@ -916,6 +960,22 @@ const StudentLogin = () => {
                 <div className="sl-footer">
                     <ShieldCheck size={14} className="sl-footer-icon" />
                     <span className="sl-footer-text">{t('Secured with 256-bit encryption')}</span>
+                </div>
+                <div className="sl-credits" aria-label="Project credits">
+                    <div className="sl-credit-block">
+                        <span className="sl-credit-role">Developer &amp; Design By</span>
+                        <span className="sl-credit-name">Rishabh Bisht</span>
+                    </div>
+                    <div className="sl-credit-grid">
+                        <div className="sl-credit-block">
+                            <span className="sl-credit-role">Marketing Strategy</span>
+                            <span className="sl-credit-name">Priyanshu Bisht</span>
+                        </div>
+                        <div className="sl-credit-block">
+                            <span className="sl-credit-role">Outreach Specialist</span>
+                            <span className="sl-credit-name">Karan Negi</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
