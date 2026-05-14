@@ -498,18 +498,31 @@ exports.studentSignup = async (req, res) => {
             });
         }
 
-        // Check for duplicate email (if provided)
-        if (email) {
-            const normalizedEmail = String(email).toLowerCase().trim();
-            const existingByEmail = await Student.findOne({ email: normalizedEmail });
-            if (existingByEmail) {
-                return res.status(409).json({
-                    success: false,
-                    message: 'An account with this email already exists.',
-                    field: 'email'
-                });
-            }
-            email = normalizedEmail;
+        email = String(email || '').toLowerCase().trim();
+
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email address is required.',
+                field: 'email'
+            });
+        }
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please enter a valid email address.',
+                field: 'email'
+            });
+        }
+
+        const existingByEmail = await Student.findOne({ email });
+        if (existingByEmail) {
+            return res.status(409).json({
+                success: false,
+                message: 'An account with this email already exists.',
+                field: 'email'
+            });
         }
 
         // Generate a unique Student ID — retry up to 5 times on the rare collision
@@ -537,7 +550,7 @@ exports.studentSignup = async (req, res) => {
             }
         };
 
-        if (email)      studentData.email      = email;
+        studentData.email = email;
         if (contact)    studentData.contact    = String(contact).trim();
         if (dob)        studentData.dob        = new Date(dob);
         if (gender)     studentData.gender     = String(gender).trim();

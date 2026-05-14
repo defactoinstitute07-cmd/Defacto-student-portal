@@ -22,6 +22,7 @@ const Field = ({ label, icon: Icon, error, children }) => (
 );
 
 const GENDERS = ['Male', 'Female', 'Other'];
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /* ─────────────────────────── component ─────────────────────────── */
 const StudentSignup = () => {
@@ -99,6 +100,20 @@ const StudentSignup = () => {
         return Object.keys(e).length === 0;
     };
 
+    const validateStep2 = () => {
+        const e = {};
+        const email = form.email.trim();
+
+        if (!email) {
+            e.email = 'Email address is required.';
+        } else if (!EMAIL_PATTERN.test(email)) {
+            e.email = 'Please enter a valid email address.';
+        }
+
+        setErrors(e);
+        return Object.keys(e).length === 0;
+    };
+
     const handleNext = () => {
         if (validateStep1()) setStep(2);
     };
@@ -106,12 +121,13 @@ const StudentSignup = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (loading) return;
+        if (!validateStep2()) return;
         setLoading(true);
         setFormError('');
         try {
             const payload = {
                 name: form.name.trim(),
-                email: form.email.trim() || undefined,
+                email: form.email.trim(),
                 contact: form.contact.trim() || undefined,
                 dob: form.dob || undefined,
                 gender: form.gender || undefined,
@@ -259,7 +275,7 @@ const StudentSignup = () => {
                             <p className="su-step-heading">Personal Details <span className="su-optional"></span></p>
 
                             <div className="su-grid-2">
-                                <Field label="Email Address" icon={Mail} error={errors.email}>
+                                <Field label="Email Address *" icon={Mail} error={errors.email}>
                                     <input
                                         id="su-email"
                                         className={`su-input${errors.email ? ' su-input-error' : ''}`}
@@ -268,6 +284,7 @@ const StudentSignup = () => {
                                         onChange={e => set('email', e.target.value)}
                                         placeholder="your@email.com"
                                         autoComplete="email"
+                                        required
                                     />
                                 </Field>
 
