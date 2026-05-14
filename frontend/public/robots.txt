@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /student/dashboard
+Disallow: /student/profile
+Disallow: /student/subjects
+Disallow: /student/attendance
+Disallow: /student/fees
+Disallow: /student/results
+Disallow: /student/settings
+
+Sitemap: https://student.defactoinstitute.in/sitemap.xml

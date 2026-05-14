@@ -779,7 +779,7 @@ const StudentLogin = () => {
                         ) : (
                             <img
                                 src={instituteLogo}
-                                alt="Institute Logo"
+                                alt="Defacto Institute ERP student portal logo"
                                 onError={() => setLogoLoadFailed(true)}
                             />
                         )}
@@ -787,8 +787,8 @@ const StudentLogin = () => {
                 </div>
 
                 {/* Title */}
-                <h1 className="sl-hero-title">{t('De Facto Institute Erp')}</h1>
-                <p className="sl-hero-sub">{t('Secure login for students only.')}</p>
+                <h1 className="sl-hero-title">{t('Defacto Institute ERP')}</h1>
+                <p className="sl-hero-sub">{t('Student ERP portal for attendance, results, fees, notes, and PYQ updates.')}</p>
             </div>
 
             {/* ═══ FORM CARD ═══ */}
@@ -876,7 +876,7 @@ const StudentLogin = () => {
                             </>
                         ) : (
                             <>
-                                <span>{t('Secure Login Access')}</span>
+                                <span>{t('Defacto ERP Login')}</span>
                                 <ArrowRight size={18} className="sl-btn-arrow" />
                             </>
                         )}

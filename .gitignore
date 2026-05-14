@@ -3,6 +3,11 @@ node_modules/
 dist/
 build/
 public/
+!frontend/public/
+frontend/public/*
+!frontend/public/robots.txt
+!frontend/public/sitemap.xml
+!frontend/public/google*.html
 .DS_Store
 *.log
 frontend/android/.idea/
