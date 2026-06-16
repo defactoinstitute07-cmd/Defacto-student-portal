@@ -5,6 +5,10 @@ import './index.css'
 import appIcon from './assets/icon.png'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { LanguageProvider } from './context/LanguageContext'
+import { injectSpeedInsights } from '@vercel/speed-insights'
+
+// Initialize Vercel Speed Insights
+injectSpeedInsights()
 
 const faviconLink = document.querySelector("link[rel='icon']") || document.createElement('link')
 faviconLink.setAttribute('rel', 'icon')
